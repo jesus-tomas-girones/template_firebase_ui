@@ -1,17 +1,25 @@
+import 'package:firebase_ui/auth/firebase.dart';
 import 'package:flutter/material.dart';
 import 'api/api.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'api/firebase.dart';
 import 'screens/home.dart';
 import 'screens/user_sign_in.dart';
 
+/// The global state the app.
 class AppState extends ChangeNotifier {
   User? user; // User es del paquete Firebase
   DashboardApi? api; //TODO: Revisar, No esta claro si hay que dejarlo.
 
   AppState(this.user, this.api);
 
+  void addListener(VoidCallback listener) {
+    // TODO: implement addListener
+    super.addListener(listener);
+  }
   void updateAndNotify(User? newUser, DashboardApi? newApi) {
     user = newUser;  // actualizamos campos
     api = newApi;
@@ -52,8 +60,7 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Consumer<AppState>(builder: (context, appState, child) {//TODO: Revisar
-        return StreamBuilder<User?>( //TODO: Mirar que es StreamBuilder<User?>
+        StreamBuilder<User?>( //TODO: Mirar que es StreamBuilder<User?>
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -62,13 +69,12 @@ class AuthGate extends StatelessWidget {
             } else {
               // Render your application if authenticated
               var _user = snapshot.data!;
-              appState.updateAndNotify(_user, null);
+              Provider.of<AppState>(context, listen: false).updateAndNotify(_user, null);
               return const HomePage(
                   onSignOut: _handleSignOut); //UserProfileScreen();
             }
           },
         );
-      });
 }
 
 Future _handleSignOut() async {
