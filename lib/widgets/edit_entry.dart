@@ -7,7 +7,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
 import '../api/api.dart';
 
-import '../app_vieja.dart';
+import '../app.dart';
 import 'categories_dropdown.dart';
 
 class NewEntryForm extends StatefulWidget {

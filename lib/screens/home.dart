@@ -1,9 +1,6 @@
 // Copyright 2020, the Flutter project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,15 +12,7 @@ import 'entries.dart';
 import 'user_profile.dart';
 
 class HomePage extends StatefulWidget {
-  final VoidCallback onSignOut;
-
-  //final String photoUrl;
-
-  const HomePage({
-    required this.onSignOut,
-    //required this.photoUrl,
-    Key? key,
-  }) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -40,29 +29,33 @@ class _HomePageState extends State<HomePage> {
       actions: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextButton( //TODO QUITAR
-              style: TextButton.styleFrom(primary: Colors.white),
-              onPressed: () => _handleSignOut(),
-              child: Row(
-                children: [
-                  Consumer<AppState>(
-                    builder: (context, appState, child) {
-                      return Text(appState.user!.displayName!);
-                      //TODO: usar operador elvis ?:
-                    },
-                  ),
-                  const Text('    Sign Out'),
-
-                ],
-              )),
+          child: Consumer<AppState>(
+            builder: (context, appState, child) {
+              return Text(appState.user!.displayName!);
+              //TODO: usar operador elvis ?:
+            },
+          ),
         ),
-        const CircleAvatar(
-          child: Icon(Icons.person), //TODO: poner foto de usuario
-          //Text(widget.photoUrl),
-          //backgroundImage:
-          //backgroundImage: NetworkImage(photoUrl),
-        )//TODO al pusar, abrir user_profile
-        //TODO al pasar el ratón pone el nombre flotante (POCO IMPORTANTE)
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+              ); //TODO botón para volver, al cerrar in sign_in
+            },
+            child: Consumer<AppState>(builder: (context, appState, child) {
+              String? url = appState.user!.photoURL;
+              if (url == null) {
+                return const CircleAvatar(child: Icon(Icons.person));
+              } else {
+                return CircleAvatar(backgroundImage: NetworkImage(url));
+              }
+              //TODO al pasar el ratón pone el nombre flotante (POCO IMPORTANTE)
+            }),
+          ),
+        ),
       ],
       currentIndex: _pageIndex,
       destinations: const [
@@ -110,7 +103,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _handleSignOut() async {
+/*  Future<void> _handleSignOut() async {
     var shouldSignOut = await (showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -135,7 +128,7 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     widget.onSignOut();
-  }
+  }*/
 
   static Widget _pageAtIndex(int index) {
     if (index == 0) {

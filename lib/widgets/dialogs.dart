@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../api/api.dart';
 import 'category_forms.dart';
 
-import '../app_vieja.dart';
+import '../app.dart';
 import 'edit_entry.dart';
 
 class NewCategoryDialog extends StatelessWidget {

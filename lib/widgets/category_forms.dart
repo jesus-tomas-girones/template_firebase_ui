@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../api/api.dart';
-import '../app_vieja.dart';
+import '../app.dart';
 
 class NewCategoryForm extends StatefulWidget {
   const NewCategoryForm({Key? key}) : super(key: key);

@@ -9,7 +9,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
 
 import '../api/api.dart';
-import '../app_vieja.dart';
+import '../app.dart';
 import '../widgets/categories_dropdown.dart';
 import '../widgets/dialogs.dart';
 
