@@ -1,4 +1,3 @@
-import 'package:firebase_ui/auth/firebase.dart';
 import 'package:flutter/material.dart';
 import 'api/api.dart';
 import 'package:provider/provider.dart';
@@ -69,7 +68,10 @@ class AuthGate extends StatelessWidget {
             } else {
               // Render your application if authenticated
               var _user = snapshot.data!;
-              Provider.of<AppState>(context, listen: false).updateAndNotify(_user, null);
+              Provider.of<AppState>(context, listen: false).updateAndNotify(
+                  _user,
+                  FirebaseDashboardApi(FirebaseFirestore.instance, _user.uid)
+              );
               return const HomePage(
                   onSignOut: _handleSignOut); //UserProfileScreen();
             }

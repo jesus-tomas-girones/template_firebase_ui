@@ -13,6 +13,7 @@ import 'auth/auth.dart';
 import 'auth/firebase.dart';
 import 'auth/mock.dart';
 import 'screens/home.dart';
+//import 'screens/sign_in.dart';
 
 /// The global state the app.
 class AppState {
@@ -105,7 +106,10 @@ class _SignInSwitcherState extends State<SignInSwitcher> {
           ? HomePage(
               onSignOut: _handleSignOut,
             )
-          : null,
+          : null /*SignInPage(
+              auth: widget.appState!.auth,
+              onSuccess: _handleSignIn,
+            )*/,
     );
   }
 

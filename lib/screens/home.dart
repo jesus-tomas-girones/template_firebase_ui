@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app.dart';
-import '../main.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/third_party/adaptive_scaffold.dart';
 import 'dashboard.dart';
@@ -41,15 +40,15 @@ class _HomePageState extends State<HomePage> {
       actions: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextButton(
+          child: TextButton( //TODO QUITAR
               style: TextButton.styleFrom(primary: Colors.white),
               onPressed: () => _handleSignOut(),
               child: Row(
                 children: [
                   Consumer<AppState>(
                     builder: (context, appState, child) {
-                      return Text(appState
-                          .user!.displayName!); //TODO: usar operador elvis ?:
+                      return Text(appState.user!.displayName!);
+                      //TODO: usar operador elvis ?:
                     },
                   ),
                   const Text('    Sign Out'),
@@ -63,6 +62,7 @@ class _HomePageState extends State<HomePage> {
           //backgroundImage:
           //backgroundImage: NetworkImage(photoUrl),
         )//TODO al pusar, abrir user_profile
+        //TODO al pasar el ratón pone el nombre flotante (POCO IMPORTANTE)
       ],
       currentIndex: _pageIndex,
       destinations: const [
@@ -139,14 +139,10 @@ class _HomePageState extends State<HomePage> {
 
   static Widget _pageAtIndex(int index) {
     if (index == 0) {
-      return const Center(
-          child: Text(   'Dashboard page')); //DashboardPage();
-      // TODO: Añadir DashboardPage
+      return const DashboardPage(); //Center(child: Text('Dashboard page'));
     }
     if (index == 1) {
-      return const Center(
-          child: Text(
-              'Entries page')); //EntriesPage();  //TODO: Añadir EntriesPage
+      return const EntriesPage(); //Center(child: Text('Entries page'));
     }
     return const UserProfileScreen(); //Center(child: Text('Settings page'));
   }

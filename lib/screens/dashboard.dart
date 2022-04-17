@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../api/api.dart';
-import '../app_vieja.dart';
+import '../app.dart';
 import '../widgets/category_chart.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({Key? key}) : super(key: key);
+
+//  DashboardApi api
 
   @override
   Widget build(BuildContext context) {
