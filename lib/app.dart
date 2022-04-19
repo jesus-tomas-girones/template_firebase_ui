@@ -15,10 +15,14 @@ class AppState extends ChangeNotifier {
 
   AppState(this.user, this.api);
 
-  void updateAndNotify(User? newUser, DashboardApi? newApi) {
+  void updateUserAndNotify(User? newUser) {
     user = newUser; // actualizamos campos
-    api = newApi;
     notifyListeners(); //notificamos a los widgets para que se repinten
+  }
+
+  void updateApiAndNotify( DashboardApi? newApi){
+    api = newApi;
+    notifyListeners();
   }
 }
 
@@ -45,7 +49,15 @@ class App extends StatelessWidget {
           ),
         ),
       ),
-      home: const AuthGate(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthGate(),
+        //'/second': (context) => Page2(),
+        //'/third': (context) => Page3(),
+      },
+
+
+
     );
   }
 }
@@ -64,8 +76,8 @@ class AuthGate extends StatelessWidget {
           } else {
             // Render your application if authenticated
             var _user = snapshot.data!;
-            Provider.of<AppState>(context, listen: false).updateAndNotify(_user,
-                FirebaseDashboardApi(FirebaseFirestore.instance, _user.uid));
+            Provider.of<AppState>(context, listen: false).updateUserAndNotify(_user);
+            Provider.of<AppState>(context, listen: false).updateApiAndNotify(FirebaseDashboardApi(FirebaseFirestore.instance, _user.uid));
             return const HomePage();
           }
         },

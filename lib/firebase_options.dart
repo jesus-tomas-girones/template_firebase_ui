@@ -25,7 +25,10 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -56,16 +59,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '334675337000',
     projectId: 'flutter-firebaseui',
     storageBucket: 'flutter-firebaseui.appspot.com',
-    iosClientId: '334675337000-vnv0f5f7uo1j540noglmighcsp5ovdip.apps.googleusercontent.com',
-    iosBundleId: 'com.example.firebaseui',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBVFZgF2okiFOfTb6COtb05kb-863pVgzM',
-    appId: '1:334675337000:ios:73053995d9949d8d9c7a1d',
-    messagingSenderId: '334675337000',
-    projectId: 'flutter-firebaseui',
-    storageBucket: 'flutter-firebaseui.appspot.com',
+    androidClientId: '334675337000-0ogl21h6087bgksrbdfroj3k7ogu6s6a.apps.googleusercontent.com',
     iosClientId: '334675337000-vnv0f5f7uo1j540noglmighcsp5ovdip.apps.googleusercontent.com',
     iosBundleId: 'com.example.firebaseui',
   );

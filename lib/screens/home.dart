@@ -20,23 +20,25 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _pageIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     //print(widget.photoUrl);
     return AdaptiveScaffold(
       title: const Text('Template con Firebase'),
       actions: [
-        Padding(
+        // Poner un row para que salgan centrados
+        Row(
+          children: [
+            Padding(
           padding: const EdgeInsets.all(8.0),
           child: Consumer<AppState>(
             builder: (context, appState, child) {
-              return Text(appState.user!.displayName!);
+              return Text(appState.user!.displayName ?? "Anonimo");
               //TODO: usar operador elvis ?:
             },
           ),
         ),
-        Padding(
+            Padding(
           padding: const EdgeInsets.all(8.0),
           child: GestureDetector(
             onTap: () {
@@ -56,6 +58,7 @@ class _HomePageState extends State<HomePage> {
             }),
           ),
         ),
+        ],)
       ],
       currentIndex: _pageIndex,
       destinations: const [
