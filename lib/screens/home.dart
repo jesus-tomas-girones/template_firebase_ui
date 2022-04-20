@@ -10,6 +10,7 @@ import '../widgets/third_party/adaptive_scaffold.dart';
 import 'dashboard.dart';
 import 'entries.dart';
 import 'user_profile.dart';
+import 'user_profile_ui.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -20,6 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _pageIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     //print(widget.photoUrl);
@@ -30,35 +32,37 @@ class _HomePageState extends State<HomePage> {
         Row(
           children: [
             Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Consumer<AppState>(
-            builder: (context, appState, child) {
-              return Text(appState.user!.displayName ?? "Anonimo");
-              //TODO: usar operador elvis ?:
-            },
-          ),
-        ),
+              //TODO: quitar el nombre
+              padding: const EdgeInsets.all(8.0),
+              child: Consumer<AppState>(
+                builder: (context, appState, child) {
+                  return Text(appState.user!.displayName ?? "Anonimo");
+                },
+              ),
+            ),
             Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const UserProfileScreen()),
-              ); //TODO botón para volver, al cerrar in sign_in
-            },
-            child: Consumer<AppState>(builder: (context, appState, child) {
-              String? url = appState.user!.photoURL;
-              if (url == null) {
-                return const CircleAvatar(child: Icon(Icons.person));
-              } else {
-                return CircleAvatar(backgroundImage: NetworkImage(url));
-              }
-              //TODO al pasar el ratón pone el nombre flotante (POCO IMPORTANTE)
-            }),
-          ),
-        ),
-        ],)
+              padding: const EdgeInsets.all(8.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const UserProfileScreen()),
+                  );
+                },
+                child: Consumer<AppState>(builder: (context, appState, child) {
+                  String? url = appState.user!.photoURL;
+                  if (url == null) {
+                    return const CircleAvatar(child: Icon(Icons.person));
+                  } else {
+                    return CircleAvatar(backgroundImage: NetworkImage(url));
+                  }
+                  //TODO al pasar el ratón pone el nombre flotante (POCO IMPORTANTE)
+                }),
+              ),
+            ),
+          ],
+        )
       ],
       currentIndex: _pageIndex,
       destinations: const [
@@ -140,6 +144,6 @@ class _HomePageState extends State<HomePage> {
     if (index == 1) {
       return const EntriesPage(); //Center(child: Text('Entries page'));
     }
-    return const UserProfileScreen(); //Center(child: Text('Settings page'));
+    return const UserProfileUiScreen(); //Center(child: Text('Settings page'));
   }
 }

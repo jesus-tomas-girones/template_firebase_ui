@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app.dart';
@@ -27,8 +28,6 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
 
   bool _isLoading = false;
 
-
-
   @override
   Widget build(BuildContext context) {
     final _user = Provider.of<AppState>(context, listen: false).user;
@@ -50,7 +49,6 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
       )
     );
   }
-
 
   ///
   /// Formulario del usuario
@@ -88,11 +86,29 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
                       child: const Text("Guardar"),
                       onPressed: _btnGuardarCallback,
                     ),
-              
               ],
             ),
           );
   }
+
+  Future<String> uploadImage(PlatformFile file, String storageName) async {
+    //
+    print("***************" );
+    try {
+      TaskSnapshot upload = await FirebaseStorage.instance
+          //.ref('users/$storageName.${file.extension}')
+          .ref('fichero.png')
+          .putBlob(Blob(file.bytes!));
+      print("subido" );
+      String url = await upload.ref.getDownloadURL();
+      print("*************** url " + url);
+      return url;
+    } catch (e) {
+      print('error in uploading image for : ${e.toString()}');
+      return '';
+    }
+  }
+
   ///
   /// Callback del widget de la foto de perfil
   ///
@@ -103,6 +119,15 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
                   allowMultiple: false,
                   onFileLoading: (FilePickerStatus status) => {}
                   allowedExtensions: ['jpg', 'png']);
+
+      print("***************" );
+
+      if (result != null) {
+        PlatformFile file = result.files.first;
+        String url = await uploadImage(file, "poner_uid");
+        // Cambiar foto a esta URL
+      }
+
 
       if (Platform.isAndroid) {
           // android
@@ -115,7 +140,6 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
           //print(file.extension);
 
           // subir la imgen a firestore
-
           
         } else {
           // cancelado
