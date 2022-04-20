@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// Widget que representa una imagen de perfil con un boton de editar
-class ProfileWidget extends StatelessWidget {
+class AvatarWidget extends StatelessWidget {
   final String imagePath;
   final bool isEdit;
   final VoidCallback onClicked;
 
-  const ProfileWidget({
+  const AvatarWidget({
     Key? key,
     required this.imagePath,
     this.isEdit = false,
@@ -50,7 +50,7 @@ class ProfileWidget extends StatelessWidget {
               fit: BoxFit.cover,
               width: 128,
               height: 128,
-              child: InkWell(onTap: onClicked),
+              //child: InkWell(onTap: onClicked),
             ),
           ),
         )
@@ -61,15 +61,20 @@ class ProfileWidget extends StatelessWidget {
   Widget buildEditIcon(Color color) => buildCircle(
         color: Colors.white,
         all: 3,
-        child: buildCircle(
-          color: color,
-          all: 8,
-          child: Icon(
-            isEdit ? Icons.add_a_photo : Icons.edit,
-            color: Colors.white,
-            size: 20,
+        child: Material(
+          child: InkWell(
+            onTap: onClicked,
+            child: buildCircle(
+              color: color,
+              all: 8,
+              child: Icon(
+                isEdit ? Icons.add_a_photo : Icons.edit,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
           ),
-        ),
+        )
       );
 
   Widget buildCircle({

@@ -1,10 +1,12 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/screens/user_profile_edit.dart';
-import 'package:firebase_ui/widgets/profile_widget.dart';
+import 'package:firebase_ui/widgets/avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 import '../app.dart';
+import '../utils/firestore_utils.dart';
 import '../widgets/third_party/editable_user_display_name.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -33,16 +35,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             physics: const BouncingScrollPhysics(),
             children: [
               const SizedBox(height: 24), // espaciador
-              ProfileWidget(
-                  isEdit: false,
+              AvatarWidget(
                   imagePath: appState.user!.photoURL ?? "",
-                  onClicked: () => {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  const EditUserProfileScreen()),
-                        )
-                      }),
+                  onClicked: _onChangeFileCallback
+                  ),
               const SizedBox(height: 24), // espaciador
               //////////////////////////////////
               Align(child: EditableUserDisplayName(user: appState.user)),
@@ -62,6 +58,42 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ));
   }
+
+
+  ///
+  /// Callback del widget de la foto de perfil
+  ///
+  void _onChangeFileCallback() async {
+      
+      String uid = Provider.of<AppState>(context,listen: false).user!.uid;
+      
+      FilePickerResult? result = await FilePicker.platform
+              .pickFiles(
+                  type: FileType.custom,
+                  allowMultiple: false,
+                  onFileLoading: (FilePickerStatus status) => {}
+                  allowedExtensions: ['jpg', 'png']);
+
+      print("*************** CALLBACK" );
+
+      if (result != null) {
+        String url = await uploadFile(result.files.first,"users/"+uid);
+        // imagen subida, camnbiarla al usuario
+        if(url != ""){
+          print("*************** url: "+url );
+          FirebaseAuth.instance.currentUser!.updatePhotoURL(url).then((value) {
+             print("*************** ACTUALIZAR USER UI" );
+            Provider.of<AppState>(context,listen: false).updateUserAndNotify(FirebaseAuth.instance.currentUser);
+          });
+        }
+         
+      }else{
+        print("*************** RESULT NULL" );
+      }
+                 
+  }
+
+
 }
 
 Widget _buildSignOut(VoidCallback onPressed) {
@@ -80,6 +112,7 @@ Widget _buildSignOut(VoidCallback onPressed) {
               ]),
         )),
   );
+
 }
 
 Widget _buildName(var user) => Column(

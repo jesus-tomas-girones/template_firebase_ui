@@ -6,11 +6,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app.dart';
-import '../widgets/profile_widget.dart';
+import '../utils/firestore_utils.dart';
+import '../widgets/avatar_widget.dart';
 import '../widgets/textfield_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditUserProfileScreen extends StatefulWidget {
   const EditUserProfileScreen({Key? key}) : super(key: key);
@@ -61,7 +61,7 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
             physics: const BouncingScrollPhysics(),
             children: [
               const SizedBox(height: 24),
-              ProfileWidget(
+              AvatarWidget(
                 imagePath: _user!.photoURL ?? "",
                 isEdit: true,
                 onClicked: _onChangeFileCallback
@@ -91,28 +91,15 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
           );
   }
 
-  Future<String> uploadImage(PlatformFile file, String storageName) async {
-    //
-    print("***************" );
-    try {
-      TaskSnapshot upload = await FirebaseStorage.instance
-          //.ref('users/$storageName.${file.extension}')
-          .ref('fichero.png')
-          .putBlob(Blob(file.bytes!));
-      print("subido" );
-      String url = await upload.ref.getDownloadURL();
-      print("*************** url " + url);
-      return url;
-    } catch (e) {
-      print('error in uploading image for : ${e.toString()}');
-      return '';
-    }
-  }
+  
 
   ///
   /// Callback del widget de la foto de perfil
   ///
   void _onChangeFileCallback() async {
+      
+      String uid = Provider.of<AppState>(context,listen: false).user!.uid;
+      
       FilePickerResult? result = await FilePicker.platform
               .pickFiles(
                   type: FileType.custom,
@@ -120,30 +107,21 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
                   onFileLoading: (FilePickerStatus status) => {}
                   allowedExtensions: ['jpg', 'png']);
 
-      print("***************" );
+      print("*************** CALLBACK" );
 
       if (result != null) {
-        PlatformFile file = result.files.first;
-        String url = await uploadImage(file, "poner_uid");
-        // Cambiar foto a esta URL
-      }
-
-
-      if (Platform.isAndroid) {
-          // android
-      }else{
-         if (result != null) {
-          PlatformFile file = result.files.first;
-          //print(file.name);
-          //print(file.bytes);
-          //print(file.size);
-          //print(file.extension);
-
-          // subir la imgen a firestore
-          
-        } else {
-          // cancelado
+        String url = await uploadFile(result.files.first,"users/"+uid);
+        // imagen subida, camnbiarla al usuario
+        if(url != ""){
+          print("*************** url: "+url );
+          FirebaseAuth.instance.currentUser!.updatePhotoURL(url).then((value) {
+             print("*************** ACTUALIZAR USER UI" );
+            Provider.of<AppState>(context,listen: false).updateUserAndNotify(FirebaseAuth.instance.currentUser);
+          });
         }
+         
+      }else{
+        print("*************** RESULT NULL" );
       }
                  
   }
