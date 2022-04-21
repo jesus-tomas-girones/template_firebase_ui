@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/screens/user_profile_edit.dart';
 import 'package:firebase_ui/widgets/avatar_widget.dart';
+import 'package:firebase_ui/widgets/cambiar_password_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -53,7 +54,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 FirebaseAuth.instance.signOut(); // cerrar sesion
                 Navigator.of(context).popUntil(
                   ModalRoute.withName("/")); //Volver a la pagina incial
-              }))
+              })),
+
+              ElevatedButton(onPressed: (){
+                showDialog(
+                  context: context, 
+                  builder: (BuildContext context) {
+                    return StatefulBuilder(builder: ((context, setState) {
+                      return SimpleDialog(children: [CambiarFirebasePasswordWidget(user: appState.user)],);
+                    }));
+                  }
+                );
+              }, child: const Text("Cambiar contraseña"))
+              
             ],
           ),
         ));
@@ -94,6 +107,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
 
+ 
 }
 
 Widget _buildSignOut(VoidCallback onPressed) {

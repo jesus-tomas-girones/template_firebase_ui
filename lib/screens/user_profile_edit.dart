@@ -41,7 +41,7 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
       body: Stack(
         children: [
           _buildForm(_user),
-          // TODO Extraer el loading como widget independiente para poder utilizarlo en otras partes
+         
           if (_isLoading) const Opacity(opacity: 0.1, child: ModalBarrier(dismissible: false, color: Colors.black),),
           if (_isLoading) const Center( child: CircularProgressIndicator(),),
           
