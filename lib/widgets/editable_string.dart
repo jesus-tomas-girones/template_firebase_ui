@@ -1,44 +1,50 @@
 // Este Widget ha sido copiado de Firebase UI  https://firebase.flutter.dev/docs/ui/overview/
 
-// Muestra el nombre de usuario con un botón de editar.
+// Muestra un texto con un botón de editar.
 // Al pulsar el botón, permite editarlo
 // Si no tiene nombre aparece en modo edición
 // Se han añadifo los ficheros subtitle y plataform_widget
 
-import 'package:firebase_auth/firebase_auth.dart'; //show FirebaseAuth;
 import 'package:flutter/cupertino.dart';
-import 'package:flutterfire_ui/auth.dart';
-import 'package:flutterfire_ui/i10n.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutterfire_ui/auth.dart';
 
-import '../../app.dart';
-import 'subtitle.dart';
+//import 'third_party/subtitle.dart';
 
-class EditableUserDisplayName extends StatefulWidget {
-  //final FirebaseAuth? auth;  ///////////////////////////// Se quita
-  final User? user;  ///////////////////////////////// Nuevo
+//Se le pasa un string con un texto y un callback con las acciones a hacer cuando cambie
 
-  //TODO: Pasa un string con el nombre y un callback con las acciones a hacer cuando cambie
+class EditableString extends StatefulWidget {
+  final String? text; // Texto de entrada
+//  final void Function(String text)? onChange; //CallBack cuando se cambie
+  final Future Function(String text)? onChange;
+  final String? labelText; // Etiqueta del campo que se edita o hint
+  final String? explanationText; // Instrucciones para el campo
+  final TextStyle? textStyle;
 
-  const EditableUserDisplayName({
+  const EditableString({
     Key? key,
-    this.user,//auth,
+    this.text,
+    this.onChange,
+    this.labelText,
+    this.explanationText,
+    this.textStyle,
   }) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
-  _EditableUserDisplayNameState createState() =>
-      _EditableUserDisplayNameState();
+  _EditableString createState() => _EditableString();
 }
 
-class _EditableUserDisplayNameState extends State<EditableUserDisplayName> {
-  User? get user => widget.user ?? FirebaseAuth.instance.currentUser;
-  String? get displayName => user?.displayName;
+class _EditableString extends State<EditableString> {
+  String? get text => widget.text;
+  String? get labelText => widget.labelText;
 
-  late final ctrl = TextEditingController(text: displayName ?? '');
+  //TextStyle? get textStyle => widget.textStyle;
 
-  late bool _editing = displayName == null;
+  //late final ctrl = TextEditingController(text: text ?? '');
+  late final ctrl = TextEditingController(text: widget.text ?? '');
+
+  late bool _editing = text == null;
   bool _isLoading = false;
 
   void _onEdit() {
@@ -49,19 +55,16 @@ class _EditableUserDisplayNameState extends State<EditableUserDisplayName> {
 
   Future<void> _finishEditing() async {
     try {
-      if (displayName == ctrl.text) return;
-
+      if (text == ctrl.text) return;
       setState(() {
         _isLoading = true;
       });
-
-      await user?.updateDisplayName(ctrl.text)
 //////////////////////////////////////////////////////// Nuevo
-          .then((value){
-              Provider.of<AppState>(context,listen: false).updateUserAndNotify(FirebaseAuth.instance.currentUser);
-           });
+// Llamos al callBach
+      if (widget.onChange != null) {
+        await widget.onChange!(ctrl.text);
+      }
 //////////////////////////////////////////////////////// Nuevo
-      await user?.reload();   //Igual ya no hace falta ??????????
     } finally {
       setState(() {
         _editing = false;
@@ -73,7 +76,7 @@ class _EditableUserDisplayNameState extends State<EditableUserDisplayName> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l = FlutterFireUILocalizations.labelsOf(context);
+    //final l = FlutterFireUILocalizations.labelsOf(context);
     final isCupertino = CupertinoUserInterfaceLevel.maybeOf(context) != null;
 
     late Widget iconButton;
@@ -96,20 +99,29 @@ class _EditableUserDisplayNameState extends State<EditableUserDisplayName> {
       );
     }
 
+    var _textStyle = widget.textStyle;
+    if (_textStyle == null) {
+      if (isCupertino) {
+        _textStyle = CupertinoTheme.of(context).textTheme.navTitleTextStyle;
+      } else {
+        _textStyle = Theme.of(context).textTheme.subtitle1;
+      }
+    }
+
     if (!_editing) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 5.5),
         child: IntrinsicWidth(
           child: Row(
             children: [
-              Subtitle(text: displayName ?? 'Unknown'),
+              Text(text ?? "Unknown", style: _textStyle),
+              //Subtitle(text: text ?? 'Unknown'),
               iconButton,
             ],
           ),
         ),
       );
     }
-
     late Widget textField;
 
     if (isCupertino) {
@@ -118,7 +130,7 @@ class _EditableUserDisplayNameState extends State<EditableUserDisplayName> {
         child: CupertinoTextField(
           autofocus: true,
           controller: ctrl,
-          placeholder: l.name,
+          placeholder: labelText, //l.name,
           onSubmitted: (_) => _finishEditing(),
         ),
       );
@@ -126,12 +138,16 @@ class _EditableUserDisplayNameState extends State<EditableUserDisplayName> {
       textField = TextField(
         autofocus: true,
         controller: ctrl,
-        decoration: InputDecoration(hintText: l.name, labelText: l.name),
+        decoration: InputDecoration(hintText: labelText, labelText: labelText),
         onSubmitted: (_) => _finishEditing(),
       );
     }
 
-    return Row(
+    var _text = widget.explanationText ?? "";
+    return Column(
+    children:[
+      Text(_text),
+      Row(
       children: [
         Expanded(child: textField),
         const SizedBox(width: 8),
@@ -151,6 +167,8 @@ class _EditableUserDisplayNameState extends State<EditableUserDisplayName> {
           ),
         ),
       ],
+    ),
+    ],
     );
   }
 }
