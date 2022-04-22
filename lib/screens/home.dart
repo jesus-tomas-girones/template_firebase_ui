@@ -29,40 +29,27 @@ class _HomePageState extends State<HomePage> {
       title: const Text('Template con Firebase'),
       actions: [
         // Poner un row para que salgan centrados
-        Row(
-          children: [
-            Padding(
-              //TODO: quitar el nombre
-              padding: const EdgeInsets.all(8.0),
-              child: Consumer<AppState>(
-                builder: (context, appState, child) {
-                  return Text(appState.user!.displayName ?? "Anonimo");
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const UserProfileScreen()),
-                  );
-                },
-                child: Consumer<AppState>(builder: (context, appState, child) {
-                  String? url = appState.user!.photoURL;
-                  if (url == null) {
-                    return const CircleAvatar(child: Icon(Icons.person));
-                  } else {
-                    return CircleAvatar(backgroundImage: NetworkImage(url));
-                  }
-                  //TODO al pasar el ratón pone el nombre flotante (POCO IMPORTANTE)
-                }),
-              ),
-            ),
-          ],
-        )
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const UserProfileScreen()),
+              );
+            },
+            child: Consumer<AppState>(builder: (context, appState, child) {
+              String? url = appState.user!.photoURL;
+              String name = appState.user!.displayName ?? "Anónimo";
+              if (url == null) {
+                return Tooltip(message: name, child: const CircleAvatar(child: Icon(Icons.person)),);
+              } else {
+                return Tooltip(message: name, child: CircleAvatar(backgroundImage: NetworkImage(url)));
+              }
+            }),
+          ),
+        ),
       ],
       currentIndex: _pageIndex,
       destinations: const [
