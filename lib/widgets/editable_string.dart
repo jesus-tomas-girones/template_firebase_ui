@@ -13,6 +13,8 @@ import 'package:flutterfire_ui/auth.dart';
 
 //Se le pasa un string con un texto y un callback con las acciones a hacer cuando cambie
 
+
+// TODO solo funciona si tiene un list view encima, da error de limites de pantalla o que no se puede pintar adecuadamente
 class EditableString extends StatefulWidget {
   final String? text; // Texto de entrada
 //  final void Function(String text)? onChange; //CallBack cuando se cambie
