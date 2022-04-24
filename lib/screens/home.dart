@@ -1,6 +1,8 @@
 // Copyright 2020, the Flutter project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'package:firebase_ui/modelo/Paciente.dart';
+import 'package:firebase_ui/screens/informes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +11,7 @@ import '../widgets/dialogs.dart';
 import '../widgets/third_party/adaptive_scaffold.dart';
 import 'dashboard.dart';
 import 'entries.dart';
+import 'informe_detalles.dart';
 import 'user_profile.dart';
 import 'user_profile_ui.dart';
 
@@ -89,10 +92,17 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     if (_pageIndex == 1) {
-      showDialog<NewEntryDialog>(
+      /*showDialog<NewEntryDialog>(
         context: context,
         builder: (context) => const NewEntryDialog(),
-      );
+      );*/
+      // TODO tratar el resultado, puede que no haga falta si se hace dentro de la ventana de informe
+      var seGuardoLaEdicion = Navigator.push(
+                context,
+                MaterialPageRoute(
+                  // TODO cambiar pacientes a por los del usuario de la bd
+                    builder: (context) => InformeDetallePage(informe: null,pacientes: Paciente.mockListaPacientes(),)),
+              );
       return;
     }
   }
@@ -129,7 +139,7 @@ class _HomePageState extends State<HomePage> {
       return const DashboardPage(); //Center(child: Text('Dashboard page'));
     }
     if (index == 1) {
-      return const EntriesPage(); //Center(child: Text('Entries page'));
+      return const InformesPage(); //Center(child: Text('Entries page'));
     }
     return const UserProfileUiScreen(); //Center(child: Text('Settings page'));
   }
