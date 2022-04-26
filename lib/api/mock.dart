@@ -35,6 +35,10 @@ class MockDashboardApi implements DashboardApi {
       }
     }
   }
+
+  @override
+  // TODO: implement informes
+  InformeApi get informes => throw UnimplementedError();
 }
 
 class MockCategoryApi implements CategoryApi {

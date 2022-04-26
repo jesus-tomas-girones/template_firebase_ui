@@ -96,13 +96,16 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (context) => const NewEntryDialog(),
       );*/
-      // TODO tratar el resultado, puede que no haga falta si se hace dentro de la ventana de informe
-      var seGuardoLaEdicion = Navigator.push(
-                context,
-                MaterialPageRoute(
-                  // TODO cambiar pacientes a por los del usuario de la bd
-                    builder: (context) => InformeDetallePage(informe: null,pacientes: Paciente.mockListaPacientes(),)),
-              );
+      var api = Provider.of<AppState>(context,listen: false).api;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          // TODO cambiar pacientes a por los del usuario de la bd
+            builder: (context) => InformeDetallePage(
+              informeApi: api!.informes,
+              informe: null,
+              pacientes: Paciente.mockListaPacientes(),)),
+      );
       return;
     }
   }

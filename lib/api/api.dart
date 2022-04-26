@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_ui/modelo/Informe.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import '../modelo/Paciente.dart';
+import '../modelo/TipoAccidente.dart';
 
 part 'api.g.dart';
 
@@ -11,6 +15,7 @@ part 'api.g.dart';
 abstract class DashboardApi {
   CategoryApi get categories;
   EntryApi get entries;
+  InformeApi get informes;
 }
 
 /// Manipulates [Category] data.
@@ -41,6 +46,16 @@ abstract class EntryApi {
   Future<Entry> update(String categoryId, String id, Entry entry);
 
   Stream<List<Entry>> subscribe(String categoryId);
+}
+
+/// Manipulates [Informe] data.
+abstract class InformeApi {
+
+  Future<List<Informe>> list();
+  Stream<List<Informe>> subscribe();
+  Future<Informe> update(Informe informe, String id);
+  Future<Informe> insert(Informe informe);
+  Future<Informe> get(String id);
 }
 
 /// Something that's being tracked, e.g. Hours Slept, Cups of water, etc.

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_ui/modelo/Informe.dart';
 
 import 'api.dart';
 
@@ -13,9 +14,13 @@ class FirebaseDashboardApi implements DashboardApi {
   @override
   final CategoryApi categories;
 
+  @override
+  final InformeApi informes;
+
   FirebaseDashboardApi(FirebaseFirestore firestore, String userId)
       : entries = FirebaseEntryApi(firestore, userId),
-        categories = FirebaseCategoryApi(firestore, userId);
+        categories = FirebaseCategoryApi(firestore, userId),
+        informes = FirebaseInformeApi(firestore, userId);
 }
 
 class FirebaseEntryApi implements EntryApi {
@@ -144,5 +149,61 @@ class FirebaseCategoryApi implements CategoryApi {
     await document.update(category.toJson());
     var snapshot = await document.get();
     return Category.fromJson(snapshot.data()!)..id = snapshot.id;
+  }
+}
+
+class FirebaseInformeApi implements InformeApi {
+  final FirebaseFirestore firestore;
+  final String userId;
+  final CollectionReference<Map<String, dynamic>> _informesRef;
+
+  FirebaseInformeApi(this.firestore, this.userId)
+      : _informesRef = firestore.collection('users/$userId/informes');
+
+  
+  @override
+  Future<List<Informe>> list() async {
+    var querySnapshot = await _informesRef.get();
+    var informes = querySnapshot.docs
+        .map((doc) => Informe.fromJson(doc.data())..id = doc.id)
+        .toList();
+
+    return informes;
+  }
+
+  @override
+  Future<Informe> update(Informe category, String id) async {
+    var document = _informesRef.doc(id);
+    await document.update(category.toJson());
+    var snapshot = await document.get();
+    return Informe.fromJson(snapshot.data()!)..id = snapshot.id;
+  }
+
+  @override
+  Future<Informe> insert(Informe informe) async {
+    print("INSERT ---");
+    print(informe.toJson());
+    var document = await _informesRef.add(informe.toJson());
+    return await get(document.id);
+  }
+
+  @override
+  Future<Informe> get(String id) async {
+    var document = _informesRef.doc(id);
+    var snapshot = await document.get();
+    return Informe.fromJson(snapshot.data()!)..id = snapshot.id;
+  }
+
+
+  @override
+  Stream<List<Informe>> subscribe() {
+    var snapshots = _informesRef.snapshots();
+    var result = snapshots.map<List<Informe>>((querySnapshot) {
+      return querySnapshot.docs.map<Informe>((snapshot) {
+        return Informe.fromJson(snapshot.data())..id = snapshot.id;
+      }).toList();
+    });
+
+    return result;
   }
 }

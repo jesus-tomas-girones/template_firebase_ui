@@ -30,29 +30,8 @@ class _InformesPageState extends State<InformesPage> {
   @override
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context);
-    return Column(
-      children: [
-        Expanded(
-          child: _informes.isEmpty 
-              ? _buildEmptyInformesPage()
-              // TODO cambiar a obtenerlo de la BD
-              :  ListView.separated(
-                  
-                  separatorBuilder: (context, index) => 
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Divider(color: Colors.black, thickness: 0.2,),),
-                  
-                  itemBuilder: (context, index) {
-                    return InformeTile(
-                      informe: _informes[index],
-                    );
-                  },
-
-                  itemCount: _informes.length,
-              )
-                  
-        ),
-      ],
+    return InformeList(
+          api: appState.api!.informes,            
     );
   }
 
@@ -68,45 +47,46 @@ class _InformesPageState extends State<InformesPage> {
   }
 }
 
-class EntriesList extends StatefulWidget {
-  final Category? category;
-  final EntryApi api;
+class InformeList extends StatefulWidget {
 
-  EntriesList({
-    this.category,
+  final InformeApi api;
+
+  const InformeList({
+    Key? key,
     required this.api,
-  }) : super(key: ValueKey(category?.id));
+  }): super(key: key);
 
   @override
-  _EntriesListState createState() => _EntriesListState();
+  _InformeListState createState() => _InformeListState();
 }
 
-class _EntriesListState extends State<EntriesList> {
+class _InformeListState extends State<InformeList> {
   @override
   Widget build(BuildContext context) {
-    if (widget.category == null) {
-      return _buildLoadingIndicator();
-    }
-
-    return FutureBuilder<List<Entry>>(
-      future: widget.api.list(widget.category!.id!),
+    
+    return FutureBuilder<List<Informe>>(
+      future: widget.api.list(),
       builder: (context, futureSnapshot) {
         if (!futureSnapshot.hasData) {
           return _buildLoadingIndicator();
         }
-        return StreamBuilder<List<Entry>>(
+        return StreamBuilder<List<Informe>>(
           initialData: futureSnapshot.data,
-          stream: widget.api.subscribe(widget.category!.id!),
+          stream: widget.api.subscribe(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
+              
               return _buildLoadingIndicator();
+            }else if(snapshot.data!.isEmpty){
+              // no hay datos
+              return const Center(child: Text("Aun no hay informes creados"),);
             }
+
             return ListView.builder(
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                return EntryTile(
-                  category: widget.category,
-                  entry: snapshot.data![index],
+                return InformeTile(
+                  informe: snapshot.data![index],
                 );
               },
              
@@ -122,75 +102,6 @@ class _EntriesListState extends State<EntriesList> {
   }
 }
 
-class EntryTile extends StatelessWidget {
-  final Category? category;
-  final Entry? entry;
-
-  const EntryTile({
-    this.category,
-    this.entry,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(entry!.value.toString()),
-      subtitle: Text(intl.DateFormat('MM/dd/yy h:mm a').format(entry!.time)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton(
-            child: const Text('Edit'),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) {
-                  return EditEntryDialog(category: category, entry: entry);
-                },
-              );
-            },
-          ),
-          TextButton(
-            child: const Text('Delete'),
-            onPressed: () async {
-              var shouldDelete = await (showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Delete entry?'),
-                  actions: [
-                    TextButton(
-                      child: const Text('Cancel'),
-                      onPressed: () => Navigator.of(context).pop(false),
-                    ),
-                    TextButton(
-                      child: const Text('Delete'),
-                      onPressed: () => Navigator.of(context).pop(true),
-                    ),
-                  ],
-                ),
-              ) as FutureOr<bool>);
-              if (shouldDelete) {
-                await Provider.of<AppState>(context, listen: false)
-                    .api!
-                    .entries
-                    .delete(category!.id!, entry!.id!);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Entry deleted'),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
 class InformeTile extends StatelessWidget {
 
   final Informe? informe;
@@ -202,6 +113,7 @@ class InformeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var appState = Provider.of<AppState>(context,listen: false).api;
     return ListTile(
       title: Text(intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente)),
       subtitle: Text(informe!.descripcion, maxLines: 3, overflow: TextOverflow.ellipsis,),
@@ -212,12 +124,14 @@ class InformeTile extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              // TODO tratar el resultado de editar el informe
-              var seGuardoLaEdicion = Navigator.push(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                    // TODO los pacientes deben estar asociados al usuario, obtener de BD
-                    builder: (context) => InformeDetallePage(informe: informe,pacientes: Paciente.mockListaPacientes(),)),
+                    builder: (context) => InformeDetallePage(
+                      informeApi: appState!.informes,
+                      informe: informe,
+                      pacientes: Paciente.mockListaPacientes(),)),
               );
             },
           ),

@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/modelo/Indemnizacion.dart';
 import 'package:firebase_ui/modelo/TipoAccidente.dart';
 import 'package:firebase_ui/widgets/editable_string.dart';
@@ -14,10 +17,11 @@ import '../modelo/Paciente.dart';
 
 class InformeDetallePage extends StatefulWidget {
 
+  InformeApi? informeApi;
   Informe? informe; // si es null es para crear
   List<Paciente>? pacientes;
 
-  InformeDetallePage({Key? key, this.informe,this.pacientes}) : super(key: key);
+  InformeDetallePage({Key? key, this.informe,this.pacientes,this.informeApi}) : super(key: key);
 
   @override
   _InformeDetallePageState createState() => _InformeDetallePageState();
@@ -45,14 +49,20 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   late List<PlatformFile>? ficherosSeleccionados;
   late Paciente? pacienteSeleccionado;
 
+  late bool isEditing;
+
+  bool _isLoading = false;
+
   @override
   void initState() {
+    isEditing = widget.informe != null;
+
     selectedDate = widget.informe?.fechaAccidente ?? DateTime.now();
     tipoAccidenteSeleccionado = widget.informe?.tipoAccidente;
     descripcion = widget.informe?.descripcion;
     lugarAccidente = widget.informe?.lugarAccidente;
     aseguradora = widget.informe?.companyiaAseguradora;
-    indemnizaciones = widget.informe?.indemnizaciones;
+    indemnizaciones = widget.informe?.indemnizaciones ?? [];
     pacienteSeleccionado = widget.informe?.paciente;
     ficherosSeleccionados = widget.informe?.ficherosAdjuntos ?? [];
 
@@ -76,20 +86,36 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
    super.dispose();
  }
 
+
+  void _setLoading(bool bool) {
+    setState(() {
+      _isLoading = bool;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return  DefaultTabController(
         length: _tabs.length,
-        child: Scaffold(
-            floatingActionButton: _currentTabIndex == 1 ? _buildFab() : null,
-            appBar: _buildAppBar(),
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFormInforme(widget.informe),
-                _buildListaIndemnizaciones(indemnizaciones)
-              ],
-            )
+        child: Stack(
+          children: [
+            
+            // contenido
+            Scaffold(
+              floatingActionButton: _currentTabIndex == 1 ? _buildFab() : null,
+              appBar: _buildAppBar(),
+              body: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildFormInforme(widget.informe),
+                  _buildListaIndemnizaciones(indemnizaciones)
+                ],
+              )
+            ),
+          
+            // carga
+            if (_isLoading) const Opacity(opacity: 0.1, child: ModalBarrier(dismissible: false, color: Colors.black),),
+            if (_isLoading) const Center( child: CircularProgressIndicator(),),
+          ],
         )
     );
     
@@ -98,7 +124,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
   PreferredSizeWidget? _buildAppBar(){
     return AppBar(
-      title: widget.informe == null ? const Text("Añadir Informe"): const Text("Detalles Informe"),
+      title: !isEditing ? const Text("Añadir Informe"): const Text("Detalles Informe"),
       automaticallyImplyLeading: true,
       // leading es el icono de la izquierda
       leading: IconButton(
@@ -108,7 +134,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       actions: [
         // GUARDAR INFORME
         IconButton(
-          onPressed: (){}, 
+          onPressed: _guardarInforme, 
           icon: const Icon(Icons.save)
         )
       ],
@@ -118,7 +144,21 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       ),
     );
   }
-
+  ///
+  /// Funcion que guarda o actualiza el informe
+  ///
+  void _guardarInforme() async{
+    _setLoading(true);
+    var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!,
+      tipoAccidenteSeleccionado!,ficherosSeleccionados!,indemnizaciones!);
+    if(isEditing){
+      Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
+    }else{
+      Informe res = await widget.informeApi!.insert(informe);
+    }
+    Navigator.of(context).pop();
+      _setLoading(false);
+  }
 
   ///
   /// Tab 1 detalles del informe
@@ -398,6 +438,8 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         ),
     );
   }
+
+  
 
 }
 
