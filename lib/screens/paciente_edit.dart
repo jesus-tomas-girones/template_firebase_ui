@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../model/paciente.dart';
 import '../api/api.dart';
+import '../utils/enum_helpers.dart';
 import '../widgets/campos_formulario.dart';
 
 //TODO Al salir preguntar si se pierden los cambios
@@ -58,7 +59,12 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
             (value) async { setState(() { paciente.apellidos = value; });}),
           CampoFecha(paciente.fechaNacimiento, "Fecha de nacimiento", context,
             (value) async { setState(() { paciente.fechaNacimiento = value; });}),
-          _buildDropDownSexo(),
+          buildDropDown(paciente.sexo,Sexo.values,"Sexo del paciente","Seleccione el sexo",(dynamic value){
+            setState(() {
+              paciente.sexo = value;
+            });
+          }),
+          //_buildDropDownSexo(paciente),
           CampoTexto(paciente.domicilio, "Domicilio",
             (value) async { setState(() { paciente.domicilio = value; });}),
           CampoTexto(paciente.telefono, "Telefono",
@@ -108,37 +114,22 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
     _setLoading(false);
   }
 
-    Widget _buildDropDownSexo() {
+    /*Widget _buildDropDownSexo(Paciente paciente) {
       return ListTile(
         title: const Text("Sexo"),
         subtitle: DropdownButton<Sexo>(
             hint: const Text("Selecciona el tipo de accidente"),
-            value: Sexo.mujer,
+            value: paciente.sexo,
             onChanged: (value) {
               setState(() {
-                //paciente.sexo = value;
+                paciente.sexo = value;
               });
             },
             items: Sexo.values.map((Sexo classType) {
               return DropdownMenuItem<Sexo>(
-                  value: classType, child: Text(classType.toString()));
+                  value: classType, child: Text(getCustomEnumName(classType)));
             }).toList()),
       );
-    }
-
-  //TODO Hacerlo de forma genérica para cualquier enum
-
-  /*Widget _buildDropDown<Enum>(Enum valorInicial, String? titulo,
-      Future<dynamic> Function(Enum? value) onChange) =>
-      ListTile(
-      title: Text(titulo ?? ""),
-      subtitle: DropdownButton<Enum>(
-          hint: const Text("Selecciona el tipo de accidente"),
-          value: valorInicial ,
-          onChanged: (value) =>  onChange(value),
-          //items: ["onu", "dos"]
-    ),
-      );
-  */
+    }*/
 
 }

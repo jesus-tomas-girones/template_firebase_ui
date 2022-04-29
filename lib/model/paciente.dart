@@ -1,11 +1,14 @@
+import 'package:firebase_ui/utils/enum_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/date_time_helpers.dart';
 
-enum Sexo {
+enum Sexo{
   hombre, mujer
 }
+
+// TODO hacer los extension para el value para los enum de nivel de formacion y situacion laboral
 enum NivelFormacion {
   analfabeto, primaria, bachillerato, formacionProfesional, graduadoUniversitario, doctorado
 }
@@ -47,13 +50,14 @@ class Paciente {
     this.empresa,
   });
 
-  factory Paciente.fromJson(Map<String, dynamic> json) =>
-      Paciente(
+  factory Paciente.fromJson(Map<String, dynamic> json){
+    try{
+      return  Paciente(
         nombre: json['nombre'],
         apellidos: json['apellidos'],
         fechaNacimiento: json['fecha_nacimiento'] == null ? null :
         timestampToDateTime(json['fecha_nacimiento'] as Timestamp),
-        sexo: json['sexo'],
+        sexo: enumfromString(Sexo.values, json['sexo']),
         domicilio: json['domicilio'],
         telefono: json['telefono'],
         dni: json['dni'],
@@ -64,6 +68,14 @@ class Paciente {
         ocupacion: json['ocupacion'],
         empresa: json['empresa'],
       );
+
+    }catch(e){
+      print("Error on paciente");
+      print(e);
+      return Paciente();
+    }
+    
+  }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
@@ -89,8 +101,7 @@ class Paciente {
 
   //TODO: Quitar hasta el final
   static List<Paciente> mockListaPacientes() {
-    return [
-      Paciente(
+    Paciente p = Paciente(
           nombre: "Paciente 1",
           apellidos: "apell",
           fechaNacimiento: DateTime.now(),
@@ -103,8 +114,8 @@ class Paciente {
           antecedentesMedicos: "1",
           situacionLaboral: SituacionLaboral.activo,
           ocupacion: "1",
-          empresa: "1"),
-      Paciente(
+          empresa: "1")..id = "1";
+    Paciente p2 = Paciente(
           nombre: "Paciente 2",
           apellidos: "apell",
           fechaNacimiento: DateTime.now(),
@@ -117,8 +128,8 @@ class Paciente {
           antecedentesMedicos: "1",
           situacionLaboral: SituacionLaboral.activo,
           ocupacion: "1",
-          empresa: "1"),
-      Paciente(
+          empresa: "1")..id = "2";
+    Paciente p3 = Paciente(
           nombre: "Paciente 3",
           apellidos: "apell",
           fechaNacimiento: DateTime.now(),
@@ -131,7 +142,11 @@ class Paciente {
           antecedentesMedicos: "1",
           situacionLaboral: SituacionLaboral.activo,
           ocupacion: "1",
-          empresa: "1"),
+          empresa: "1")..id = "3";
+    return [
+      p,
+      p2,
+      p3,
     ];
   }
 

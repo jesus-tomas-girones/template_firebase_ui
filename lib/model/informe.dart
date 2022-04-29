@@ -1,5 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
+import 'package:firebase_ui/utils/enum_helpers.dart';
+import 'package:flutter/foundation.dart';
 //import 'package:firebase_ui/model/TipoAccidente.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,7 +13,24 @@ import '../api/api.dart';
 
 
 enum TipoAccidente{
-  Trafico, Laboral, Deportivo, ViaPublica
+  Trafico, Laboral, Deportivo,  ViaPublica,
+  
+}
+extension TipoAccidenteExtension on TipoAccidente {
+  String get value {
+    switch (this) {
+      case TipoAccidente.Trafico:
+        return "Trafico";
+      case TipoAccidente.Laboral:
+        return "Laboral";
+      case TipoAccidente.Deportivo:
+        return "Deportivo";
+      case TipoAccidente.ViaPublica:
+        return "Via publica";
+      default:
+        return "sin valor";
+    }
+  }
 }
 
 ///
@@ -121,8 +140,8 @@ Informe _$InformeFromJson(Map<String, dynamic> json) {
         antecedentesMedicos: "1",
         situacionLaboral: SituacionLaboral.activo,
         ocupacion: "1",
-        empresa: "1"),
-    TipoAccidente.Deportivo,//TODO averiguar como de string a enum
+        empresa: "1")..id = "1",// TODO averiguar como obtener aqui el objeto del paciente, posible solucion, guardar solo el id y luego obtener los pacientes por otra parte
+    enumfromString(TipoAccidente.values, json["tipo_accidente"]),
     [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
     [],// TODO obtener las indemnizaciones
   );

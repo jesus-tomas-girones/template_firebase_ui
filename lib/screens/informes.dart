@@ -77,7 +77,8 @@ class _InformeListState extends State<InformeList> {
               );
             }
 
-            return ListView.builder(
+            return ListView.separated(
+              separatorBuilder: ((context, index) => const Divider()),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 return InformeTile(
@@ -108,6 +109,18 @@ class InformeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context, listen: false).api;
     return ListTile(
+      onTap: () {
+         Navigator.push(
+                context,
+                MaterialPageRoute(
+                    // TODO los pacientes deben estar asociados al usuario, obtener de BD
+                    builder: (context) => InformeDetallePage(
+                          informeApi: appState!.informes,
+                          informe: informe,
+                          pacientes: Paciente.mockListaPacientes(),
+                        )),
+              );
+      },
       title: Text(
           intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente)),
       subtitle: Text(
@@ -118,21 +131,7 @@ class InformeTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    // TODO los pacientes deben estar asociados al usuario, obtener de BD
-                    builder: (context) => InformeDetallePage(
-                          informeApi: appState!.informes,
-                          informe: informe,
-                          pacientes: Paciente.mockListaPacientes(),
-                        )),
-              );
-            },
-          ),
+        
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () => showDialogSeguro(

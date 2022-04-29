@@ -107,7 +107,7 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
       print("*************** CALLBACK" );
 
       if (result != null) {
-        String url = await uploadFile(result.files.first,"users/"+uid);
+        String url = await uploadFile(result.files.first,"users/"+uid+"/fotoPerfil/"+result.files.first.name);
         // imagen subida, camnbiarla al usuario
         if(url != ""){
           print("*************** url: "+url );
