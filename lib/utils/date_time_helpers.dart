@@ -1,8 +1,12 @@
-// Copyright 2020, the Flutter project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-//TODO: Quitar este fichero
+Timestamp dateTimeToTimestamp(DateTime dateTime) {
+  return Timestamp.fromMillisecondsSinceEpoch(dateTime.millisecondsSinceEpoch);
+}
+
+DateTime timestampToDateTime(Timestamp timestamp) {
+  return DateTime.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch);
+}
 
 extension DayUtils on DateTime {
   /// The UTC date portion of a datetime, without the minutes, seconds, etc.

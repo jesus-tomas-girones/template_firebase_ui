@@ -4,14 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'api/api.dart';
-import 'api/firebase.dart';
+import 'api/api_firebase.dart';
 import 'screens/home.dart';
 import 'screens/user_sign_in.dart';
 
 class AppState extends ChangeNotifier {
   // The global state the app.
   User? user; // User es del paquete Firebase
-  DashboardApi? api; //TODO: Revisar, No esta claro si hay que dejarlo.
+  DashboardApi? api;
 
   AppState(this.user, this.api);
 
@@ -55,9 +55,6 @@ class App extends StatelessWidget {
         //'/second': (context) => Page2(),
         //'/third': (context) => Page3(),
       },
-
-
-
     );
   }
 }
@@ -67,7 +64,6 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => StreamBuilder<User?>(
-        //TODO: Mirar que es StreamBuilder<User?>
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

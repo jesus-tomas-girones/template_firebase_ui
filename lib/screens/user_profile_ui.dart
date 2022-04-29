@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 
+//TODO Quitar este fichero
+
 class UserProfileUiScreen extends StatelessWidget {
   const UserProfileUiScreen({Key? key}) : super(key: key);
 

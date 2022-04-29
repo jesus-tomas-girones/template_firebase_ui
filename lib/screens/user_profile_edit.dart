@@ -1,8 +1,3 @@
-import 'dart:developer';
-import 'dart:io';
-
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app.dart';
@@ -11,6 +6,8 @@ import '../widgets/avatar_widget.dart';
 import '../widgets/textfield_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
+
+//TODO Quitar este fichero
 
 class EditUserProfileScreen extends StatefulWidget {
   const EditUserProfileScreen({Key? key}) : super(key: key);
@@ -104,7 +101,7 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
               .pickFiles(
                   type: FileType.custom,
                   allowMultiple: false,
-                  onFileLoading: (FilePickerStatus status) => {}
+                  onFileLoading: (FilePickerStatus status) => {},
                   allowedExtensions: ['jpg', 'png']);
 
       print("*************** CALLBACK" );

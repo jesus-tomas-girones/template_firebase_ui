@@ -1,17 +1,13 @@
-// Copyright 2020, the Flutter project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-import 'package:firebase_ui/modelo/Paciente.dart';
+import 'package:firebase_ui/model/paciente.dart';
 import 'package:firebase_ui/screens/informes.dart';
+import 'package:firebase_ui/screens/paciente_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app.dart';
-import '../widgets/dialogs.dart';
 import '../widgets/third_party/adaptive_scaffold.dart';
-import 'dashboard.dart';
-import 'entries.dart';
-import 'informe_detalles.dart';
+import 'informe_edit.dart';
+import 'pacientes.dart';
 import 'user_profile.dart';
 import 'user_profile_ui.dart';
 
@@ -56,8 +52,8 @@ class _HomePageState extends State<HomePage> {
       ],
       currentIndex: _pageIndex,
       destinations: const [
-        AdaptiveScaffoldDestination(title: 'Home', icon: Icons.home),
-        AdaptiveScaffoldDestination(title: 'Entries', icon: Icons.list),
+        AdaptiveScaffoldDestination(title: 'Informes', icon: Icons.dashboard),
+        AdaptiveScaffoldDestination(title: 'Pacientes', icon: Icons.person),
         AdaptiveScaffoldDestination(title: 'Settings', icon: Icons.settings),
       ],
       body: _pageAtIndex(_pageIndex),
@@ -84,19 +80,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _handleFabPressed() {
+    var api = Provider.of<AppState>(context, listen:false).api;
     if (_pageIndex == 0) {
-      showDialog<NewCategoryDialog>(
-        context: context,
-        builder: (context) => const NewCategoryDialog(),
-      );
-      return;
-    }
-    if (_pageIndex == 1) {
-      /*showDialog<NewEntryDialog>(
-        context: context,
-        builder: (context) => const NewEntryDialog(),
-      );*/
-      var api = Provider.of<AppState>(context,listen: false).api;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -108,42 +93,26 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
-  }
-
-/*  Future<void> _handleSignOut() async {
-    var shouldSignOut = await (showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(
-            child: const Text('No'),
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-          ),
-          TextButton(
-            child: const Text('Yes'),
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-          ),
-        ],
-      ),
-    ));
-    if (shouldSignOut == null || !shouldSignOut) {
+    if (_pageIndex == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => PacienteEditPage(
+              pacienteApi: api!.pacientes,
+              paciente: null)
+        ),
+      );
       return;
     }
-    widget.onSignOut();
-  }*/
+  }
 
   static Widget _pageAtIndex(int index) {
     if (index == 0) {
-      return const DashboardPage(); //Center(child: Text('Dashboard page'));
+      return const InformesPage();
     }
     if (index == 1) {
-      return const InformesPage(); //Center(child: Text('Entries page'));
+      return const PacientesPage();
     }
-    return const UserProfileUiScreen(); //Center(child: Text('Settings page'));
+    return const UserProfileUiScreen();
   }
 }

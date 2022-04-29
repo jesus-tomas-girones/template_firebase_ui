@@ -13,6 +13,5 @@ void main() async {
     create: (context) => AppState(null, null),
     child: const App(),
   ));
-
 }
 

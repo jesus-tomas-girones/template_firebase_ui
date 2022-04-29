@@ -111,7 +111,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         .pickFiles(
         type: FileType.custom,
         allowMultiple: false,
-        onFileLoading: (FilePickerStatus status) => {}
+        onFileLoading: (FilePickerStatus status) => {},
         allowedExtensions: ['jpg', 'png']);
 
     print("*************** CALLBACK");

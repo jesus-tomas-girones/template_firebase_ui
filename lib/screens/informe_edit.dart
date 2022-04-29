@@ -1,23 +1,19 @@
-import 'dart:developer';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
-import 'package:firebase_ui/modelo/Indemnizacion.dart';
-import 'package:firebase_ui/modelo/TipoAccidente.dart';
+import 'package:firebase_ui/model/indemnizacion.dart';
 import 'package:firebase_ui/widgets/editable_string.dart';
 import 'package:flutter/material.dart';
 
-import '../modelo/Informe.dart';
-import '../modelo/Paciente.dart';
+import '../model/informe.dart';
+import '../model/paciente.dart';
 
 ///
-/// TODO pensar un mejor nombre que informe_detalles.dart
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
 ///
 
 class InformeDetallePage extends StatefulWidget {
 
-  InformeApi? informeApi;
+  Api<Informe>? informeApi;
   Informe? informe; // si es null es para crear
   List<Paciente>? pacientes;
 
@@ -36,9 +32,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   ];
   late TabController _tabController;
   late int _currentTabIndex = 0;
-
-
-  final _formKey = GlobalKey<FormState>();
+  //final _formKey = GlobalKey<FormState>();
   String date = "";
   late DateTime selectedDate;
   late TipoAccidente? tipoAccidenteSeleccionado;
@@ -112,7 +106,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
               )
             ),
           
-            // carga
+            // carga //TODO ¿Por que dos if?
             if (_isLoading) const Opacity(opacity: 0.1, child: ModalBarrier(dismissible: false, color: Colors.black),),
             if (_isLoading) const Center( child: CircularProgressIndicator(),),
           ],
@@ -315,10 +309,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
               ),
             ),
           );
-
-
   }
-
 
   Widget _buildDropDownTipoAccidente(){
     return ListTile(
@@ -341,18 +332,18 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   }
 
   Widget _buildDropDownPacientes(){
-    return DropdownButton<int>(
+    return DropdownButton<String>(
         hint: const Text("Selecciona un paciente"),
         value: pacienteSeleccionado?.id,
-        onChanged: (int? newIdPaciente) {
+        onChanged: (String? newIdPaciente) {
           setState(() {
             pacienteSeleccionado = Paciente.findPacienteById(widget.pacientes!, newIdPaciente);
           });
         },
-        items: widget.pacientes?.map<DropdownMenuItem<int>>((Paciente paciente){
-          return DropdownMenuItem<int>(
+        items: widget.pacientes?.map<DropdownMenuItem<String>>((Paciente paciente){
+          return DropdownMenuItem<String>(
             value: paciente.id,
-            child: Text(paciente.nombre)
+            child: Text(paciente.nombre ?? "")
           );
         }).toList()
     
@@ -392,7 +383,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         .pickFiles(
         type: FileType.custom,
         allowMultiple: true,
-        onFileLoading: (FilePickerStatus status) => {}
+        onFileLoading: (FilePickerStatus status) => {},
         allowedExtensions: ['jpg', 'png','pdf','txt']);
 
     if (result != null) {

@@ -1,122 +1,18 @@
-// Copyright 2020, the Flutter project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+import '../model/informe.dart';
+import '../model/paciente.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_ui/modelo/Informe.dart';
-import 'package:json_annotation/json_annotation.dart';
-
-import '../modelo/Paciente.dart';
-import '../modelo/TipoAccidente.dart';
-
-part 'api.g.dart';
+/// Manipulamos una lista de objetos de la clase <C> con persistencia.
+abstract class Api<C> {
+  Future<List<C>> list();
+  Stream<List<C>> subscribe();
+  Future<C> update(C object, String id);
+  Future<C> insert(C object);
+  Future<C> get(String id);
+  Future<void> delete(String id);
+}
 
 /// Manipulates app data,
 abstract class DashboardApi {
-  CategoryApi get categories;
-  EntryApi get entries;
-  InformeApi get informes;
-}
-
-/// Manipulates [Category] data.
-abstract class CategoryApi {
-  Future<Category?> delete(String id);
-
-  Future<Category?> get(String id);
-
-  Future<Category> insert(Category category);
-
-  Future<List<Category>> list();
-
-  Future<Category> update(Category category, String id);
-
-  Stream<List<Category>> subscribe();
-}
-
-/// Manipulates [Entry] data.
-abstract class EntryApi {
-  Future<Entry?> delete(String categoryId, String id);
-
-  Future<Entry?> get(String categoryId, String id);
-
-  Future<Entry> insert(String categoryId, Entry entry);
-
-  Future<List<Entry>> list(String categoryId);
-
-  Future<Entry> update(String categoryId, String id, Entry entry);
-
-  Stream<List<Entry>> subscribe(String categoryId);
-}
-
-/// Manipulates [Informe] data.
-abstract class InformeApi {
-
-  Future<List<Informe>> list();
-  Stream<List<Informe>> subscribe();
-  Future<Informe> update(Informe informe, String id);
-  Future<Informe> insert(Informe informe);
-  Future<Informe> get(String id);
-}
-
-/// Something that's being tracked, e.g. Hours Slept, Cups of water, etc.
-@JsonSerializable()
-class Category {
-  String name;
-
-  @JsonKey(ignore: true)
-  String? id;
-
-  Category(this.name);
-
-  factory Category.fromJson(Map<String, dynamic> json) =>
-      _$CategoryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$CategoryToJson(this);
-
-  @override
-  operator ==(Object other) => other is Category && other.id == id;
-  @override
-  int get hashCode => id.hashCode;
-  @override
-  String toString() {
-    return '<Category id=$id>';
-  }
-}
-
-/// A number tracked at a point in time.
-@JsonSerializable()
-class Entry {
-  int value;
-  @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-  DateTime time;
-
-  @JsonKey(ignore: true)
-  String? id;
-
-  Entry(this.value, this.time);
-
-  factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$EntryToJson(this);
-
-  static DateTime _timestampToDateTime(Timestamp timestamp) {
-    return DateTime.fromMillisecondsSinceEpoch(
-        timestamp.millisecondsSinceEpoch);
-  }
-
-  static Timestamp _dateTimeToTimestamp(DateTime dateTime) {
-    return Timestamp.fromMillisecondsSinceEpoch(
-        dateTime.millisecondsSinceEpoch);
-  }
-
-  @override
-  operator ==(Object other) => other is Entry && other.id == id;
-
-  @override
-  int get hashCode => id.hashCode;
-
-  @override
-  String toString() {
-    return '<Entry id=$id>';
-  }
+  Api<Informe> get informes;
+  Api<Paciente> get pacientes;
 }
