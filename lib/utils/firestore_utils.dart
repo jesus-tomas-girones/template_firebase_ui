@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 Future<String> uploadFile(PlatformFile file, String storageRef) async {
     //
-    print("***************" );
     try {
       TaskSnapshot upload;
       if(kIsWeb){
@@ -21,12 +20,22 @@ Future<String> uploadFile(PlatformFile file, String storageRef) async {
                   .putFile(File(file.path!));
       }
       
-      print("subido" );
       String url = await upload.ref.getDownloadURL();
-      print("*************** url " + url);
       return url;
     } catch (e) {
       print('error in uploading image for : ${e.toString()}');
       return '';
     }
+  }
+
+ Future<bool> deleteFile(String urlRef) async {
+    try{
+      print('se va a borrar : ${urlRef}');
+      Reference ref = FirebaseStorage.instance.refFromURL(urlRef);
+      await ref.delete();
+      return true;
+    }catch(e){
+      return false;
+    }
+    // Rebuild the UI
   }

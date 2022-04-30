@@ -4,9 +4,12 @@ import 'package:firebase_ui/model/indemnizacion.dart';
 import 'package:firebase_ui/utils/enum_helpers.dart';
 import 'package:firebase_ui/widgets/editable_string.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../app.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
+import '../utils/firestore_utils.dart';
 
 ///
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
@@ -42,6 +45,8 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   late String? aseguradora;
   late List<Indemnizacion>? indemnizaciones;
   late List<PlatformFile>? ficherosSeleccionados;
+  late List<String>? urlServer;
+  late List<String>? urlModficadas;
   late Paciente? pacienteSeleccionado;
 
   late bool isEditing;
@@ -59,7 +64,14 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     aseguradora = widget.informe?.companyiaAseguradora;
     indemnizaciones = widget.informe?.indemnizaciones ?? [];
     pacienteSeleccionado = widget.informe?.paciente;
-    ficherosSeleccionados = widget.informe?.ficherosAdjuntos ?? [];
+
+    // los ficheros selccionados son los que selecciona de la galeria que luego se tendran que subir
+    ficherosSeleccionados = [];
+    // estas son las url que se obtienen del servidor, es conveniente tenerlas en otro array
+    // asi modificar el array de urlModificadas y al darle guardar borrar del storage las url que no estan en modificadas
+    urlServer = widget.informe?.ficherosAdjuntos ?? [];
+    urlModficadas = [];
+    urlModficadas!.addAll(urlServer!);
 
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
@@ -142,18 +154,47 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   ///
   /// Funcion que guarda o actualiza el informe
   ///
+   ///
+  /// Funcion que guarda o actualiza el informe
+  ///
   void _guardarInforme() async{
     _setLoading(true);
-    var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!,
-      tipoAccidenteSeleccionado!,ficherosSeleccionados!,indemnizaciones!);
-    if(isEditing){
-      Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
-    }else{
-      Informe res = await widget.informeApi!.insert(informe);
-    }
-    Navigator.of(context).pop();
+
+     try{
+       // subir los nuevos ficheros
+       String uid = Provider.of<AppState>(context, listen:false).user!.uid;
+        for(PlatformFile file in ficherosSeleccionados!){
+          String url = await uploadFile(file,"users/"+uid+"/ficherosAdjuntos/"+file.name);
+          urlModficadas!.add(url);
+        }
+
+        // borrar de las urls de la base de datos que el usuario ha quitado
+        List<String> listUrlABorrar = [];
+
+        for(String url in urlServer!){
+          if(!urlModficadas!.contains(url)){
+            listUrlABorrar.add(url);
+          }
+        }
+
+        for(String url in listUrlABorrar){
+         bool a = await deleteFile(url);
+        }
+
+        var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!,
+          tipoAccidenteSeleccionado!,urlModficadas!,indemnizaciones!);
+        if(isEditing){
+          Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
+        }else{
+          Informe res = await widget.informeApi!.insert(informe);
+        }
+        Navigator.of(context).pop();
+     }catch(e){
+      _setLoading(false);
+     }
       _setLoading(false);
   }
+
 
   ///
   /// Tab 1 detalles del informe
@@ -318,6 +359,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
           );
   }
 
+  // TODO quitar
   Widget _buildDropDownTipoAccidente(){
     return ListTile(
       title: const Text("Tipo accidente"),
@@ -374,9 +416,20 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 ),
               ],
             ),
-            subtitle: ficherosSeleccionados!.isEmpty 
+            subtitle: ficherosSeleccionados!.isEmpty && urlModficadas!.isEmpty
                   ? const Text("Sin fichero adjuntos")
-                  : Column(children: ficherosSeleccionados!.map((PlatformFile file) => _buildFileItem(file)).toList(),)
+                  : Column(
+                    children:[
+                        // ficheros
+                        Column(children: ficherosSeleccionados!.map((PlatformFile file) {
+                            return _buildFileItem(file);
+                         }).toList(),),
+                         //urls
+                         Column(children: urlModficadas!.map((String ref) {
+                            return _buildRefFirebaseItem(ref);
+                         }).toList(),)
+                      ]
+                  )
               
             );
   }
@@ -437,7 +490,38 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
 
-  
+  Widget _buildRefFirebaseItem(String ref){
+    // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
+    double screenWidth = MediaQuery.of(context).size.width;
+    return Card(
+          elevation: 5,
+          shadowColor: Colors.black,
+          color: Colors.greenAccent[100],
+          // Dos rows para que el icono de la foto y el nombre salgan al lado y el eliminar a la otra punta
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+               Row(
+                  children: [
+                    const SizedBox(width: 8,),
+                    const Icon(Icons.image),
+                    const SizedBox(width: 8,),
+                    LimitedBox(maxWidth: screenWidth*0.7,child: Text(ref, overflow: TextOverflow.ellipsis, softWrap: false,),)
+                  ]
+                  
+              ),
+              IconButton( 
+                icon: const Icon(Icons.close),
+                onPressed: (){
+                  setState(() {
+                    urlModficadas?.remove(ref);
+                  });
+                },
+              ),
+            ],
+        ),
+    );
+  }
 
 }
 

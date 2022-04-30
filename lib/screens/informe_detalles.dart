@@ -4,11 +4,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/widgets/editable_string.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../api/informe_firebase.dart';
+import '../app.dart';
 import '../model/indemnizacion.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
+import '../utils/firestore_utils.dart';
 
 
 
@@ -17,20 +20,20 @@ import '../model/paciente.dart';
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
 ///
 
-class InformeDetallePage extends StatefulWidget {
+class InformeDetallesPage extends StatefulWidget {
 
-  InformeFirebase? informeApi;
+  Api<Informe>? informeApi;
   Informe? informe; // si es null es para crear
   List<Paciente>? pacientes;
 
-  InformeDetallePage({Key? key, this.informe,this.pacientes,this.informeApi}) : super(key: key);
+  InformeDetallesPage({Key? key, this.informe,this.pacientes,this.informeApi}) : super(key: key);
 
   @override
-  _InformeDetallePageState createState() => _InformeDetallePageState();
+  _InformeDetallesPageState createState() => _InformeDetallesPageState();
 }
 
 // el with es para poder usar el tab controller
-class _InformeDetallePageState extends State<InformeDetallePage> with SingleTickerProviderStateMixin{
+class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTickerProviderStateMixin{
 
   final List<Tab> _tabs = const [
     Tab(child: Text("Informe"),),
@@ -49,6 +52,8 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   late String? aseguradora;
   late List<Indemnizacion>? indemnizaciones;
   late List<PlatformFile>? ficherosSeleccionados;
+  late List<String>? urlServer;
+  late List<String>? urlModficadas;
   late Paciente? pacienteSeleccionado;
 
   late bool isEditing;
@@ -66,7 +71,10 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     aseguradora = widget.informe?.companyiaAseguradora;
     indemnizaciones = widget.informe?.indemnizaciones ?? [];
     pacienteSeleccionado = widget.informe?.paciente;
-    ficherosSeleccionados = widget.informe?.ficherosAdjuntos ?? [];
+    ficherosSeleccionados = [];
+    urlServer = widget.informe?.ficherosAdjuntos ?? [];
+    urlModficadas = [];
+    urlModficadas!.addAll(urlServer!);
 
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
@@ -126,7 +134,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
   PreferredSizeWidget? _buildAppBar(){
     return AppBar(
-      title: !isEditing ? const Text("Añadir Informe"): const Text("Detalles Informe"),
+      title: !isEditing ? const Text("Añadir Informe"): const Text("Detalles Informe PRUEBAA"),
       automaticallyImplyLeading: true,
       // leading es el icono de la izquierda
       leading: IconButton(
@@ -151,14 +159,52 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   ///
   void _guardarInforme() async{
     _setLoading(true);
-    var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!,
-      tipoAccidenteSeleccionado!,ficherosSeleccionados!,indemnizaciones!);
-    if(isEditing){
-      Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
-    }else{
-      Informe res = await widget.informeApi!.insert(informe);
-    }
-    Navigator.of(context).pop();
+
+    
+     try{
+       // subir los nuevos ficheros
+       String uid = Provider.of<AppState>(context, listen:false).user!.uid;
+        for(PlatformFile file in ficherosSeleccionados!){
+          String url = await uploadFile(file,"users/"+uid+"/ficherosAdjuntos/"+file.name);
+          urlModficadas!.add(url);
+        }
+
+        // borrar de las urls de la base de datos que el usuario ha quitado
+        List<String> listUrlABorrar = [];
+        
+
+        for(String url in urlModficadas!){
+          print("-------------------------------url modificada: "+url);
+          /*if(!urlModficadas!.contains(url)){
+            listUrlABorrar.add(url);
+          }*/
+        }
+
+        for(String url in urlServer!){
+          print("-------------url server: "+url);
+          if(!urlModficadas!.contains(url)){
+            print("**********************************Se tiene que borrar "+url);
+            listUrlABorrar.add(url);
+          }
+        }
+
+        for(String url in listUrlABorrar){
+          
+         print("se va a borrar: "+url.toString());
+         bool a = await deleteFile(url);
+        }
+
+        var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!,
+          tipoAccidenteSeleccionado!,urlModficadas!,indemnizaciones!);
+        if(isEditing){
+          Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
+        }else{
+          Informe res = await widget.informeApi!.insert(informe);
+        }
+        Navigator.of(context).pop();
+     }catch(e){
+      _setLoading(false);
+     }
       _setLoading(false);
   }
 
@@ -378,10 +424,20 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 ),
               ],
             ),
-            subtitle: ficherosSeleccionados!.isEmpty 
+            subtitle: ficherosSeleccionados!.isEmpty && urlModficadas!.isEmpty
                   ? const Text("Sin fichero adjuntos")
-                  : Column(children: ficherosSeleccionados!.map((PlatformFile file) => _buildFileItem(file)).toList(),)
-              
+                  : Column(
+                      children:[
+                        // ficheros
+                        Column(children: ficherosSeleccionados!.map((PlatformFile file) {
+                            return _buildFileItem(file);
+                         }).toList(),),
+                         //urls
+                         Column(children: urlModficadas!.map((String ref) {
+                            return _buildRefFirebaseItem(ref);
+                         }).toList(),)
+                      ]
+                    )
             );
   }
 
@@ -441,7 +497,37 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
 
-  
-
+  Widget _buildRefFirebaseItem(String ref){
+    // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
+    double screenWidth = MediaQuery.of(context).size.width;
+    return Card(
+          elevation: 5,
+          shadowColor: Colors.black,
+          color: Colors.greenAccent[100],
+          // Dos rows para que el icono de la foto y el nombre salgan al lado y el eliminar a la otra punta
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+               Row(
+                  children: [
+                    const SizedBox(width: 8,),
+                    const Icon(Icons.image),
+                    const SizedBox(width: 8,),
+                    LimitedBox(maxWidth: screenWidth*0.7,child: Text(ref, overflow: TextOverflow.ellipsis, softWrap: false,),)
+                  ]
+                  
+              ),
+              IconButton( 
+                icon: const Icon(Icons.close),
+                onPressed: (){
+                  setState(() {
+                    urlModficadas?.remove(ref);
+                  });
+                },
+              ),
+            ],
+        ),
+    );
+  }
 }
 

@@ -48,7 +48,7 @@ class Informe{
   TipoAccidente tipoAccidente;
   String companyiaAseguradora;
   Paciente paciente;
-  List<PlatformFile> ficherosAdjuntos = [];
+  List<String> ficherosAdjuntos = [];
   List<Indemnizacion> indemnizaciones = [];
 
   Informe(this.fechaAccidente,this.descripcion,this.companyiaAseguradora,this.lugarAccidente,this.paciente,this.tipoAccidente,
@@ -142,7 +142,7 @@ Informe _$InformeFromJson(Map<String, dynamic> json) {
         ocupacion: "1",
         empresa: "1")..id = "1",// TODO averiguar como obtener aqui el objeto del paciente, posible solucion, guardar solo el id y luego obtener los pacientes por otra parte
     enumfromString(TipoAccidente.values, json["tipo_accidente"]),
-    [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
+    json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
     [],// TODO obtener las indemnizaciones
   );
 }
@@ -155,6 +155,6 @@ Map<String, dynamic> _$InformeToJson(Informe instance) => <String, dynamic>{
       'lugar_accidente': instance.lugarAccidente,
       'paciente': instance.paciente.id,
       'tipo_accidente': instance.tipoAccidente.toString(),
-      'ficheros_adjuntos': "aqui ira el listado de url a firestore",//TODO cambiar ficheros adjuntos
+      'ficheros_adjuntos': instance.ficherosAdjuntos,//TODO cambiar ficheros adjuntos
       'indemnizaciones':instance.indemnizaciones
 };

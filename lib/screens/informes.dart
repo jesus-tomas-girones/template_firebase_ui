@@ -9,6 +9,7 @@ import '../api/api.dart';
 import '../app.dart';
 import '../model/informe.dart';
 import '../widgets/campos_formulario.dart';
+import 'informe_detalles.dart';
 
 ///
 /// Pantalla que lista los informes creados por el usuario y que le permite crear
