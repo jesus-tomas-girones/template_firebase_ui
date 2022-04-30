@@ -50,6 +50,11 @@ class Paciente {
     this.empresa,
   });
 
+
+  @override
+  String toString(){
+    return this.nombre!;
+  }
   factory Paciente.fromJson(Map<String, dynamic> json){
     try{
       return  Paciente(
@@ -147,6 +152,22 @@ class Paciente {
       p,
       p2,
       p3,
+      p3..id = "4",
+      p3..id = "5",
+      p3..id = "6",
+      p3..id = "7",
+      p3..id = "8",
+      p3..id = "9",
+      p3..id = "10",
+      p3..id = "11",
+      p3..id = "12",
+      p3..id = "13",
+      p3..id = "14",
+      p3..id = "15",
+      p3..id = "16",
+      p3..id = "17",
+      p3..id = "18",
+      p3..id = "19",
     ];
   }
 

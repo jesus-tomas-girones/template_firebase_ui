@@ -1,3 +1,4 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/indemnizacion.dart';
@@ -84,6 +85,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
             }
       });
 
+  
     super.initState();
   }
   
@@ -265,11 +267,11 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
           // Paciente
           const SizedBox(height: 8,),
+          _buildDropDownPacientesPrueba(),
           ListTile(
             title: const Text("Paciente"),
             subtitle: Row(
                   children: [
-                    _buildDropDownPacientes(),
                     ElevatedButton(
                       child: const Text("Añadir Usuario"),
                       onPressed: (){}, 
@@ -395,6 +397,25 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
             child: Text(paciente.nombre ?? "")
           );
         }).toList()
+    
+    );
+  }
+
+  Widget _buildDropDownPacientesPrueba(){ 
+    return DropdownSearch<Paciente>(
+        mode: Mode.DIALOG,// DIALOG, MENU o BOTTOM SHEET
+        showSearchBox: true,
+        selectedItem: pacienteSeleccionado, // para modificar lo que sale modificamos el toString del objeto
+        dropdownSearchDecoration: const InputDecoration(
+                  labelText: "Paciente",
+                  hintText: "Selecciona un paciente",
+        ),
+        onChanged: (Paciente? paciente) {
+          setState(() {
+            pacienteSeleccionado = paciente;
+          });
+        },
+        items: widget.pacientes
     
     );
   }
