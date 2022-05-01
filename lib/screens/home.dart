@@ -22,8 +22,25 @@ class _HomePageState extends State<HomePage> {
   int _pageIndex = 0;
 
   @override
+  void initState() {
+    _obtenerPacientesUsuario();
+    super.initState();
+  }
+
+  void _obtenerPacientesUsuario()async{
+    List<Paciente> pacientes = await Provider.of<AppState>(context,listen: false).api!.pacientes.list();
+    print("pacientes desde home------------------");
+    print(pacientes);
+    Provider.of<PacienteState>(context,listen: false).updatePacientesAndNotify(pacientes);
+  }
+  @override
   Widget build(BuildContext context) {
     //print(widget.photoUrl);
+    // TODO valorar si hay otra solucion mejor
+    return _buildBody();
+  }
+
+  Widget _buildBody(){
     return AdaptiveScaffold(
       title: const Text('Template con Firebase'),
       actions: [
@@ -82,6 +99,7 @@ class _HomePageState extends State<HomePage> {
   void _handleFabPressed() {
     var api = Provider.of<AppState>(context, listen:false).api;
     if (_pageIndex == 0) {
+      List<Paciente>? pacientes = Provider.of<PacienteState>(context,listen: false).pacientes;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -89,7 +107,7 @@ class _HomePageState extends State<HomePage> {
             builder: (context) => InformeDetallePage(
               informeApi: api!.informes,
               informe: null,
-              pacientes: Paciente.mockListaPacientes(),)),
+              pacientes: pacientes,)),
       );
       return;
     }

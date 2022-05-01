@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_ui/model/paciente.dart';
 import 'package:firebase_ui/screens/informe_edit.dart';
+import 'package:firebase_ui/utils/firestore_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
@@ -24,8 +25,7 @@ class InformesPage extends StatefulWidget {
 }
 
 class _InformesPageState extends State<InformesPage> {
-  // TODO la lista de informes debe estar asociada a un usuario (obtener de BD)
-  //  final List<Informe> _informes = Informe.mockData();
+
   @override
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context);
@@ -109,41 +109,50 @@ class InformeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context, listen: false).api;
-    return ListTile(
-      onTap: () {
-         Navigator.push(
-                context,
-                MaterialPageRoute(
-                    // TODO los pacientes deben estar asociados al usuario, obtener de BD
-                    builder: (context) => InformeDetallePage(
-                          informeApi: appState!.informes,
-                          informe: informe,
-                          pacientes: Paciente.mockListaPacientes(),
-                        )),
-              );
-      },
-      title: Text(
-          intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente)),
-      subtitle: Text(
-        informe!.descripcion,
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-        
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () => showDialogSeguro(
-              context: context,
-              title: '¿Borrar informe?',
-              ok: 'BORRAR',
-              onAccept: () =>  appState!.informes.delete(informe!.id!),
+    return Consumer<PacienteState>(builder: (context, pacienteState, child) {
+      return ListTile(
+        onTap: () {
+          Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      // TODO los pacientes deben estar asociados al usuario, obtener de BD
+                      builder: (context) => InformeDetallePage(
+                            informeApi: appState!.informes,
+                            informe: informe,
+                            pacientes: pacienteState.pacientes,
+                          )),
+                );
+        },
+        title: Text(
+            intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente)),
+        subtitle: Text(
+          informe!.descripcion,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+          
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () => showDialogSeguro(
+                context: context,
+                title: '¿Borrar informe?',
+                ok: 'BORRAR',
+                onAccept: () async{
+                  // TODO borrar los ficheros adjuntos al informe
+                  
+                  await appState!.informes.delete(informe!.id!);
+                  for(String ref in informe!.ficherosAdjuntos){
+                    deleteFile(ref);
+                  }
+                },
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 }

@@ -1,7 +1,9 @@
 /// Clase que pinta la informacion de un paciente, se puede editar y borrar
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../app.dart';
 import '../model/paciente.dart';
 import '../api/api.dart';
 import '../utils/enum_helpers.dart';
@@ -105,10 +107,13 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
   void _guardarPaciente() async {
     _setLoading(true);
     if (isEditing) {
-      Paciente res = await widget.pacienteApi!
-          .update(widget.paciente!, widget.paciente!.id!);
+      Paciente res = await widget.pacienteApi!.update(widget.paciente!, widget.paciente!.id!);
+      Provider.of<PacienteState>(context,listen: false).updatePacienteAndNotify(widget.paciente!,res);
+
     } else {
+      
       Paciente res = await widget.pacienteApi!.insert(widget.paciente!);
+      Provider.of<PacienteState>(context,listen: false).addPacienteAndNotify(res);
     }
     Navigator.of(context).pop();
     _setLoading(false);

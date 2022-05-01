@@ -1,3 +1,4 @@
+import 'package:firebase_ui/model/paciente.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +25,39 @@ class AppState extends ChangeNotifier {
     api = newApi;
     notifyListeners();
   }
+}
+
+class PacienteState extends ChangeNotifier{
+  List<Paciente>? pacientes;
+
+  void updatePacientesAndNotify(List<Paciente>? newPacientes) {
+    pacientes = newPacientes; // actualizamos campos
+    notifyListeners(); //notificamos a los widgets para que se repinten
+  }
+
+  void addPacienteAndNotify(Paciente? paciente) {
+    if(paciente!=null && pacientes!=null){
+      pacientes!.add(paciente); 
+      notifyListeners(); //notificamos a los widgets para que se repinten
+    }
+   
+  }
+
+  void removePacienteAndNotify(Paciente? paciente) {
+    if(paciente!=null && pacientes!=null){
+      pacientes!.remove(paciente); 
+      notifyListeners(); //notificamos a los widgets para que se repinten
+    }
+  }
+
+  void updatePacienteAndNotify(Paciente oldPaciente, Paciente nuevoPaciente) {
+    if(pacientes!=null){
+      pacientes!.remove(oldPaciente); 
+      pacientes!.add(nuevoPaciente); 
+      notifyListeners(); //notificamos a los widgets para que se repinten
+    }
+  }
+
 }
 
 class App extends StatelessWidget {

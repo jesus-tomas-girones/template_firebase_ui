@@ -41,6 +41,26 @@ class PacienteList extends StatefulWidget {
 class _PacienteListState extends State<PacienteList> {
   @override
   Widget build(BuildContext context) {
+    return _listarPacientesDesdeConsumer();
+  }
+
+
+  Widget _listarPacientesDesdeConsumer(){
+    return Consumer<PacienteState>(
+      builder: (context, pacientesState, child){
+        return ListView.builder(
+          itemCount: pacientesState.pacientes?.length ?? 0,
+          itemBuilder: ((context, index) {
+            return PacienteTile(
+                  paciente: pacientesState.pacientes![index],
+            );
+          })
+        );
+    });
+  } 
+
+  
+  Widget _listarPacientesDesdeFirebase(){
     return FutureBuilder<List<Paciente>>(
       future: widget.api.list(),
       builder: (context, futureSnapshot) {
@@ -70,8 +90,11 @@ class _PacienteListState extends State<PacienteList> {
         );
       },
     );
-  }
+  } 
+
 }
+
+
 
 class PacienteTile extends StatelessWidget {
   final Paciente? paciente;
@@ -113,7 +136,10 @@ class PacienteTile extends StatelessWidget {
                  context: context,
                  title: '¿Borrar paciente?',
                  ok: 'BORRAR',
-                 onAccept: () =>  appState!.pacientes.delete(paciente!.id!),
+                 onAccept: () async{
+                   await appState!.pacientes.delete(paciente!.id!);
+                   Provider.of<PacienteState>(context,listen: false).removePacienteAndNotify(paciente);
+                 }
               ),
             ),
         ],

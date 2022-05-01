@@ -18,7 +18,7 @@ dynamic enumfromString<T>(List<dynamic> values, String? value){
   return null;
 }
 
-Widget buildDropDown<Enum>(Enum valorInicial, List<Enum> valuesEnum, String? titulo,String? hintText,
+Widget buildDropDown<Enum>(Enum? valorInicial, List<Enum> valuesEnum, String? titulo,String? hintText,
     Function(Enum? value) onChange) =>
       ListTile(
       title: Text(titulo ?? ""),

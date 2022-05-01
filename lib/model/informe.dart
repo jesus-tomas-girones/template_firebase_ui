@@ -46,12 +46,12 @@ class Informe{
   String descripcion;
   String lugarAccidente;
   TipoAccidente tipoAccidente;
-  String companyiaAseguradora;
-  Paciente paciente;
+  String? companyiaAseguradora;
+  String idPaciente;
   List<String> ficherosAdjuntos = [];
   List<Indemnizacion> indemnizaciones = [];
 
-  Informe(this.fechaAccidente,this.descripcion,this.companyiaAseguradora,this.lugarAccidente,this.paciente,this.tipoAccidente,
+  Informe(this.fechaAccidente,this.descripcion,this.companyiaAseguradora,this.lugarAccidente,this.idPaciente,this.tipoAccidente,
     this.ficherosAdjuntos,this.indemnizaciones);
 
   factory Informe.fromJson(Map<String, dynamic> json) =>
@@ -61,7 +61,7 @@ class Informe{
   // TODO quitar
   static List<Informe> mockData(){
     return [
-      Informe(DateTime.now(),"Accidente 1","Mafre","C/False 1",
+      /*Informe(DateTime.now(),"Accidente 1","Mafre","C/False 1",
 
           Paciente(
               nombre: "Paciente 1",
@@ -109,7 +109,7 @@ class Informe{
               situacionLaboral: SituacionLaboral.activo,
               ocupacion: "1",
               empresa: "1"),
-          TipoAccidente.Deportivo,[],[]),
+          TipoAccidente.Deportivo,[],[]),*/
     ];
   }
 
@@ -127,20 +127,7 @@ Informe _$InformeFromJson(Map<String, dynamic> json) {
     json['descripcion'] as String,
     json['aseguradora'] as String,
     json['lugar_accidente'] as String,
-    Paciente(
-        nombre: "Paciente 1",
-        apellidos: "apell",
-        fechaNacimiento: DateTime.now(),
-        sexo: Sexo.hombre,
-        domicilio: "1",
-        telefono: "tel 1",
-        dni: "dni 1",
-        nuss: "nuss 1",
-        nivelFormacion: NivelFormacion.analfabeto,
-        antecedentesMedicos: "1",
-        situacionLaboral: SituacionLaboral.activo,
-        ocupacion: "1",
-        empresa: "1")..id = "1",// TODO averiguar como obtener aqui el objeto del paciente, posible solucion, guardar solo el id y luego obtener los pacientes por otra parte
+    json["paciente"],// TODO averiguar como obtener aqui el objeto del paciente, posible solucion, guardar solo el id y luego obtener los pacientes por otra parte
     enumfromString(TipoAccidente.values, json["tipo_accidente"]),
     json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
     [],// TODO obtener las indemnizaciones
@@ -153,7 +140,7 @@ Map<String, dynamic> _$InformeToJson(Informe instance) => <String, dynamic>{
       'descripcion': instance.descripcion,
       'aseguradora': instance.companyiaAseguradora,
       'lugar_accidente': instance.lugarAccidente,
-      'paciente': instance.paciente.id,
+      'paciente': instance.idPaciente,
       'tipo_accidente': instance.tipoAccidente.toString(),
       'ficheros_adjuntos': instance.ficherosAdjuntos,//TODO cambiar ficheros adjuntos
       'indemnizaciones':instance.indemnizaciones

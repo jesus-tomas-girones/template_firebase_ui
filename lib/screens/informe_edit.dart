@@ -48,7 +48,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   late List<PlatformFile>? ficherosSeleccionados;
   late List<String>? urlServer;
   late List<String>? urlModficadas;
-  late Paciente? pacienteSeleccionado;
+  late String? pacienteSeleccionado;
 
   late bool isEditing;
 
@@ -64,7 +64,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     lugarAccidente = widget.informe?.lugarAccidente;
     aseguradora = widget.informe?.companyiaAseguradora;
     indemnizaciones = widget.informe?.indemnizaciones ?? [];
-    pacienteSeleccionado = widget.informe?.paciente;
+    pacienteSeleccionado = widget.informe?.idPaciente;
 
     // los ficheros selccionados son los que selecciona de la galeria que luego se tendran que subir
     ficherosSeleccionados = [];
@@ -163,6 +163,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     _setLoading(true);
 
      try{
+       // TODO comprobar todos los campos antes de llegar aqui
        // subir los nuevos ficheros
        String uid = Provider.of<AppState>(context, listen:false).user!.uid;
         for(PlatformFile file in ficherosSeleccionados!){
@@ -192,6 +193,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         }
         Navigator.of(context).pop();
      }catch(e){
+
       _setLoading(false);
      }
       _setLoading(false);
@@ -229,7 +231,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
           
           // tipo de accidente
           const SizedBox(height: 8,),
-          buildDropDown(tipoAccidenteSeleccionado!, TipoAccidente.values, "Tipo de accidente", "Selecciones Tipo de accidente", 
+          buildDropDown(tipoAccidenteSeleccionado, TipoAccidente.values, "Tipo de accidente", "Selecciona el tipo de accidente", 
             (newValue){
               setState(() {
                 tipoAccidenteSeleccionado = newValue as TipoAccidente?;
@@ -382,7 +384,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
 
-  Widget _buildDropDownPacientes(){ 
+  /*Widget _buildDropDownPacientes(){ 
     return DropdownButton<String>(
         hint: const Text("Selecciona un paciente"),
         value: pacienteSeleccionado?.id,
@@ -399,20 +401,20 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         }).toList()
     
     );
-  }
+  }*/
 
   Widget _buildDropDownPacientesPrueba(){ 
     return DropdownSearch<Paciente>(
         mode: Mode.DIALOG,// DIALOG, MENU o BOTTOM SHEET
         showSearchBox: true,
-        selectedItem: pacienteSeleccionado, // para modificar lo que sale modificamos el toString del objeto
+        selectedItem: Paciente.findPacienteById(widget.pacientes!, pacienteSeleccionado), // para modificar lo que sale modificamos el toString del objeto
         dropdownSearchDecoration: const InputDecoration(
                   labelText: "Paciente",
                   hintText: "Selecciona un paciente",
         ),
         onChanged: (Paciente? paciente) {
           setState(() {
-            pacienteSeleccionado = paciente;
+            pacienteSeleccionado = paciente!.id;
           });
         },
         items: widget.pacientes

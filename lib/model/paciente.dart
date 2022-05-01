@@ -53,7 +53,7 @@ class Paciente {
 
   @override
   String toString(){
-    return this.nombre!;
+    return nombre!;
   }
   factory Paciente.fromJson(Map<String, dynamic> json){
     try{

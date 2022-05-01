@@ -9,8 +9,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(ChangeNotifierProvider(
-    create: (context) => AppState(null, null),
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AppState>(
+        create: (_) => AppState(null, null),
+      ),
+      ChangeNotifierProvider<PacienteState >(
+        create: (_) => PacienteState() ,
+      ),
+    ],
     child: const App(),
   ));
 }

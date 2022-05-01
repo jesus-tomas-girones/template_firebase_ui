@@ -70,7 +70,7 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
     lugarAccidente = widget.informe?.lugarAccidente;
     aseguradora = widget.informe?.companyiaAseguradora;
     indemnizaciones = widget.informe?.indemnizaciones ?? [];
-    pacienteSeleccionado = widget.informe?.paciente;
+    pacienteSeleccionado = Paciente(); //widget.informe?.idPaciente;
     ficherosSeleccionados = [];
     urlServer = widget.informe?.ficherosAdjuntos ?? [];
     urlModficadas = [];
@@ -194,7 +194,7 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
          bool a = await deleteFile(url);
         }
 
-        var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!,
+        var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!.id!,
           tipoAccidenteSeleccionado!,urlModficadas!,indemnizaciones!);
         if(isEditing){
           Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
