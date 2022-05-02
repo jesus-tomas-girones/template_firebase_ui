@@ -18,7 +18,6 @@ class PacienteEditPage extends StatefulWidget {
 
   PacienteEditPage({Key? key, this.paciente,  this.pacienteApi})
       : super(key: key) {
-   print(pacienteApi.toString());
    paciente ??= Paciente();
   }
 
@@ -93,14 +92,40 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
 
   PreferredSizeWidget? _buildAppBar() {
     return AppBar(
+      actions: [
+        isEditing ? IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _borrarPaciente,
+        ) : Container() 
+      ],
       title:
           !isEditing ? const Text("Añadir Paciente") : const Text("Paciente"),
       automaticallyImplyLeading: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(
-            context), //TODO Si hay cambios preguntar si se desea salir
+        onPressed: (){
+          showDialogSeguro(context: context, title: "Se perderán todos los cambios que no esten guardados", 
+          onAccept: () async{
+            Navigator.pop(context); 
+          });
+           
+        }
       ),
+    );
+  }
+
+  void _borrarPaciente() async{
+    showDialogSeguro(
+        context: context,
+        title: '¿Borrar paciente?',
+        ok: 'BORRAR',
+        onAccept: () async{
+           _setLoading(true);
+          await widget.pacienteApi!.delete(widget.paciente!.id!);
+          Provider.of<PacienteState>(context,listen: false).removePacienteAndNotify(widget.paciente);
+           _setLoading(false);
+           Navigator.of(context).pop();
+        }
     );
   }
 
@@ -115,8 +140,9 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
       Paciente res = await widget.pacienteApi!.insert(widget.paciente!);
       Provider.of<PacienteState>(context,listen: false).addPacienteAndNotify(res);
     }
-    Navigator.of(context).pop();
+    
     _setLoading(false);
+    Navigator.of(context).pop();
   }
 
     /*Widget _buildDropDownSexo(Paciente paciente) {

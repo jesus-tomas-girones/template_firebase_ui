@@ -48,7 +48,14 @@ class _PacienteListState extends State<PacienteList> {
   Widget _listarPacientesDesdeConsumer(){
     return Consumer<PacienteState>(
       builder: (context, pacientesState, child){
-        return ListView.builder(
+        if(pacientesState.pacientes != null && pacientesState.pacientes!.isEmpty){
+          // no hay pacientes
+          return const Center(
+                child: Text("No hay pacientes. Añade uno."),
+          );
+        }
+        return ListView.separated(
+          separatorBuilder: ((context, index) => const Divider()),
           itemCount: pacientesState.pacientes?.length ?? 0,
           itemBuilder: ((context, index) {
             return PacienteTile(
@@ -71,6 +78,7 @@ class _PacienteListState extends State<PacienteList> {
           initialData: futureSnapshot.data,
           stream: widget.api.subscribe(),
           builder: (context, snapshot) {
+            
             if (!snapshot.hasData) {
               return buildLoading();
             } else if (snapshot.data!.isEmpty) {
@@ -108,6 +116,14 @@ class PacienteTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context, listen: false).api;
     return ListTile(
+      onTap: () {
+        Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PacienteEditPage(
+                        pacienteApi: appState!.pacientes, paciente: paciente)),
+              );
+      },
       title: Text(
         (paciente!.nombre ?? "") + ' ' + (paciente!.apellidos ?? ""),
         maxLines: 3,
@@ -115,35 +131,7 @@ class PacienteTile extends StatelessWidget {
       ),
       subtitle: Text(paciente!.fechaNacimiento == null
           ? "<fecha desconocida>"
-          : intl.DateFormat('dd/MM/yyyy').format(paciente!.fechaNacimiento!)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PacienteEditPage(
-                        pacienteApi: appState!.pacientes, paciente: paciente)),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () => showDialogSeguro(
-                 context: context,
-                 title: '¿Borrar paciente?',
-                 ok: 'BORRAR',
-                 onAccept: () async{
-                   await appState!.pacientes.delete(paciente!.id!);
-                   Provider.of<PacienteState>(context,listen: false).removePacienteAndNotify(paciente);
-                 }
-              ),
-            ),
-        ],
-      ),
+          : intl.DateFormat('dd/MM/yyyy').format(paciente!.fechaNacimiento!))
     );
   }
 }

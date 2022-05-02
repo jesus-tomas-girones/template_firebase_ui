@@ -8,7 +8,6 @@ enum Sexo{
   hombre, mujer
 }
 
-// TODO hacer los extension para el value para los enum de nivel de formacion y situacion laboral
 enum NivelFormacion {
   analfabeto, primaria, bachillerato, formacionProfesional, graduadoUniversitario, doctorado
 }
@@ -53,7 +52,7 @@ class Paciente {
 
   @override
   String toString(){
-    return nombre!;
+    return nombre! + " " + apellidos!;
   }
   factory Paciente.fromJson(Map<String, dynamic> json){
     try{

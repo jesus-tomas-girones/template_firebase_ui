@@ -16,7 +16,6 @@ import '../utils/firestore_utils.dart';
 
 
 ///
-/// TODO pensar un mejor nombre que informe_detalles.dart
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
 ///
 

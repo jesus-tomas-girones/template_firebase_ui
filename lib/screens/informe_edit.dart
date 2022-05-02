@@ -11,6 +11,7 @@ import '../app.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
 import '../utils/firestore_utils.dart';
+import '../widgets/campos_formulario.dart';
 
 ///
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
@@ -138,14 +139,24 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       // leading es el icono de la izquierda
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(context),
+        onPressed: (){
+          showDialogSeguro(context: context, title: "Se perderán todos los cambios que no esten guardados", 
+            onAccept: () async{
+              Navigator.pop(context);
+          });
+           
+        },
       ),
       actions: [
         // GUARDAR INFORME
         IconButton(
           onPressed: _guardarInforme, 
           icon: const Icon(Icons.save)
-        )
+        ),
+        isEditing ? IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _borrarInforme,
+        ) : Container() 
       ],
       bottom: TabBar(
         controller: _tabController,
@@ -154,9 +165,35 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
   ///
-  /// Funcion que guarda o actualiza el informe
+  /// Funcion que borra el informe
   ///
-   ///
+  void _borrarInforme()async{
+    await showDialogSeguro(
+      context: context,
+      title: '¿Borrar informe?',
+      ok: 'BORRAR',
+      onAccept: () async{
+        _setLoading(true);
+        await widget.informeApi!.delete(widget.informe!.id!);
+        if(widget.informe!.ficherosAdjuntos!=null){
+          for(String ref in widget.informe!.ficherosAdjuntos!){
+            deleteFile(ref);
+          }
+        }
+        _setLoading(false);
+        Navigator.pop(context);
+      },
+      );
+  }
+
+  bool _isInformeValido(){
+    if(descripcion!=null && descripcion!.trim().isNotEmpty){
+      return false; // TODO mostrar algun tipo de mensaje de error que avise al usuario
+    }
+    return true;
+  }
+
+  ///
   /// Funcion que guarda o actualiza el informe
   ///
   void _guardarInforme() async{
@@ -164,7 +201,8 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
      try{
        // TODO comprobar todos los campos antes de llegar aqui
-       // subir los nuevos ficheros
+      if(_isInformeValido()){
+         // subir los nuevos ficheros
        String uid = Provider.of<AppState>(context, listen:false).user!.uid;
         for(PlatformFile file in ficherosSeleccionados!){
           String url = await uploadFile(file,"users/"+uid+"/ficherosAdjuntos/"+file.name);
@@ -183,17 +221,16 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         for(String url in listUrlABorrar){
          bool a = await deleteFile(url);
         }
-
-        var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!,
-          tipoAccidenteSeleccionado!,urlModficadas!,indemnizaciones!);
+        var informe = Informe(selectedDate,descripcion!,aseguradora,lugarAccidente,pacienteSeleccionado,
+          tipoAccidenteSeleccionado,urlModficadas,indemnizaciones);
         if(isEditing){
           Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
         }else{
           Informe res = await widget.informeApi!.insert(informe);
         }
         Navigator.of(context).pop();
+      }
      }catch(e){
-
       _setLoading(false);
      }
       _setLoading(false);

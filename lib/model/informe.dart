@@ -44,12 +44,12 @@ class Informe{
 
   DateTime fechaAccidente; // no existe long en dart
   String descripcion;
-  String lugarAccidente;
-  TipoAccidente tipoAccidente;
+  String? lugarAccidente;
+  TipoAccidente? tipoAccidente;
   String? companyiaAseguradora;
-  String idPaciente;
-  List<String> ficherosAdjuntos = [];
-  List<Indemnizacion> indemnizaciones = [];
+  String? idPaciente;
+  List<String>? ficherosAdjuntos = [];
+  List<Indemnizacion>? indemnizaciones = [];
 
   Informe(this.fechaAccidente,this.descripcion,this.companyiaAseguradora,this.lugarAccidente,this.idPaciente,this.tipoAccidente,
     this.ficherosAdjuntos,this.indemnizaciones);
@@ -121,17 +121,18 @@ class Informe{
 }
 
 Informe _$InformeFromJson(Map<String, dynamic> json) {
-  return Informe(
-    //Informe._timestampToDateTime(json['fecha_accidente'] as Timestamp),
-    timestampToDateTime(json['fecha_accidente'] as Timestamp),
-    json['descripcion'] as String,
-    json['aseguradora'] as String,
-    json['lugar_accidente'] as String,
-    json["paciente"],// TODO averiguar como obtener aqui el objeto del paciente, posible solucion, guardar solo el id y luego obtener los pacientes por otra parte
-    enumfromString(TipoAccidente.values, json["tipo_accidente"]),
-    json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
-    [],// TODO obtener las indemnizaciones
-  );
+    return Informe(
+      //Informe._timestampToDateTime(json['fecha_accidente'] as Timestamp),
+      timestampToDateTime(json['fecha_accidente'] as Timestamp),
+      json['descripcion'],
+      json['aseguradora'],
+      json['lugar_accidente'],
+      json["paciente"],
+      enumfromString(TipoAccidente.values, json["tipo_accidente"]),
+      json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
+      [],// TODO obtener las indemnizaciones
+    );
+  
 }
 
 Map<String, dynamic> _$InformeToJson(Informe instance) => <String, dynamic>{
@@ -141,7 +142,7 @@ Map<String, dynamic> _$InformeToJson(Informe instance) => <String, dynamic>{
       'aseguradora': instance.companyiaAseguradora,
       'lugar_accidente': instance.lugarAccidente,
       'paciente': instance.idPaciente,
-      'tipo_accidente': instance.tipoAccidente.toString(),
-      'ficheros_adjuntos': instance.ficherosAdjuntos,//TODO cambiar ficheros adjuntos
+      'tipo_accidente': instance.tipoAccidente,
+      'ficheros_adjuntos': instance.ficherosAdjuntos,
       'indemnizaciones':instance.indemnizaciones
 };

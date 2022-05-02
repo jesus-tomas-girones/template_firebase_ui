@@ -115,12 +115,11 @@ class InformeTile extends StatelessWidget {
           Navigator.push(
                   context,
                   MaterialPageRoute(
-                      // TODO los pacientes deben estar asociados al usuario, obtener de BD
                       builder: (context) => InformeDetallePage(
                             informeApi: appState!.informes,
                             informe: informe,
                             pacientes: pacienteState.pacientes,
-                          )),
+                    )),
                 );
         },
         title: Text(
@@ -129,28 +128,6 @@ class InformeTile extends StatelessWidget {
           informe!.descripcion,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-          
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => showDialogSeguro(
-                context: context,
-                title: '¿Borrar informe?',
-                ok: 'BORRAR',
-                onAccept: () async{
-                  // TODO borrar los ficheros adjuntos al informe
-                  
-                  await appState!.informes.delete(informe!.id!);
-                  for(String ref in informe!.ficherosAdjuntos){
-                    deleteFile(ref);
-                  }
-                },
-              ),
-            ),
-          ],
         ),
       );
     });
