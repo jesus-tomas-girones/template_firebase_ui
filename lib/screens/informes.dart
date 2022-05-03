@@ -109,7 +109,7 @@ class InformeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context, listen: false).api;
-    return Consumer<PacienteState>(builder: (context, pacienteState, child) {
+    return Consumer<AppState>(builder: (context, pacienteState, child) {
       return ListTile(
         onTap: () {
           Navigator.push(

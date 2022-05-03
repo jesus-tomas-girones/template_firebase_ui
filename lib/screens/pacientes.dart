@@ -46,8 +46,10 @@ class _PacienteListState extends State<PacienteList> {
 
 
   Widget _listarPacientesDesdeConsumer(){
-    return Consumer<PacienteState>(
+    return Consumer<AppState>(
       builder: (context, pacientesState, child){
+        print("Pacientes");
+        print(pacientesState.pacientes);
         if(pacientesState.pacientes != null && pacientesState.pacientes!.isEmpty){
           // no hay pacientes
           return const Center(

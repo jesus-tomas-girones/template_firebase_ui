@@ -13,6 +13,7 @@ class AppState extends ChangeNotifier {
   // The global state the app.
   User? user; // User es del paquete Firebase
   DashboardApi? api;
+  List<Paciente>? pacientes;
 
   AppState(this.user, this.api);
 
@@ -25,10 +26,7 @@ class AppState extends ChangeNotifier {
     api = newApi;
     notifyListeners();
   }
-}
 
-class PacienteState extends ChangeNotifier{
-  List<Paciente>? pacientes;
 
   void updatePacientesAndNotify(List<Paciente>? newPacientes) {
     pacientes = newPacientes; // actualizamos campos
@@ -57,8 +55,8 @@ class PacienteState extends ChangeNotifier{
       notifyListeners(); //notificamos a los widgets para que se repinten
     }
   }
-
 }
+
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
@@ -108,6 +106,12 @@ class AuthGate extends StatelessWidget {
             var _user = snapshot.data!;
             Provider.of<AppState>(context, listen: false).updateUserAndNotify(_user);
             Provider.of<AppState>(context, listen: false).updateApiAndNotify(FirebaseDashboardApi(FirebaseFirestore.instance, _user.uid));
+            
+            Provider.of<AppState>(context,listen: false).api!.pacientes.list().then((pacientes) {
+                  Provider.of<AppState>(context,listen: false).updatePacientesAndNotify(pacientes);
+            });
+            
+
             return const HomePage();
           }
         },

@@ -21,18 +21,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _pageIndex = 0;
 
-  @override
-  void initState() {
-    _obtenerPacientesUsuario();
-    super.initState();
-  }
 
-  void _obtenerPacientesUsuario()async{
-    List<Paciente> pacientes = await Provider.of<AppState>(context,listen: false).api!.pacientes.list();
-    print("pacientes desde home------------------");
-    print(pacientes);
-    Provider.of<PacienteState>(context,listen: false).updatePacientesAndNotify(pacientes);
-  }
+  
   @override
   Widget build(BuildContext context) {
     //print(widget.photoUrl);
@@ -99,7 +89,7 @@ class _HomePageState extends State<HomePage> {
   void _handleFabPressed() {
     var api = Provider.of<AppState>(context, listen:false).api;
     if (_pageIndex == 0) {
-      List<Paciente>? pacientes = Provider.of<PacienteState>(context,listen: false).pacientes;
+      List<Paciente>? pacientes = Provider.of<AppState>(context,listen: false).pacientes;
       Navigator.push(
         context,
         MaterialPageRoute(

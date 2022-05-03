@@ -1,5 +1,7 @@
 /// Clase que pinta la informacion de un paciente, se puede editar y borrar
 
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,9 +10,8 @@ import '../model/paciente.dart';
 import '../api/api.dart';
 import '../utils/enum_helpers.dart';
 import '../widgets/campos_formulario.dart';
+import 'package:intl/intl.dart' as intl;
 
-//TODO Al salir preguntar si se pierden los cambios
-//TODO Al aceptar un campo, pasar al siguiente
 
 class PacienteEditPage extends StatefulWidget {
   Api<Paciente>? pacienteApi;
@@ -29,10 +30,17 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
 
   late bool isEditing;
   bool _isLoading = false;
+  bool _seHaEditado = false; 
+  final _formKey = GlobalKey<FormState>();
+  late Paciente pacienteTemp;
 
   @override
   void initState() {
     isEditing = widget.paciente!.id  != null;
+    if(widget.paciente!=null){
+      // Debemos hacer esto porque sino se estara modificando la referencia y puede dar a problemas
+      pacienteTemp = widget.paciente!.clone();
+    }
     super.initState();
   }
 
@@ -44,14 +52,139 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    var paciente = widget.paciente!; //Para acortar
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.save),
         onPressed: () => _guardarPaciente(),
       ),
       appBar: _buildAppBar(),
-      body: ListView(
+        
+      body: Stack(
+        children: [
+          _bodyForm(pacienteTemp),//_bodySinForm(paciente),
+          if (_isLoading) buildLoading(),
+        ],
+      )
+    );
+  }
+
+  // TODO poner mejores hint texts
+  Widget _bodyForm(Paciente paciente){
+    double? espacioEntreInputs = 32;
+
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+            // Nombre
+            _buildCampoTexto(true,paciente.nombre ?? "",1,"Nombre","Introduce el nombre del paciente",null,
+              // on change
+              (newValue){
+                _seHaEditado = true;
+                setState(() {
+                  paciente.nombre=newValue;
+                });
+              },
+              // validacion
+              (value) {
+                if(value!.trim().isEmpty){
+                  return "El nombre no puede estar vacio";
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: espacioEntreInputs,),
+            // Apellidos
+            _buildCampoTexto(false, paciente.apellidos ?? "",1,"Apellidos","Introduce los apellidos del paciente",null,(newValue){
+              _seHaEditado = true;
+              setState(() {
+                paciente.apellidos=newValue;
+              });
+            },null),
+            SizedBox(height: espacioEntreInputs,),
+            // Fecha naciemiento
+            _FormDatePicker(
+                titulo: "Fecha de nacimiento",
+                date: paciente.fechaNacimiento ?? DateTime.now(),
+                onChanged: (value) {
+                  _seHaEditado = true;
+                  setState(() {
+                      paciente.fechaNacimiento = value;
+                  });
+                },
+              ),
+              SizedBox(height: espacioEntreInputs,),
+            // Sexo
+            buildDropDown(paciente.sexo,Sexo.values,["Hombre","Mujer"],"Sexo del paciente","Seleccione el sexo",(dynamic value){
+              _seHaEditado = true;
+              setState(() {
+                paciente.sexo = value;
+              });
+            },null),
+            SizedBox(height: espacioEntreInputs,),
+            // Domicilio
+            _buildCampoTexto(false,paciente.domicilio ?? "",1, "Domicilio","Introduce el domicilio del paciente",null,
+              (value) async { _seHaEditado = true; setState(() { paciente.domicilio = value; });},null),
+            SizedBox(height: espacioEntreInputs,),
+            // Telefono
+            _buildCampoTexto(false,paciente.telefono ?? "",1, "Telefono","Introduce el telefono del paciente",null,
+              (value) async { _seHaEditado = true;  setState(() { paciente.telefono = value; });},null),
+            SizedBox(height: espacioEntreInputs,),
+            // DNI
+            _buildCampoTexto(false,paciente.dni ?? "", 1,"DNI","Introduce ",null,
+              (value) async { _seHaEditado = true;  setState(() { paciente.dni = value; });},null),
+            SizedBox(height: espacioEntreInputs,),
+            // NUSS
+            _buildCampoTexto(false,paciente.nuss ?? "", 1,"NUSS","Introduce ",null,
+              (value) async { _seHaEditado = true;  setState(() { paciente.nuss = value; });},null),
+            SizedBox(height: espacioEntreInputs,),
+            // Antecedentes medicos
+            _buildCampoTexto(false,paciente.antecedentesMedicos ?? "",10, "Antecedentes Medicos","Introduce ",null,
+              (value) async { _seHaEditado = true;  setState(() { paciente.antecedentesMedicos = value; });},null),
+            SizedBox(height: espacioEntreInputs,),
+            // Ocupacion
+            _buildCampoTexto(false,paciente.ocupacion ?? "",1, "Ocupacion","Introduce ",null,
+              (value) async { _seHaEditado = true;  setState(() { paciente.ocupacion = value; });},null),
+            SizedBox(height: espacioEntreInputs,),
+            // Empresa
+            _buildCampoTexto(false,paciente.empresa ?? "",1,"Empresa","Introduce ",null,
+              (value) async { _seHaEditado = true;  setState(() { paciente.empresa = value; });},null),
+              
+        ],
+      )
+    );
+  }
+
+  // TODO pasarlo a campos_formulario.dart
+  Widget _buildCampoTexto(bool esObligatorio, String initValue,int maxLines, String title,String hintText,
+    String? _mensajeError,ValueChanged<String> onChanged, String? Function(String?)? validator ){
+    return TextFormField(
+      onChanged: onChanged,
+      validator: validator,
+      maxLines: maxLines,
+      initialValue: initValue,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        filled: initValue.isNotEmpty,
+        hintText: hintText,
+        label: esObligatorio ? RichText(
+          text: TextSpan(
+              style: const TextStyle(color: Colors.black54),
+              text: title,
+              children: const [
+              TextSpan(text: '*', style: TextStyle(color: Colors.red))
+            ]
+          )
+        ): Text(title),
+        errorText: _mensajeError,
+      ),
+    );
+  }
+  
+
+  Widget _bodySinForm(paciente){
+    return ListView(
         children: [
           const SizedBox( height: 8 ),
           CampoTexto(paciente.nombre, "Nombre",
@@ -60,11 +193,11 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
             (value) async { setState(() { paciente.apellidos = value; });}),
           CampoFecha(paciente.fechaNacimiento, "Fecha de nacimiento", context,
             (value) async { setState(() { paciente.fechaNacimiento = value; });}),
-          buildDropDown(paciente.sexo,Sexo.values,"Sexo del paciente","Seleccione el sexo",(dynamic value){
+          buildDropDown(paciente.sexo,Sexo.values,["Hombre","Mujer"],"Sexo del paciente","Seleccione el sexo",(dynamic value){
             setState(() {
               paciente.sexo = value;
             });
-          }),
+          },null),
           //_buildDropDownSexo(paciente),
           CampoTexto(paciente.domicilio, "Domicilio",
             (value) async { setState(() { paciente.domicilio = value; });}),
@@ -86,8 +219,7 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
 //          if (_isLoading) const Center( child: CircularProgressIndicator(),),
           if (_isLoading) buildLoading(),
         ],
-      ),
-    );
+      );
   }
 
   PreferredSizeWidget? _buildAppBar() {
@@ -104,10 +236,14 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: (){
-          showDialogSeguro(context: context, title: "Se perderán todos los cambios que no esten guardados", 
-          onAccept: () async{
-            Navigator.pop(context); 
-          });
+         if(_seHaEditado){
+            showDialogSeguro(context: context, title: "Se perderán todos los cambios que no esten guardados", 
+            onAccept: () async{
+              Navigator.pop(context); 
+            });
+         }else{
+           Navigator.pop(context); 
+         }
            
         }
       ),
@@ -122,7 +258,7 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
         onAccept: () async{
            _setLoading(true);
           await widget.pacienteApi!.delete(widget.paciente!.id!);
-          Provider.of<PacienteState>(context,listen: false).removePacienteAndNotify(widget.paciente);
+          Provider.of<AppState>(context,listen: false).removePacienteAndNotify(widget.paciente);
            _setLoading(false);
            Navigator.of(context).pop();
         }
@@ -130,19 +266,21 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
   }
 
   void _guardarPaciente() async {
-    _setLoading(true);
-    if (isEditing) {
-      Paciente res = await widget.pacienteApi!.update(widget.paciente!, widget.paciente!.id!);
-      Provider.of<PacienteState>(context,listen: false).updatePacienteAndNotify(widget.paciente!,res);
+    if(_formKey.currentState!.validate()){
+      _setLoading(true);
+      if (isEditing) {
+        Paciente res = await widget.pacienteApi!.update(pacienteTemp, widget.paciente!.id!);
+        Provider.of<AppState>(context,listen: false).updatePacienteAndNotify(widget.paciente!,res);
 
-    } else {
+      } else {
+        
+        Paciente res = await widget.pacienteApi!.insert(pacienteTemp);
+        Provider.of<AppState>(context,listen: false).addPacienteAndNotify(res);
+      }
       
-      Paciente res = await widget.pacienteApi!.insert(widget.paciente!);
-      Provider.of<PacienteState>(context,listen: false).addPacienteAndNotify(res);
+      _setLoading(false);
+      Navigator.of(context).pop();
     }
-    
-    _setLoading(false);
-    Navigator.of(context).pop();
   }
 
     /*Widget _buildDropDownSexo(Paciente paciente) {
@@ -163,4 +301,108 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
       );
     }*/
 
+}
+
+// TODO cambiar de sitio
+class _FormDatePicker extends StatefulWidget {
+  final String titulo;
+  final DateTime date;
+  final ValueChanged<DateTime> onChanged;
+
+  const _FormDatePicker({
+    required this.titulo,
+    required this.date,
+    required this.onChanged,
+  });
+
+  @override
+  _FormDatePickerState createState() => _FormDatePickerState();
+}
+
+class _FormDatePickerState extends State<_FormDatePicker> {
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      child: TextFormField(
+          readOnly: true,
+          onTap: () async {
+            var newDate = await showDatePicker(
+              context: context,
+              initialDate: widget.date,
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
+            );
+
+            // Don't change the date if the date picker returns null.
+            if (newDate == null) {
+              return;
+            }
+
+            widget.onChanged(newDate);
+          },
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            filled: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal:12.0,vertical: 20),
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            // Border Label TextBox 1
+            labelText: widget.titulo,
+            labelStyle: const TextStyle(
+              color: Colors.black54,
+            ),
+            hintText: intl.DateFormat("dd-MM-yyyy").format(widget.date),
+
+            hintMaxLines: 2,
+            hintStyle: const TextStyle(
+              color: Colors.black,
+            ),
+          ),
+        ),
+    );/*Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+                widget.titulo,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 240, 240, 240),
+            border: Border.all(color: Colors.black54, width: 1),
+            borderRadius: BorderRadius.circular(4.0)
+          ),
+          child:  Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                    intl.DateFormat("dd-MM-yyyy").format(widget.date),
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+
+              TextButton(
+                child: const Icon(Icons.edit),
+                onPressed: () async {
+                  var newDate = await showDatePicker(
+                    context: context,
+                    initialDate: widget.date,
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime.now(),
+                  );
+
+                  // Don't change the date if the date picker returns null.
+                  if (newDate == null) {
+                    return;
+                  }
+
+                  widget.onChanged(newDate);
+                },
+              )
+            ],
+          ),
+        )
+      ]
+    )*/;
+  }
 }

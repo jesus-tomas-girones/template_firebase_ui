@@ -16,7 +16,7 @@ import '../widgets/campos_formulario.dart';
 ///
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
 ///
-
+// TODO una variable bool isModified para que no te pregunte
 class InformeDetallePage extends StatefulWidget {
 
   Api<Informe>? informeApi;
@@ -187,7 +187,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   }
 
   bool _isInformeValido(){
-    if(descripcion!=null && descripcion!.trim().isNotEmpty){
+    if(descripcion==null || descripcion!.trim().isEmpty){
       return false; // TODO mostrar algun tipo de mensaje de error que avise al usuario
     }
     return true;
@@ -268,12 +268,12 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
           
           // tipo de accidente
           const SizedBox(height: 8,),
-          buildDropDown(tipoAccidenteSeleccionado, TipoAccidente.values, "Tipo de accidente", "Selecciona el tipo de accidente", 
+          buildDropDown(tipoAccidenteSeleccionado, TipoAccidente.values,[], "Tipo de accidente", "Selecciona el tipo de accidente", 
             (newValue){
               setState(() {
                 tipoAccidenteSeleccionado = newValue as TipoAccidente?;
               });
-            }),
+            },null),
          // _buildDropDownTipoAccidente(),
 
           // Descripcion

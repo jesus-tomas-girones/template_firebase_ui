@@ -49,10 +49,25 @@ class Paciente {
     this.empresa,
   });
 
+  clone() => Paciente(
+    nombre: nombre,
+    apellidos: apellidos,
+    fechaNacimiento: fechaNacimiento,
+    sexo: sexo,
+    domicilio: domicilio,
+    telefono: telefono,
+    dni: dni,
+    nuss: nuss,
+    nivelFormacion: nivelFormacion,
+    antecedentesMedicos: antecedentesMedicos,
+    situacionLaboral: situacionLaboral,
+    ocupacion: ocupacion,
+    empresa: empresa,
+  );
 
   @override
   String toString(){
-    return nombre! + " " + apellidos!;
+    return (nombre ?? "") + " " + (apellidos ?? "");
   }
   factory Paciente.fromJson(Map<String, dynamic> json){
     try{

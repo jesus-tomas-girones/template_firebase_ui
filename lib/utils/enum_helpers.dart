@@ -18,24 +18,35 @@ dynamic enumfromString<T>(List<dynamic> values, String? value){
   return null;
 }
 
-Widget buildDropDown<Enum>(Enum? valorInicial, List<Enum> valuesEnum, String? titulo,String? hintText,
-    Function(Enum? value) onChange) =>
-      ListTile(
-      title: Text(titulo ?? ""),
-      subtitle: DropdownButton<Enum>(
-          hint: Text(hintText ?? ""),
-          value: valorInicial ,
-          onChanged: (value) =>  onChange(value),
-          items: valuesEnum.map((value) {
-            return DropdownMenuItem<Enum>(
-                value: value,
-                child: Text(getCustomEnumName(value)));
-          }).toList()
-      ),
-    );
+Widget buildDropDown<Enum>(Enum? valorInicial, List<Enum> valuesEnum,List<String> customNames, String? titulo,String? hintText,
+    Function(Enum? value) onChange,String? Function(Enum?)? validator){
+      Map customNamesMap = customNames.asMap(); // le hacemos un map para poder comprobar si existe las mismas posiciones de Enums que nombres, asi
+                                                // devolver el valor por defecto si no existe
+      return  DropdownButtonHideUnderline(
+            child: DropdownButtonFormField<Enum>(
+                decoration: InputDecoration(
+                  filled: valorInicial!=null,
+                  hintText: hintText ?? "",
+                  labelText: titulo ?? "",
+                  border: const OutlineInputBorder(),
+                ),
+                validator: validator,
+                isExpanded: true,
+                value: valorInicial ,
+                onChanged: (value) =>  onChange(value),
+                // de esta forma 
+                items: valuesEnum.asMap().entries.map((entry) {
+                  String texto = customNamesMap.containsKey(entry.key) ? customNames[entry.key] : entry.value.toString();
+                  return DropdownMenuItem<Enum>(
+                      value: entry.value,
+                      child: Text(texto));
+                }).toList()
+            ),
+      
+      );
+    }
 
-
-// TODO revisar si es buena solucion
+// TODO quitar
 String getCustomEnumName(e){
   try{
     switch(e){
