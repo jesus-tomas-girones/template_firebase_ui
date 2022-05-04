@@ -268,12 +268,12 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
           
           // tipo de accidente
           const SizedBox(height: 8,),
-          buildDropDown(tipoAccidenteSeleccionado, TipoAccidente.values,[], "Tipo de accidente", "Selecciona el tipo de accidente", 
+          FieldDesplegable( "Tipo de accidente", tipoAccidenteSeleccionado, TipoAccidente.values,[], 
             (newValue){
               setState(() {
                 tipoAccidenteSeleccionado = newValue as TipoAccidente?;
               });
-            },null),
+            },hintText: "Selecciona el tipo de accidente"),
          // _buildDropDownTipoAccidente(),
 
           // Descripcion

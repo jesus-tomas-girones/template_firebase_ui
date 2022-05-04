@@ -18,15 +18,25 @@ dynamic enumfromString<T>(List<dynamic> values, String? value){
   return null;
 }
 
-Widget buildDropDown<Enum>(Enum? valorInicial, List<Enum> valuesEnum,List<String> customNames, String? titulo,String? hintText,
-    Function(Enum? value) onChange,String? Function(Enum?)? validator){
+Widget FieldDesplegable<Enum>(
+  String? titulo,
+  Enum? valorInicial, 
+  List<Enum> valuesEnum,
+  List<String> customNames, 
+  Function(Enum? value) onChange,
+  {String? Function(Enum?)? validator,
+  String hintText = "",
+  double padding = 16
+  }){
       Map customNamesMap = customNames.asMap(); // le hacemos un map para poder comprobar si existe las mismas posiciones de Enums que nombres, asi
                                                 // devolver el valor por defecto si no existe
-      return  DropdownButtonHideUnderline(
+      return  Padding(
+        padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+        child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<Enum>(
                 decoration: InputDecoration(
                   filled: valorInicial!=null,
-                  hintText: hintText ?? "",
+                  hintText: hintText,
                   labelText: titulo ?? "",
                   border: const OutlineInputBorder(),
                 ),
@@ -42,7 +52,7 @@ Widget buildDropDown<Enum>(Enum? valorInicial, List<Enum> valuesEnum,List<String
                       child: Text(texto));
                 }).toList()
             ),
-      
+        ),
       );
     }
 

@@ -53,7 +53,7 @@ String? Function(String? p1)? validatorMandatory(String? Function(String? p1)? v
 }
 
 
-Widget FieldDate_(  /// Campo de fecha
+Widget FieldDate(  /// Campo de fecha
     String title,
     DateTime? value,
     ValueChanged<DateTime> onChanged,

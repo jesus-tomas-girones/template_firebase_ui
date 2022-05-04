@@ -81,7 +81,7 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
                 mandatory: true,
                 validator: (value) => (value!.trim().length<4)
                     ? "El nombre es corto"
-                    : (value![0] != value![0].toUpperCase())
+                    : (value[0] != value[0].toUpperCase())
                     ? "La inicial ha de estar en mayúsculas"
                         : null
             ),
@@ -89,32 +89,20 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
                 (value) => setState(() { paciente.apellidos = value; }),
                 hint: "Introduce los apellidos del paciente",
             ),
-            FieldDate_(
+            FieldDate(
               "Fecha de nacimiento",
-              paciente.fechaNacimiento?? DateTime.now(), //TODO dejar fecha sin indicar
+              paciente.fechaNacimiento,
               (value) {setState(() {paciente.fechaNacimiento = value;});},
               context,
             ),
 
-            FieldDate(
-              title: "Fecha de nacimiento",
-              value: paciente.fechaNacimiento ?? DateTime.now(),
-              onChanged: (value) {
-                setState(() {
-                  paciente.fechaNacimiento = value;
-                });
-              },
+            FieldDesplegable(
+              "Sexo del paciente",
+              paciente.sexo, 
+              Sexo.values, ["Hombre", "Mujer"],
+              (dynamic value) => setState(() {paciente.sexo = value;}),
+              hintText:  "Seleccione el sexo",
             ),
-
-            buildDropDown(paciente.sexo, Sexo.values, ["Hombre", "Mujer"],
-                "Sexo del paciente", "Seleccione el sexo", (dynamic value) {
-
-              setState(() {
-                paciente.sexo = value;
-              });
-            }, null),
-
-
             FieldText("Domicilio", paciente.domicilio,
               (value) => setState(() { paciente.domicilio = value; }),
               hint: "Introduce el domicilio del paciente",
@@ -124,95 +112,37 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
               hint: "Introduce el teléfono del paciente",
             ),
             // DNI
-            _buildCampoTexto(
-                false, paciente.dni ?? "", 1, "DNI", "Introduce ", null,
-                (value) async {
-
-              setState(() {
-                paciente.dni = value;
-              });
-            }, null),
-            SizedBox(
-              height: espacioEntreInputs,
+            FieldText("DNI",paciente.dni, 
+              (value) async  => setState(() {paciente.dni = value;}),
+              hint: "Introduce el DNI del paciente"
             ),
             // NUSS
-            _buildCampoTexto(
-                false, paciente.nuss ?? "", 1, "NUSS", "Introduce ", null,
-                (value) async {
-
-              setState(() {
-                paciente.nuss = value;
-              });
-            }, null),
-            SizedBox(
-              height: espacioEntreInputs,
+            FieldText("NUSS",paciente.nuss, 
+              (value) async  => setState(() {paciente.nuss = value;}),
+              hint: "Introduce el NUSS del paciente"
             ),
+            
             // Antecedentes medicos
-            _buildCampoTexto(false, paciente.antecedentesMedicos ?? "", 10,
-                "Antecedentes Medicos", "Introduce ", null, (value) async {
-              //_seHaEditado = true;
-              setState(() {
-                paciente.antecedentesMedicos = value;
-              });
-            }, null),
-            SizedBox(
-              height: espacioEntreInputs,
+            FieldText("Antecedentes medicos",paciente.antecedentesMedicos, 
+              (value) async  => setState(() {paciente.antecedentesMedicos = value;}),
+              hint: "Introduce los antecedentes medicos del paciente",
+              maxLines: 10
             ),
+            
             // Ocupacion
-            _buildCampoTexto(false, paciente.ocupacion ?? "", 1, "Ocupacion",
-                "Introduce ", null, (value) async {
-              //_seHaEditado = true;
-              setState(() {
-                paciente.ocupacion = value;
-              });
-            }, null),
-            SizedBox(
-              height: espacioEntreInputs,
+            FieldText("Ocupacion",paciente.ocupacion, 
+              (value) async  => setState(() {paciente.ocupacion = value;}),
+              hint: "Introduce la ocupación del paciente",
             ),
+            
             // Empresa
-            _buildCampoTexto(
-                false, paciente.empresa ?? "", 1, "Empresa", "Introduce ", null,
-                (value) async {
-              //_seHaEditado = true;
-              setState(() {
-                paciente.empresa = value;
-              });
-            }, null),
+            FieldText("Empresa",paciente.empresa, 
+              (value) async  => setState(() {paciente.empresa = value;}),
+              hint: "Introduce la empresa del paciente",
+            ),
+            const SizedBox(height: 12,)
           ],
         ));
-  }
-
-  // TODO eliminarlo
-  Widget _buildCampoTexto(
-      bool esObligatorio,
-      String? initValue,
-      int maxLines,
-      String title,
-      String hintText,
-      String? _mensajeError,
-      ValueChanged<String> onChanged,
-      String? Function(String?)? validator) {
-    return TextFormField(
-      onChanged: onChanged,
-      validator: validator,
-      maxLines: maxLines,
-      initialValue: initValue,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        filled: initValue?.isNotEmpty ?? false,
-        hintText: hintText,
-        label: esObligatorio
-            ? RichText(
-                text: TextSpan(
-                    style: const TextStyle(color: Colors.black54),
-                    text: title,
-                    children: const [
-                    TextSpan(text: '*', style: TextStyle(color: Colors.red))
-                  ]))
-            : Text(title),
-        errorText: _mensajeError,
-      ),
-    );
   }
 
 
@@ -318,136 +248,5 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
       Navigator.of(context).pop();
     }
   }
-
-/*Widget _buildDropDownSexo(Paciente paciente) {
-      return ListTile(
-        title: const Text("Sexo"),
-        subtitle: DropdownButton<Sexo>(
-            hint: const Text("Selecciona el tipo de accidente"),
-            value: paciente.sexo,
-            onChanged: (value) {
-              setState(() {
-                paciente.sexo = value;
-              });
-            },
-            items: Sexo.values.map((Sexo classType) {
-              return DropdownMenuItem<Sexo>(
-                  value: classType, child: Text(getCustomEnumName(classType)));
-            }).toList()),
-      );
-    }*/
-
-}
-
-
-// TODO cambiar de sitio
-class FieldDate extends StatefulWidget {
-  final String title;
-  final DateTime value;
-  final ValueChanged<DateTime> onChanged;
-
-  const FieldDate({
-    required this.title,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  _FieldDateState createState() => _FieldDateState();
-}
-
-class _FieldDateState extends State<FieldDate> {
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      child: TextFormField(
-        readOnly: true,
-        onTap: () async {
-          var newDate = await showDatePicker(
-            context: context,
-            initialDate: widget.value,
-            firstDate: DateTime(1900),
-            lastDate: DateTime.now(),
-          );
-
-          // Don't change the date if the date picker returns null.
-          if (newDate == null) {
-            return;
-          }
-
-          widget.onChanged(newDate);
-        },
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          filled: true,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
-          floatingLabelBehavior: FloatingLabelBehavior.always,
-          // Border Label TextBox 1
-          labelText: widget.title,
-          labelStyle: const TextStyle(
-            color: Colors.black54,
-          ),
-          hintText: intl.DateFormat("dd-MM-yyyy").format(widget.value),
-
-          hintMaxLines: 2,
-          hintStyle: const TextStyle(
-            color: Colors.black,
-          ),
-        ),
-      ),
-    );
-    /*Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-                widget.titulo,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 240, 240, 240),
-            border: Border.all(color: Colors.black54, width: 1),
-            borderRadius: BorderRadius.circular(4.0)
-          ),
-          child:  Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                    intl.DateFormat("dd-MM-yyyy").format(widget.date),
-                    style: Theme.of(context).textTheme.subtitle1,
-                  ),
-
-              TextButton(
-                child: const Icon(Icons.edit),
-                onPressed: () async {
-                  var newDate = await showDatePicker(
-                    context: context,
-                    initialDate: widget.date,
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                  );
-
-                  // Don't change the date if the date picker returns null.
-                  if (newDate == null) {
-                    return;
-                  }
-
-                  widget.onChanged(newDate);
-                },
-              )
-            ],
-          ),
-        )
-      ]
-    )*/
-
-
-
-  }
-
-
 
 }
