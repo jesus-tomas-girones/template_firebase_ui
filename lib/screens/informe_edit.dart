@@ -38,7 +38,8 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   ];
   late TabController _tabController;
   late int _currentTabIndex = 0;
-  //final _formKey = GlobalKey<FormState>();
+  final _formKeyInforme = GlobalKey<FormState>();
+  // TODO hacer lo del informe.clone() como en el paciente
   String date = "";
   late DateTime selectedDate;
   late TipoAccidente? tipoAccidenteSeleccionado;
@@ -186,13 +187,6 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       );
   }
 
-  bool _isInformeValido(){
-    if(descripcion==null || descripcion!.trim().isEmpty){
-      return false; // TODO mostrar algun tipo de mensaje de error que avise al usuario
-    }
-    return true;
-  }
-
   ///
   /// Funcion que guarda o actualiza el informe
   ///
@@ -200,8 +194,8 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     _setLoading(true);
 
      try{
-       // TODO comprobar todos los campos antes de llegar aqui
-      if(_isInformeValido()){
+
+      if(_formKeyInforme.currentState!.validate()){
          // subir los nuevos ficheros
        String uid = Provider.of<AppState>(context, listen:false).user!.uid;
         for(PlatformFile file in ficherosSeleccionados!){
@@ -211,7 +205,6 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
         // borrar de las urls de la base de datos que el usuario ha quitado
         List<String> listUrlABorrar = [];
-
         for(String url in urlServer!){
           if(!urlModficadas!.contains(url)){
             listUrlABorrar.add(url);
@@ -229,8 +222,12 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
           Informe res = await widget.informeApi!.insert(informe);
         }
         Navigator.of(context).pop();
+      }else{
+        print("No validado");
       }
      }catch(e){
+       print("error al guardar informe");
+       print(e);
       _setLoading(false);
      }
       _setLoading(false);
@@ -242,89 +239,61 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   ///
   Widget _buildFormInforme(Informe? informe) {
 
-    return ListView(
-        children: [
-          // date picker fecha accidente
-          // TODO habra que ver si debemos poner la hora
-          const SizedBox(height: 8,),
-          ListTile(
-            title: const Text("Fecha del accidente"),
-            subtitle: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    const SizedBox(width: 8,),
-                    Text(
-                        "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}"),
-                    const SizedBox(width: 8,),
-                    ElevatedButton(
-                      onPressed: () {
-                        _selectDate(context);
-                      },
-                      child: const Text("Cambiar Fecha"),
-                    ),
-                  ],
+    return Form(
+        key: _formKeyInforme,
+        child: ListView(
+          children: [
+            // date picker fecha accidente
+            // TODO habra que ver si debemos poner la hora
+            FieldDate(
+                "Fecha del accidente",
+                selectedDate,
+                (value) {setState(() {selectedDate = value;});},
+                context,
+              ),
+
+            // tipo de accidente
+            FieldDesplegableFromEnum( 
+              "Tipo de accidente", 
+              tipoAccidenteSeleccionado, 
+              TipoAccidente.values,["Trafico","Laboral","Deportivo","Via publica"], 
+              (newValue){
+                setState(() {
+                  tipoAccidenteSeleccionado = newValue as TipoAccidente?;
+                });
+              },hintText: "Selecciona el tipo de accidente"),
+          
+            FieldText("Descripción", descripcion,
+                (value) => setState(() { descripcion = value; }),
+                hint: "Introduce la descripcion del informe",
+                mandatory: true,
+                maxLines: 3
+              ),
+            FieldText("Lugar del accidente", lugarAccidente,
+                (value) => setState(() { lugarAccidente = value; }),
+                hint: "Introduce el lugar del accidente",
+              ),
+            FieldText("Compañía aseguradora", aseguradora,
+                (value) => setState(() { aseguradora = value; }),
+                hint: "Introduce la compañía aseguradora",
+              ),
+          
+            FieldDesplegableFromListaObjetos<Paciente>(
+              "Paciente",
+              Paciente.findPacienteById(widget.pacientes!, pacienteSeleccionado),
+              widget.pacientes!,
+              (Paciente? paciente){
+                pacienteSeleccionado = paciente!.id;
+              },
+              hintText: "Selcciona el paciente"
             ),
-          ),
-          
-          // tipo de accidente
-          const SizedBox(height: 8,),
-          FieldDesplegable( "Tipo de accidente", tipoAccidenteSeleccionado, TipoAccidente.values,[], 
-            (newValue){
-              setState(() {
-                tipoAccidenteSeleccionado = newValue as TipoAccidente?;
-              });
-            },hintText: "Selecciona el tipo de accidente"),
-         // _buildDropDownTipoAccidente(),
-
-          // Descripcion
-          const SizedBox(height: 8,),
-          _buildCampoTexto(descripcion,"Descripcion",
-            (value) async{
-              setState(() {
-                descripcion = value;
-              });
-            }
-          ),
-         
-          // lugar del accidente
-          const SizedBox(height: 8,),
-          _buildCampoTexto(lugarAccidente,"Lugar del accidente",
-            (value) async{
-              setState(() {
-                lugarAccidente = value;
-              });
-            }),
-
-          // compañia aseguradora
-          const SizedBox(height: 8,),
-          _buildCampoTexto(aseguradora,"Compañía aseguradora",
-            (value) async{
-              setState(() {
-                aseguradora = value;
-              });
-            }),
-
-          // Paciente
-          const SizedBox(height: 8,),
-          _buildDropDownPacientesPrueba(),
-          ListTile(
-            title: const Text("Paciente"),
-            subtitle: Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Añadir Usuario"),
-                      onPressed: (){}, 
-                    )
-                  ],
-          )),
-          
-          // Ficheros adjuntos
-          _buildSelectorFicheros(),
-
-
-        ],
+            
+            // Ficheros adjuntos
+            // TODO pensar mejor diseño
+            _buildSelectorFicheros(),
+          ],
+        ),
     );
-
   }
 
   ///
@@ -368,98 +337,6 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
 
-  // funcion que muestra el date picker
-  _selectDate(BuildContext context) async {
-    final DateTime? selected = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2010),
-      lastDate: DateTime.now(),
-    );
-    if (selected != null && selected != selectedDate) {
-      setState(() {
-        selectedDate = selected;
-      });
-    }
-  }
-
-  // TODO pensar un mejor diseño para el informe
-  Widget _buildCampoTexto(String? descripcion, String titulo, Future<dynamic> Function(String value)? onChange) {
-
-    return  ListTile(
-            title: Text(titulo),
-            subtitle:  Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: EditableString(
-                onChange: onChange,
-                text: descripcion,
-                textStyle: const TextStyle(
-                              fontSize: 16.0, color: Colors.grey),
-              ),
-            ),
-          );
-  }
-
-  // TODO quitar
-  Widget _buildDropDownTipoAccidente(){
-    return ListTile(
-      title: const Text("Tipo accidente"),
-      subtitle: DropdownButton<TipoAccidente>(
-              hint: const Text("Selecciona el tipo de accidente"),
-              value: tipoAccidenteSeleccionado,
-              onChanged: (TipoAccidente? newValue) {
-                setState(() {
-                  tipoAccidenteSeleccionado = newValue!;
-                });
-              },
-              items: TipoAccidente.values.map((TipoAccidente classType) {
-                return DropdownMenuItem<TipoAccidente>(
-                  value: classType,
-                  child: Text(classType.value));
-              }).toList()
-          ),
-    );
-  }
-
-  /*Widget _buildDropDownPacientes(){ 
-    return DropdownButton<String>(
-        hint: const Text("Selecciona un paciente"),
-        value: pacienteSeleccionado?.id,
-        onChanged: (String? newIdPaciente) {
-          setState(() {
-            pacienteSeleccionado = Paciente.findPacienteById(widget.pacientes!, newIdPaciente);
-          });
-        },
-        items: widget.pacientes?.map<DropdownMenuItem<String>>((Paciente paciente){
-          return DropdownMenuItem<String>(
-            value: paciente.id,
-            child: Text(paciente.nombre ?? "")
-          );
-        }).toList()
-    
-    );
-  }*/
-
-  Widget _buildDropDownPacientesPrueba(){ 
-    return DropdownSearch<Paciente>(
-        mode: Mode.DIALOG,// DIALOG, MENU o BOTTOM SHEET
-        showSearchBox: true,
-        selectedItem: Paciente.findPacienteById(widget.pacientes!, pacienteSeleccionado), // para modificar lo que sale modificamos el toString del objeto
-        dropdownSearchDecoration: const InputDecoration(
-                  labelText: "Paciente",
-                  hintText: "Selecciona un paciente",
-        ),
-        onChanged: (Paciente? paciente) {
-          setState(() {
-            pacienteSeleccionado = paciente!.id;
-          });
-        },
-        items: widget.pacientes
-    
-    );
-  }
-
-
   // Seccion del selector de ficheros
   
   ///
@@ -468,6 +345,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   Widget _buildSelectorFicheros(){
     return ListTile(
             title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text("Ficheros"),
                 ElevatedButton(

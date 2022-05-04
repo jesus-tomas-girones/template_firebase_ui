@@ -18,43 +18,7 @@ dynamic enumfromString<T>(List<dynamic> values, String? value){
   return null;
 }
 
-Widget FieldDesplegable<Enum>(
-  String? titulo,
-  Enum? valorInicial, 
-  List<Enum> valuesEnum,
-  List<String> customNames, 
-  Function(Enum? value) onChange,
-  {String? Function(Enum?)? validator,
-  String hintText = "",
-  double padding = 16
-  }){
-      Map customNamesMap = customNames.asMap(); // le hacemos un map para poder comprobar si existe las mismas posiciones de Enums que nombres, asi
-                                                // devolver el valor por defecto si no existe
-      return  Padding(
-        padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
-        child: DropdownButtonHideUnderline(
-            child: DropdownButtonFormField<Enum>(
-                decoration: InputDecoration(
-                  filled: valorInicial!=null,
-                  hintText: hintText,
-                  labelText: titulo ?? "",
-                  border: const OutlineInputBorder(),
-                ),
-                validator: validator,
-                isExpanded: true,
-                value: valorInicial ,
-                onChanged: (value) =>  onChange(value),
-                // de esta forma 
-                items: valuesEnum.asMap().entries.map((entry) {
-                  String texto = customNamesMap.containsKey(entry.key) ? customNames[entry.key] : entry.value.toString();
-                  return DropdownMenuItem<Enum>(
-                      value: entry.value,
-                      child: Text(texto));
-                }).toList()
-            ),
-        ),
-      );
-    }
+
 
 // TODO quitar
 String getCustomEnumName(e){

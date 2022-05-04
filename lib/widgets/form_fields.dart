@@ -1,9 +1,8 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_ui/widgets/editable_string.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
-import '../model/informe.dart';
-import '../model/paciente.dart';
 
 /// Se incluyen diferentes Widgets que se usan como campos de formulario
 /// Son formularios normales.
@@ -47,9 +46,17 @@ Widget FieldText(  /// Campo de texto normal
 
 //Si se indica mandatory, se añade automáticamente el siguiente validator
 String? Function(String? p1)? validatorMandatory(String? Function(String? p1)? validator) {
-  return (value) => (value!.trim().isEmpty)
-      ? "El campo no puede estar vacio."
-      : validator!(value);
+  return (value){
+    if(value!.trim().isEmpty){
+      return "El campo no puede estar vacio.";
+    }else{
+      if(validator == null){
+        return null;
+      }else{
+        return validator(value);
+      }
+    }
+  };
 }
 
 
@@ -101,8 +108,70 @@ Widget FieldDate(  /// Campo de fecha
     );
 
 
+Widget FieldDesplegableFromEnum<Enum>(
+  String? titulo,
+  Enum? valorInicial, 
+  List<Enum> valuesEnum,
+  List<String> customNames, 
+  Function(Enum? value) onChange,
+  {String? Function(Enum?)? validator,
+  String hintText = "",
+  double padding = 16
+  }){
+      Map customNamesMap = customNames.asMap(); // le hacemos un map para poder comprobar si existe las mismas posiciones de Enums que nombres, asi
+                                                // devolver el valor por defecto si no existe
+      return  Padding(
+        padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+        child: DropdownButtonHideUnderline(
+            child: DropdownButtonFormField<Enum>(
+                decoration: InputDecoration(
+                  filled: valorInicial!=null,
+                  hintText: hintText,
+                  labelText: titulo ?? "",
+                  border: const OutlineInputBorder(),
+                ),
+                validator: validator,
+                isExpanded: true,
+                value: valorInicial ,
+                onChanged: (value) =>  onChange(value),
+                // de esta forma 
+                items: valuesEnum.asMap().entries.map((entry) {
+                  String texto = customNamesMap.containsKey(entry.key) ? customNames[entry.key] : entry.value.toString();
+                  return DropdownMenuItem<Enum>(
+                      value: entry.value,
+                      child: Text(texto));
+                }).toList()
+            ),
+        ),
+      );
+    }
 
-
+Widget FieldDesplegableFromListaObjetos<T>(
+  String title,
+  T? selectedItem, 
+  List<T> items,
+  void Function(T?)? onChanged,
+  {String hintText = "",
+  double padding = 16}
+  ){
+    return Padding(
+      padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+      child: DropdownSearch<T>(
+        mode: Mode.DIALOG,// DIALOG, MENU o BOTTOM SHEET
+        showSearchBox: true,
+        selectedItem: selectedItem, // para modificar lo que sale modificamos el toString del objeto
+        dropdownSearchDecoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          labelText: title,
+          hintText: hintText,
+          filled: selectedItem!=null
+        ),
+        onChanged: onChanged,
+        items: items
+    
+      ),
+    );
+}
 
 
 //TODO los métodos de abajo podrían ir a otro fichero

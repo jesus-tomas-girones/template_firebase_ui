@@ -96,7 +96,7 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
               context,
             ),
 
-            FieldDesplegable(
+            FieldDesplegableFromEnum(
               "Sexo del paciente",
               paciente.sexo, 
               Sexo.values, ["Hombre", "Mujer"],
