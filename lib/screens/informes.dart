@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import '../api/api.dart';
 import '../app.dart';
 import '../model/informe.dart';
-import '../widgets/campos_formulario.dart';
+import '../widgets/form_fields.dart';
 import 'informe_detalles.dart';
 
 ///

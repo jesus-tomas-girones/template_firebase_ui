@@ -11,7 +11,7 @@ import '../app.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
 import '../utils/firestore_utils.dart';
-import '../widgets/campos_formulario.dart';
+import '../widgets/form_fields.dart';
 
 ///
 /// Clase que pinta la informacion de un informe, se puede editar y borrar

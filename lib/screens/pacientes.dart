@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../model/paciente.dart';
 import '../api/api.dart';
 import '../app.dart';
-import '../widgets/campos_formulario.dart';
+import '../widgets/form_fields.dart';
 
 class PacientesPage extends StatefulWidget {
   const PacientesPage({Key? key}) : super(key: key);
@@ -103,8 +103,6 @@ class _PacienteListState extends State<PacienteList> {
   } 
 
 }
-
-
 
 class PacienteTile extends StatelessWidget {
   final Paciente? paciente;

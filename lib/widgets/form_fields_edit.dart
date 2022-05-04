@@ -2,7 +2,11 @@ import 'package:firebase_ui/widgets/editable_string.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
+import '../model/informe.dart';
+import '../model/paciente.dart';
+
 /// Se incluyen diferentes Widgets que se usan como campos de formulario
+/// Para editar hay que pulsar un botón
 
 Widget CampoTexto(String? valorInicial, String? titulo,
         Future<dynamic> Function(String value)? onChange) =>
@@ -49,33 +53,51 @@ Widget CampoFecha(DateTime? fecha, String? titulo, BuildContext context,
       ),
     );
 
-showDialogSeguro({
-        required BuildContext context,
-        required String title,
-        String? cancel,
-        String? ok,
-        required Future Function() onAccept}) =>
-    showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        actions: [
-          TextButton(
-            child: Text(cancel ?? 'Cancelar'),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          TextButton(
-            child: Text(ok ?? 'Ok'),
-            onPressed: () {
-              onAccept();
-              Navigator.of(context).pop(true);
-            },
-          ),
-        ],
+
+
+Widget CampoDesplegable<Enum>(Enum? valorInicial, List<Enum> valuesEnum, String? titulo, String? hintText,
+    Function(Enum? value) onChange) =>
+    ListTile(
+      title: Text(titulo ?? ""),
+      subtitle: DropdownButton<Enum>(
+          hint: Text(hintText ?? ""),
+          value: valorInicial ,
+          onChanged: (value) =>  onChange(value),
+          items: valuesEnum.map((value) {
+            return DropdownMenuItem<Enum>(
+                value: value,
+                child: Text(getCustomEnumName(value)));
+          }).toList()
       ),
     );
 
-Widget buildLoading() => const Center(child: CircularProgressIndicator());
-//TODO revisar si se pone también lo de Opacity
-//if (_isLoading) const Opacity(opacity: 0.1, child: ModalBarrier(dismissible: false, color: Colors.black),),
-//if (_isLoading) const Center( child: CircularProgressIndicator(),),
+
+// TODO revisar si es buena solucion
+
+// Mejor indicar los posibles strings en un array en un paámetro
+//CampoDesplegable(paciente.sexo, Sexo.values, ["hombre","mujer"]
+//          "Sexo del paciente","Seleccione el sexo",
+//          (dynamic value){ setState(() { paciente.sexo = value; }); }cor),
+
+String getCustomEnumName(e) {
+  try {
+    switch (e) {
+      case Sexo.hombre:
+        return "Hombre";
+      case Sexo.mujer:
+        return "Mujer";
+      case TipoAccidente.Deportivo:
+        return "Deportivo";
+      case TipoAccidente.Laboral:
+        return "Laboral";
+      case TipoAccidente.ViaPublica:
+        return "Via publica";
+      case TipoAccidente.Trafico:
+        return "Trafico";
+      default:
+        return e.name;
+    }
+  } catch (e) {
+    return "";
+  }
+}

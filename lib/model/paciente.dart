@@ -7,7 +7,6 @@ import '../utils/date_time_helpers.dart';
 enum Sexo{
   hombre, mujer
 }
-
 enum NivelFormacion {
   analfabeto, primaria, bachillerato, formacionProfesional, graduadoUniversitario, doctorado
 }
@@ -49,7 +48,7 @@ class Paciente {
     this.empresa,
   });
 
-  clone() => Paciente(
+  clone() => Paciente(  //TODO Explicar por que no se copia el id. No lo entiendo
     nombre: nombre,
     apellidos: apellidos,
     fechaNacimiento: fechaNacimiento,
@@ -66,9 +65,28 @@ class Paciente {
   );
 
   @override
-  String toString(){
-    return (nombre ?? "") + " " + (apellidos ?? "");
-  }
+  bool operator ==(Object other) =>   // NO se compara el id.
+      identical(this, other) ||
+      other is Paciente &&
+          runtimeType == other.runtimeType &&
+          nombre == other.nombre &&
+          apellidos == other.apellidos &&
+          fechaNacimiento == other.fechaNacimiento &&
+          sexo == other.sexo &&
+          domicilio == other.domicilio &&
+          telefono == other.telefono &&
+          dni == other.dni &&
+          nuss == other.nuss &&
+          nivelFormacion == other.nivelFormacion &&
+          antecedentesMedicos == other.antecedentesMedicos &&
+          situacionLaboral == other.situacionLaboral &&
+          ocupacion == other.ocupacion &&
+          empresa == other.empresa;
+
+  @override
+  String toString() => (nombre ?? "") + " " + (apellidos ?? "");
+
+
   factory Paciente.fromJson(Map<String, dynamic> json){
     try{
       return  Paciente(
@@ -87,13 +105,12 @@ class Paciente {
         ocupacion: json['ocupacion'],
         empresa: json['empresa'],
       );
-
     }catch(e){
       print("Error on paciente");
       print(e);
       return Paciente();
     }
-    
+
   }
 
   Map<String, dynamic> toJson() {
