@@ -123,7 +123,9 @@ class InformeTile extends StatelessWidget {
                 );
         },
         title: Text(
-            intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente)),
+            informe!.fechaAccidente!=null 
+            ? intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente!)
+            : "Sin fecha"),
         subtitle: Text(
           informe!.descripcion,
           maxLines: 3,

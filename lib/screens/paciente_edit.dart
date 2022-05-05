@@ -65,7 +65,6 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
         ));
   }
 
-  // TODO poner mejores hint texts
   Widget _buildBodyForm(Paciente paciente) {
     double? espacioEntreInputs = 32;
 
@@ -111,6 +110,7 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
                   (value) => setState(() { paciente.telefono = value; }),
               hint: "Introduce el teléfono del paciente",
             ),
+            // TODO poner en una fila el dni y el nuss
             // DNI
             FieldText("DNI",paciente.dni, 
               (value) async  => setState(() {paciente.dni = value;}),

@@ -93,7 +93,6 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          // TODO cambiar pacientes a por los del usuario de la bd
             builder: (context) => InformeDetallePage(
               informeApi: api!.informes,
               informe: null,

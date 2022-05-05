@@ -62,7 +62,7 @@ class Paciente {
     situacionLaboral: situacionLaboral,
     ocupacion: ocupacion,
     empresa: empresa,
-  );
+  )..id = id;
 
   @override
   bool operator ==(Object other) =>   // NO se compara el id.

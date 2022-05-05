@@ -193,13 +193,13 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
          bool a = await deleteFile(url);
         }
 
-        var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!.id!,
-          tipoAccidenteSeleccionado!,urlModficadas!,indemnizaciones!);
-        if(isEditing){
+        /*var informe = Informe(selectedDate,descripcion!,aseguradora!,lugarAccidente!,pacienteSeleccionado!.id!,
+          tipoAccidenteSeleccionado!,urlModficadas!,indemnizaciones!);*/
+       /* if(isEditing){
           Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
         }else{
           Informe res = await widget.informeApi!.insert(informe);
-        }
+        }*/
         Navigator.of(context).pop();
      }catch(e){
       _setLoading(false);

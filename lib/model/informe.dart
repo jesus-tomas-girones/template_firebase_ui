@@ -42,7 +42,7 @@ class Informe{
   @JsonKey(ignore: true)
   String? id;
 
-  DateTime fechaAccidente; // no existe long en dart
+  DateTime? fechaAccidente; // no existe long en dart
   String descripcion;
   String? lugarAccidente;
   TipoAccidente? tipoAccidente;
@@ -51,9 +51,21 @@ class Informe{
   List<String>? ficherosAdjuntos = [];
   List<Indemnizacion>? indemnizaciones = [];
 
-  Informe(this.fechaAccidente,this.descripcion,this.companyiaAseguradora,this.lugarAccidente,this.idPaciente,this.tipoAccidente,
-    this.ficherosAdjuntos,this.indemnizaciones);
+  Informe({this.fechaAccidente,this.descripcion = "",this.companyiaAseguradora,this.lugarAccidente,this.idPaciente,this.tipoAccidente,
+    this.ficherosAdjuntos,this.indemnizaciones});
+  
+  clone()=> Informe(
+    fechaAccidente: fechaAccidente,
+    descripcion: descripcion,
+    companyiaAseguradora: companyiaAseguradora,
+    lugarAccidente: lugarAccidente,
+    idPaciente: idPaciente,
+    tipoAccidente: tipoAccidente,
+    ficherosAdjuntos: ficherosAdjuntos,
+    indemnizaciones: indemnizaciones
+  )..id = id; // esto seria el equivalente de hacer un setId despues de hacer la instancia, no se pone en el constructor para evitar problemas
 
+ 
   factory Informe.fromJson(Map<String, dynamic> json) =>
       _$InformeFromJson(json);
   Map<String, dynamic> toJson() => _$InformeToJson(this);
@@ -114,23 +126,36 @@ class Informe{
   }
 
   @override
-  operator ==(Object other) => other is Informe && other.id == id;
-
-  @override
   int get hashCode => id.hashCode;
+
+
+     @override
+  bool operator ==(Object other) =>   // NO se compara el id.
+      identical(this, other) ||
+      other is Informe &&
+          runtimeType == other.runtimeType &&
+          fechaAccidente == other.fechaAccidente &&
+          descripcion == other.descripcion &&
+          lugarAccidente == other.lugarAccidente &&
+          idPaciente == other.idPaciente &&
+          tipoAccidente == other.tipoAccidente &&
+          ficherosAdjuntos == other.ficherosAdjuntos &&
+          indemnizaciones == other.indemnizaciones;
+
+ 
 }
 
 Informe _$InformeFromJson(Map<String, dynamic> json) {
     return Informe(
       //Informe._timestampToDateTime(json['fecha_accidente'] as Timestamp),
-      timestampToDateTime(json['fecha_accidente'] as Timestamp),
-      json['descripcion'],
-      json['aseguradora'],
-      json['lugar_accidente'],
-      json["paciente"],
-      enumfromString(TipoAccidente.values, json["tipo_accidente"]),
-      json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
-      [],// TODO obtener las indemnizaciones
+      fechaAccidente: json['fecha_accidente'] == null ? null : timestampToDateTime(json['fecha_accidente'] as Timestamp),
+      descripcion: json['descripcion'],
+      companyiaAseguradora:json['aseguradora'],
+      lugarAccidente: json['lugar_accidente'],
+      idPaciente: json["paciente"],
+      tipoAccidente: enumfromString(TipoAccidente.values, json["tipo_accidente"]),
+      ficherosAdjuntos: json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
+      indemnizaciones: [],// TODO obtener las indemnizaciones
     );
   
 }
@@ -142,7 +167,7 @@ Map<String, dynamic> _$InformeToJson(Informe instance) => <String, dynamic>{
       'aseguradora': instance.companyiaAseguradora,
       'lugar_accidente': instance.lugarAccidente,
       'paciente': instance.idPaciente,
-      'tipo_accidente': instance.tipoAccidente,
+      'tipo_accidente': instance.tipoAccidente.toString(),
       'ficheros_adjuntos': instance.ficherosAdjuntos,
       'indemnizaciones':instance.indemnizaciones
 };

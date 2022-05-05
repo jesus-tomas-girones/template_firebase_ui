@@ -40,13 +40,15 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   late int _currentTabIndex = 0;
   final _formKeyInforme = GlobalKey<FormState>();
   // TODO hacer lo del informe.clone() como en el paciente
-  String date = "";
+  late Informe informeTemp;
+
+  /*String date = "";
   late DateTime selectedDate;
   late TipoAccidente? tipoAccidenteSeleccionado;
   late String? descripcion;
   late String? lugarAccidente;
   late String? aseguradora;
-  late List<Indemnizacion>? indemnizaciones;
+  late List<Indemnizacion>? indemnizaciones;*/
   late List<PlatformFile>? ficherosSeleccionados;
   late List<String>? urlServer;
   late List<String>? urlModficadas;
@@ -60,21 +62,25 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   void initState() {
     isEditing = widget.informe != null;
 
-    selectedDate = widget.informe?.fechaAccidente ?? DateTime.now();
-    tipoAccidenteSeleccionado = widget.informe?.tipoAccidente;
-    descripcion = widget.informe?.descripcion;
-    lugarAccidente = widget.informe?.lugarAccidente;
-    aseguradora = widget.informe?.companyiaAseguradora;
-    indemnizaciones = widget.informe?.indemnizaciones ?? [];
-    pacienteSeleccionado = widget.informe?.idPaciente;
+
+    if (widget.informe != null) {
+      // Debemos hacer esto porque sino se estara modificando la referencia y puede dar a problemas
+      informeTemp = widget.informe!.clone();
+      isEditing = true;
+    } else {
+      // TODO cuando es uno nuevo salta error
+      informeTemp = Informe();
+      isEditing = false;
+    }
 
     // los ficheros selccionados son los que selecciona de la galeria que luego se tendran que subir
     ficherosSeleccionados = [];
     // estas son las url que se obtienen del servidor, es conveniente tenerlas en otro array
     // asi modificar el array de urlModificadas y al darle guardar borrar del storage las url que no estan en modificadas
-    urlServer = widget.informe?.ficherosAdjuntos ?? [];
+    urlServer = informeTemp.ficherosAdjuntos ?? [];
     urlModficadas = [];
     urlModficadas!.addAll(urlServer!);
+    
 
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
@@ -117,8 +123,8 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
               body: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildFormInforme(widget.informe),
-                  _buildListaIndemnizaciones(indemnizaciones)
+                  _buildFormInforme(informeTemp),
+                  _buildListaIndemnizaciones(informeTemp.indemnizaciones)
                 ],
               )
             ),
@@ -141,11 +147,16 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: (){
-          showDialogSeguro(context: context, title: "Se perderán todos los cambios que no esten guardados", 
-            onAccept: () async{
+          if (informeTemp != widget.informe) {
+              showDialogSeguro(
+                  context: context,
+                  title: "Se perderán todos los cambios que no esten guardados",
+                  onAccept: () async {
+                    Navigator.pop(context);
+                  });
+            } else {
               Navigator.pop(context);
-          });
-           
+            }
         },
       ),
       actions: [
@@ -214,16 +225,13 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         for(String url in listUrlABorrar){
          bool a = await deleteFile(url);
         }
-        var informe = Informe(selectedDate,descripcion!,aseguradora,lugarAccidente,pacienteSeleccionado,
-          tipoAccidenteSeleccionado,urlModficadas,indemnizaciones);
+        
         if(isEditing){
-          Informe res = await widget.informeApi!.update(informe,widget.informe!.id!);
+          Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
         }else{
-          Informe res = await widget.informeApi!.insert(informe);
+          Informe res = await widget.informeApi!.insert(informeTemp);
         }
         Navigator.of(context).pop();
-      }else{
-        print("No validado");
       }
      }catch(e){
        print("error al guardar informe");
@@ -247,43 +255,44 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
             // TODO habra que ver si debemos poner la hora
             FieldDate(
                 "Fecha del accidente",
-                selectedDate,
-                (value) {setState(() {selectedDate = value;});},
+                informeTemp.fechaAccidente,
+                (value) {setState(() {informeTemp.fechaAccidente = value;});},
                 context,
+                hint: "Seleccione la fecha del accidente"
               ),
 
             // tipo de accidente
             FieldDesplegableFromEnum( 
               "Tipo de accidente", 
-              tipoAccidenteSeleccionado, 
+              informeTemp.tipoAccidente, 
               TipoAccidente.values,["Trafico","Laboral","Deportivo","Via publica"], 
               (newValue){
                 setState(() {
-                  tipoAccidenteSeleccionado = newValue as TipoAccidente?;
+                  informeTemp.tipoAccidente = newValue as TipoAccidente?;
                 });
               },hintText: "Selecciona el tipo de accidente"),
           
-            FieldText("Descripción", descripcion,
-                (value) => setState(() { descripcion = value; }),
+            FieldText("Descripción", informeTemp.descripcion,
+                (value) => setState(() { informeTemp.descripcion = value; }),
                 hint: "Introduce la descripcion del informe",
                 mandatory: true,
                 maxLines: 3
               ),
-            FieldText("Lugar del accidente", lugarAccidente,
-                (value) => setState(() { lugarAccidente = value; }),
+            FieldText("Lugar del accidente", informeTemp.lugarAccidente,
+                (value) => setState(() { informeTemp.lugarAccidente = value; }),
                 hint: "Introduce el lugar del accidente",
               ),
-            FieldText("Compañía aseguradora", aseguradora,
-                (value) => setState(() { aseguradora = value; }),
+            FieldText("Compañía aseguradora", informeTemp.companyiaAseguradora,
+                (value) => setState(() { informeTemp.companyiaAseguradora = value; }),
                 hint: "Introduce la compañía aseguradora",
               ),
           
             FieldDesplegableFromListaObjetos<Paciente>(
               "Paciente",
-              Paciente.findPacienteById(widget.pacientes!, pacienteSeleccionado),
+              Paciente.findPacienteById(widget.pacientes!, informeTemp.idPaciente),
               widget.pacientes!,
               (Paciente? paciente){
-                pacienteSeleccionado = paciente!.id;
+                informeTemp.idPaciente = paciente!.id;
               },
               hintText: "Selcciona el paciente"
             ),

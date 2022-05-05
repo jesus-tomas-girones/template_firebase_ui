@@ -88,7 +88,7 @@ Widget FieldDate(  /// Campo de fecha
           },
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
-            filled: true,
+            filled: value!=null,
             contentPadding:
             const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
             floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -97,7 +97,7 @@ Widget FieldDate(  /// Campo de fecha
             labelStyle: const TextStyle(
               color: Colors.black54,
             ),
-            hintText: intl.DateFormat("dd-MM-yyyy").format(value!),  //revisar !
+            hintText: value == null ? hint : intl.DateFormat("dd-MM-yyyy").format(value),  //revisar !
             hintMaxLines: 2,
             hintStyle: const TextStyle(
               color: Colors.black,
