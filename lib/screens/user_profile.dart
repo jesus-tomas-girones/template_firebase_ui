@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../app.dart';
 import '../utils/firestore_utils.dart';
 import '../widgets/editable_string.dart';
+import '../widgets/form_miscelanius.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({Key? key}) : super(key: key);
@@ -71,16 +72,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       }
                   )),
                   const SizedBox(height: 24),
-                  _buildSignOut((() {
+
+                  /*_buildSignOut((() {
                     FirebaseAuth.instance.signOut(); // cerrar sesion
                     Navigator.of(context).popUntil(
                         ModalRoute.withName("/")); //Volver a la pagina incial
                   })),
-                  const SizedBox(height: 24), // espaciador
+                  const SizedBox(height: 24), */
                   //Align(child: EditableUserDisplayName(user: appState.user)),
                   //_buildName(appState.user),
 
-                  ElevatedButton(onPressed: () {
+                  Button("Cerrar sesión", Icons.logout, () {
+                    FirebaseAuth.instance.signOut();
+                    Navigator.of(context).popUntil(
+                        ModalRoute.withName("/")); //Volver a la pagina incial
+                  }),
+
+                  Button("Cambiar contraseña", Icons.password, () {
                     showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -91,7 +99,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           }));
                         }
                     );
-                  }, child: const Text("Cambiar contraseña"))
+                  }),
+
+
+/*                  ElevatedButton(onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return StatefulBuilder(builder: ((context, setState) {
+                            return SimpleDialog(children: [
+                              CambiarFirebasePasswordWidget(user: appState.user)
+                            ],);
+                          }));
+                        }
+                    );
+                  }, child: const Text("Cambiar contraseña"))*/
 
                 ],
               ),
@@ -103,9 +125,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   ///
   void _onChangeFileCallback() async {
     String uid = Provider
-        .of<AppState>(context, listen: false)
-        .user!
-        .uid;
+        .of<AppState>(context, listen: false).user!.uid;
 
     FilePickerResult? result = await FilePicker.platform
         .pickFiles(
@@ -114,15 +134,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         onFileLoading: (FilePickerStatus status) => {},
         allowedExtensions: ['jpg', 'png']);
 
-    print("*************** CALLBACK");
-
     if (result != null) {
       String url = await uploadFile(result.files.first,"users/"+uid+"/fotoPerfil/"+result.files.first.name);
       // imagen subida, camnbiarla al usuario
       if (url != "") {
-        print("*************** url: " + url);
         FirebaseAuth.instance.currentUser!.updatePhotoURL(url).then((value) {
-          print("*************** ACTUALIZAR USER UI");
           Provider.of<AppState>(context, listen: false).updateUserAndNotify(
               FirebaseAuth.instance.currentUser);
         });
@@ -133,18 +149,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
+
+
 Widget _buildSignOut(VoidCallback onPressed) {
-  return Padding(
+  return Container(//    Padding(
     padding: const EdgeInsets.symmetric(horizontal: 64),
+    constraints: BoxConstraints(minWidth: 300, maxWidth: 400),
+    //constraints: null,
     child: ElevatedButton(
+
         onPressed: onPressed,
+
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
                 Text("Cerrar Sesion"),
-                SizedBox(width: 8),
+                SizedBox(width: 10),
                 Icon(Icons.logout)
               ]),
         )),

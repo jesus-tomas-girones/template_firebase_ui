@@ -8,6 +8,7 @@ import '../model/paciente.dart';
 import '../api/api.dart';
 import '../app.dart';
 import '../widgets/form_fields.dart';
+import '../widgets/form_miscelanius.dart';
 
 class PacientesPage extends StatefulWidget {
   const PacientesPage({Key? key}) : super(key: key);

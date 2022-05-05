@@ -1,5 +1,4 @@
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:firebase_ui/widgets/editable_string.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -46,29 +45,18 @@ Widget FieldText(  /// Campo de texto normal
 
 //Si se indica mandatory, se añade automáticamente el siguiente validator
 String? Function(String? p1)? validatorMandatory(String? Function(String? p1)? validator) {
-  return (value){
-    if(value!.trim().isEmpty){
-      return "El campo no puede estar vacio.";
-    }else{
-      if(validator == null){
-        return null;
-      }else{
-        return validator(value);
-      }
-    }
-  };
+  return (value) => (value!.trim().isEmpty)
+      ? "El campo no puede estar vacio."
+      : validator!(value);
 }
-
-
 Widget FieldDate(  /// Campo de fecha
     String title,
     DateTime? value,
     ValueChanged<DateTime> onChanged,
     BuildContext context,
     {String hint = "",
-      bool mandatory = false,
-      String? Function(String?)? validator,
-      double padding = 16
+     String? Function(String?)? validator,
+     double padding = 16
     }) =>
     Padding(
       padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
@@ -88,70 +76,78 @@ Widget FieldDate(  /// Campo de fecha
           },
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
-            filled: value!=null,
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
-            floatingLabelBehavior: FloatingLabelBehavior.always,
+            filled: value != null,
+            contentPadding: const EdgeInsets.symmetric(horizontal:12,vertical:20),
+            floatingLabelBehavior: value != null ? FloatingLabelBehavior.always : null,
             // Border Label TextBox 1
             labelText: title,
-            labelStyle: const TextStyle(
-              color: Colors.black54,
-            ),
-            hintText: value == null ? hint : intl.DateFormat("dd-MM-yyyy").format(value),  //revisar !
-            hintMaxLines: 2,
-            hintStyle: const TextStyle(
-              color: Colors.black,
-            ),
+            //labelStyle: const TextStyle(color: Colors.black54),
+            hintText: value == null
+                ? title
+                : intl.DateFormat('dd/MM/yyyy').format(value),
+//            hintMaxLines: 2,
+            hintStyle: const TextStyle(color: Colors.black),
           ),
         ),
       ),
     );
 
-
-Widget FieldDesplegableFromEnum<Enum>(
-  String? titulo,
-  Enum? valorInicial, 
+Widget FieldEnum<Enum>(
+  String? title,
+  Enum? valueInit,
   List<Enum> valuesEnum,
-  List<String> customNames, 
-  Function(Enum? value) onChange,
-  {String? Function(Enum?)? validator,
-  String hintText = "",
+  Function(Enum? val) onChange,
+  {List<String>? customNames,
+  String? Function(Enum?)? validator,
+  String hint = "",
   double padding = 16
   }){
-      Map customNamesMap = customNames.asMap(); // le hacemos un map para poder comprobar si existe las mismas posiciones de Enums que nombres, asi
+ //     Map customNamesMap = customNames.asMap(); // le hacemos un map para poder comprobar si existe las mismas posiciones de Enums que nombres, asi
                                                 // devolver el valor por defecto si no existe
       return  Padding(
         padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
-        child: DropdownButtonHideUnderline(
+ //       child: DropdownButtonHideUnderline(   //NO entiendo para que lo pones
             child: DropdownButtonFormField<Enum>(
                 decoration: InputDecoration(
-                  filled: valorInicial!=null,
-                  hintText: hintText,
-                  labelText: titulo ?? "",
+                  filled: valueInit != null,
+                  hintText: hint,
+                  labelText: title ?? "",
                   border: const OutlineInputBorder(),
                 ),
                 validator: validator,
                 isExpanded: true,
-                value: valorInicial ,
+                value: valueInit ,
                 onChanged: (value) =>  onChange(value),
-                // de esta forma 
                 items: valuesEnum.asMap().entries.map((entry) {
-                  String texto = customNamesMap.containsKey(entry.key) ? customNames[entry.key] : entry.value.toString();
+                // items: valuesEnum.map((entry) { //Menudo lio con la línea de arriba. Intento esto, pero no lo consigo
+                //  Con la siguiente línea te has rallado pasandolo a map
+                //  String texto = customNamesMap.containsKey(entry.key) ? customNames[entry.key] : entry.value.toString();
+                  String texto; //Versión larga
+                  if (customNames != null && customNames.length>entry.key) {
+                    texto = customNames[entry.key];
+                  } else {
+                    texto = entry.value.toString();
+                    texto = texto.substring(texto.indexOf('.')+1);
+                  }
+                  String _texto =  //Versión corta
+                    (customNames != null && customNames.length>entry.key)
+                       ? customNames[entry.key]
+                       : entry.value.toString().substring(texto.indexOf('.')+1);
                   return DropdownMenuItem<Enum>(
                       value: entry.value,
                       child: Text(texto));
                 }).toList()
-            ),
+   //         ),
         ),
       );
     }
 
-Widget FieldDesplegableFromListaObjetos<T>(
+Widget FieldObjetList<T>(
   String title,
-  T? selectedItem, 
+  T? selectedItem,
   List<T> items,
   void Function(T?)? onChanged,
-  {String hintText = "",
+  {String hint = "",
   double padding = 16}
   ){
     return Padding(
@@ -163,49 +159,15 @@ Widget FieldDesplegableFromListaObjetos<T>(
         dropdownSearchDecoration: InputDecoration(
           border: const OutlineInputBorder(),
           labelText: title,
-          hintText: hintText,
+          hintText: hint,
           filled: selectedItem!=null
         ),
         onChanged: onChanged,
         items: items
-    
       ),
     );
 }
 
-
-//TODO los métodos de abajo podrían ir a otro fichero
-
-showDialogSeguro({
-        required BuildContext context,
-        required String title,
-        String? cancel,
-        String? ok,
-        required Future Function() onAccept}) =>
-    showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        actions: [
-          TextButton(
-            child: Text(cancel ?? 'Cancelar'),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          TextButton(
-            child: Text(ok ?? 'Ok'),
-            onPressed: () {
-              onAccept();
-              Navigator.of(context).pop(true);
-            },
-          ),
-        ],
-      ),
-    );
-
-Widget buildLoading() => const Center(child: CircularProgressIndicator());
-//TODO revisar si se pone también lo de Opacity
-//if (_isLoading) const Opacity(opacity: 0.1, child: ModalBarrier(dismissible: false, color: Colors.black),),
-//if (_isLoading) const Center( child: CircularProgressIndicator(),),
 
 
 /*Widget CampoTexto(String? valorInicial, String? titulo,

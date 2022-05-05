@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 ///
 /// Widget para los text fields de los formularios
 ///
-///
+
 class TextFieldWidget extends StatefulWidget {
   final int maxLines;
   final String label;
@@ -29,7 +29,6 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   @override
   void initState() {
     super.initState();
-
     controller = TextEditingController(text: widget.text);
   }
 
