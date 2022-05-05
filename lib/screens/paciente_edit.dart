@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
 import '../app.dart';
@@ -124,20 +125,30 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
               }),
               hint: "Introduce el teléfono del paciente",
             ),
-            FieldText(
-                "DNI",
-                paciente.dni,
-                (value) async => setState(() {
-                      paciente.dni = value;
-                    }),
-                hint: "Introduce el DNI del paciente"),
-            FieldText(
-                "NUSS",
-                paciente.nuss,
-                (value) async => setState(() {
-                      paciente.nuss = value;
-                    }),
-                hint: "Introduce el NUSS del paciente"),
+            Row(
+              children: [
+                // Los text fields y el row se expanden el width hasta el infinito y da problemas de render
+                // hay varias soluciones, poniendole un expanded un flexible o un limited box para ponerle un tamaño al text field
+                Flexible(
+                  child: FieldText(
+                  "DNI",
+                  paciente.dni,
+                  (value) async => setState(() {
+                        paciente.dni = value;
+                      }),
+                  hint: "Introduce el DNI del paciente"),
+                ),
+                Flexible(
+                  child: FieldText(
+                  "NUSS",
+                  paciente.nuss,
+                  (value) async => setState(() {
+                        paciente.nuss = value;
+                      }),
+                  hint: "Introduce el NUSS del paciente"),
+                )
+              ],
+            ),
             FieldText(
                 "Antecedentes medicos",
                 paciente.antecedentesMedicos,
