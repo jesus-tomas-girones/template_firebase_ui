@@ -104,15 +104,9 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
             ),
             FieldEnum( "Sexo del paciente", paciente.sexo, Sexo.values,
               (dynamic value) => setState(() { paciente.sexo = value; }),
-              //customNames: ["Hombre"],
+              customNames: ["Hombre","Mujer"],
               hint: "Seleccione el sexo",
             ),
-/*            buildDropDown(paciente.sexo, Sexo.values, ["Hombre", "Mujer"],
-                "Sexo del paciente", "Seleccione el sexo", (dynamic value) {
-              setState(() {
-                paciente.sexo = value;
-              });
-            }, null),*/
 
             FieldText(
               "Domicilio",

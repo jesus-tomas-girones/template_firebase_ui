@@ -12,6 +12,7 @@ import '../model/informe.dart';
 import '../model/paciente.dart';
 import '../utils/firestore_utils.dart';
 import '../widgets/form_fields.dart';
+import '../widgets/form_miscelanius.dart';
 
 ///
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
@@ -42,14 +43,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   // TODO hacer lo del informe.clone() como en el paciente
   late Informe informeTemp;
 
-  /*String date = "";
-  late DateTime selectedDate;
-  late TipoAccidente? tipoAccidenteSeleccionado;
-  late String? descripcion;
-  late String? lugarAccidente;
-  late String? aseguradora;
-  late List<Indemnizacion>? indemnizaciones;*/
-  late List<PlatformFile>? ficherosSeleccionados;
+  late List<PlatformFile> ficherosSeleccionados;
   late List<String>? urlServer;
   late List<String>? urlModficadas;
   late String? pacienteSeleccionado;
@@ -205,15 +199,13 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     _setLoading(true);
 
      try{
-
       if(_formKeyInforme.currentState!.validate()){
          // subir los nuevos ficheros
        String uid = Provider.of<AppState>(context, listen:false).user!.uid;
-        for(PlatformFile file in ficherosSeleccionados!){
+        for(PlatformFile file in ficherosSeleccionados){
           String url = await uploadFile(file,"users/"+uid+"/ficherosAdjuntos/"+file.name);
           urlModficadas!.add(url);
         }
-
         // borrar de las urls de la base de datos que el usuario ha quitado
         List<String> listUrlABorrar = [];
         for(String url in urlServer!){
@@ -262,15 +254,17 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
               ),
 
             // tipo de accidente
-            FieldDesplegableFromEnum( 
+            FieldEnum( 
               "Tipo de accidente", 
               informeTemp.tipoAccidente, 
-              TipoAccidente.values,["Trafico","Laboral","Deportivo","Via publica"], 
+              TipoAccidente.values,
               (newValue){
                 setState(() {
                   informeTemp.tipoAccidente = newValue as TipoAccidente?;
                 });
-              },hintText: "Selecciona el tipo de accidente"),
+              },
+              customNames: ["Trafico","Laboral","Deportivo","Via publica"], 
+              hint: "Selecciona el tipo de accidente"),
           
             FieldText("Descripción", informeTemp.descripcion,
                 (value) => setState(() { informeTemp.descripcion = value; }),
@@ -287,14 +281,14 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 hint: "Introduce la compañía aseguradora",
               ),
           
-            FieldDesplegableFromListaObjetos<Paciente>(
+            FieldObjetList<Paciente>(
               "Paciente",
               Paciente.findPacienteById(widget.pacientes!, informeTemp.idPaciente),
               widget.pacientes!,
               (Paciente? paciente){
                 informeTemp.idPaciente = paciente!.id;
               },
-              hintText: "Selcciona el paciente"
+              hint: "Selcciona el paciente"
             ),
             
             // Ficheros adjuntos
@@ -363,12 +357,12 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 ),
               ],
             ),
-            subtitle: ficherosSeleccionados!.isEmpty && urlModficadas!.isEmpty
+            subtitle: ficherosSeleccionados.isEmpty && urlModficadas!.isEmpty
                   ? const Text("Sin fichero adjuntos")
                   : Column(
                     children:[
                         // ficheros
-                        Column(children: ficherosSeleccionados!.map((PlatformFile file) {
+                        Column(children: ficherosSeleccionados.map((PlatformFile file) {
                             return _buildFileItem(file);
                          }).toList(),),
                          //urls
@@ -395,7 +389,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
     if (result != null) {
       setState(() {
-        ficherosSeleccionados!.addAll(result.files);
+        ficherosSeleccionados.addAll(result.files);
       });
     }
   }
@@ -428,7 +422,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 icon: const Icon(Icons.close),
                 onPressed: (){
                   setState(() {
-                    ficherosSeleccionados?.remove(file);
+                    ficherosSeleccionados.remove(file);
                   });
                 },
               ),

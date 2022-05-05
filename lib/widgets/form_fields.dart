@@ -45,9 +45,17 @@ Widget FieldText(  /// Campo de texto normal
 
 //Si se indica mandatory, se añade automáticamente el siguiente validator
 String? Function(String? p1)? validatorMandatory(String? Function(String? p1)? validator) {
-  return (value) => (value!.trim().isEmpty)
-      ? "El campo no puede estar vacio."
-      : validator!(value);
+  return (value){
+    if(value!.trim().isEmpty){
+      return "El campo no puede estar vacio.";
+    }else{
+      if(validator == null){
+        return null;
+      }else{
+        return validator(value);
+      }
+    }
+  };
 }
 Widget FieldDate(  /// Campo de fecha
     String title,
