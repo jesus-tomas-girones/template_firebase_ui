@@ -104,6 +104,15 @@ class AuthGate extends StatelessWidget {
           } else {
             // Render your application if authenticated
             var _user = snapshot.data!;
+            // ver si esta verificado el correo o no
+            if(!_user.emailVerified){
+              print("1");
+              _user.sendEmailVerification(); // TODO ver como enviar solo la primera vez (Guardarlo en el servidor o Shared preferences???)
+              return const UserSignInScreen();
+              
+            }
+            print("2");
+
             Provider.of<AppState>(context, listen: false).updateUserAndNotify(_user);
             Provider.of<AppState>(context, listen: false).updateApiAndNotify(FirebaseDashboardApi(FirebaseFirestore.instance, _user.uid));
             
@@ -111,7 +120,6 @@ class AuthGate extends StatelessWidget {
                   Provider.of<AppState>(context,listen: false).updatePacientesAndNotify(pacientes);
             });
             
-
             return const HomePage();
           }
         },
