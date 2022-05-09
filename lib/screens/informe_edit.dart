@@ -43,7 +43,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   // TODO hacer lo del informe.clone() como en el paciente
   late Informe informeTemp;
 
-  late List<PlatformFile> ficherosSeleccionados;
+  late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
   late List<String>? urlModficadas;
   late String? pacienteSeleccionado;
@@ -68,10 +68,13 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     }
 
     // los ficheros selccionados son los que selecciona de la galeria que luego se tendran que subir
-    ficherosSeleccionados = [];
+    ficherosAnyadidos = [];
     // estas son las url que se obtienen del servidor, es conveniente tenerlas en otro array
     // asi modificar el array de urlModificadas y al darle guardar borrar del storage las url que no estan en modificadas
+    // TODO no se muestran las urls del servidor
     urlServer = informeTemp.ficherosAdjuntos ?? [];
+    print("url server");
+    print(urlServer);
     urlModficadas = [];
     urlModficadas!.addAll(urlServer!);
     
@@ -202,7 +205,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       if(_formKeyInforme.currentState!.validate()){
          // subir los nuevos ficheros
        String uid = Provider.of<AppState>(context, listen:false).user!.uid;
-        for(PlatformFile file in ficherosSeleccionados){
+        for(PlatformFile file in ficherosAnyadidos){
           String url = await uploadFile(file,"users/"+uid+"/ficherosAdjuntos/"+file.name);
           urlModficadas!.add(url);
         }
@@ -214,10 +217,16 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
           }
         }
 
+        print("URL MODIFICADAS: ");
+        print(urlModficadas);
+        print("URL A BORRAR: ");
+        print(listUrlABorrar);
+
         for(String url in listUrlABorrar){
          bool a = await deleteFile(url);
         }
         
+        informeTemp.ficherosAdjuntos = urlModficadas;
         if(isEditing){
           Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
         }else{
@@ -357,12 +366,12 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 ),
               ],
             ),
-            subtitle: ficherosSeleccionados.isEmpty && urlModficadas!.isEmpty
+            subtitle: ficherosAnyadidos.isEmpty && urlModficadas!.isEmpty
                   ? const Text("Sin fichero adjuntos")
                   : Column(
                     children:[
                         // ficheros
-                        Column(children: ficherosSeleccionados.map((PlatformFile file) {
+                        Column(children: ficherosAnyadidos.map((PlatformFile file) {
                             return _buildFileItem(file);
                          }).toList(),),
                          //urls
@@ -389,7 +398,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
     if (result != null) {
       setState(() {
-        ficherosSeleccionados.addAll(result.files);
+        ficherosAnyadidos.addAll(result.files);
       });
     }
   }
@@ -422,7 +431,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 icon: const Icon(Icons.close),
                 onPressed: (){
                   setState(() {
-                    ficherosSeleccionados.remove(file);
+                    ficherosAnyadidos.remove(file);
                   });
                 },
               ),

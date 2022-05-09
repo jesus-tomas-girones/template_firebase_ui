@@ -154,7 +154,7 @@ Informe _$InformeFromJson(Map<String, dynamic> json) {
       lugarAccidente: json['lugar_accidente'],
       idPaciente: json["paciente"],
       tipoAccidente: enumfromString(TipoAccidente.values, json["tipo_accidente"]),
-      ficherosAdjuntos: json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],// TODO cambiar a ficherosAdjuntos from firestore o similar, se guardara la url de firestore????
+      ficherosAdjuntos: json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],
       indemnizaciones: [],// TODO obtener las indemnizaciones
     );
   
