@@ -30,7 +30,7 @@ Future<String> uploadFile(PlatformFile file, String storageRef) async {
 
  Future<bool> deleteFile(String urlRef) async {
     try{
-      print('se va a borrar : ${urlRef}');
+      print('se va a borrar : $urlRef');
       Reference ref = FirebaseStorage.instance.refFromURL(urlRef);
       await ref.delete();
       return true;

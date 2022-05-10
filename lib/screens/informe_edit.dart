@@ -4,6 +4,7 @@ import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/indemnizacion.dart';
 import 'package:firebase_ui/utils/enum_helpers.dart';
 import 'package:firebase_ui/widgets/editable_string.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -45,7 +46,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
   late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
-  late List<String>? urlModficadas;
+  late List<String>? urlFicherosSubidos;
   late String? pacienteSeleccionado;
 
   late bool isEditing;
@@ -67,17 +68,6 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       isEditing = false;
     }
 
-    // los ficheros selccionados son los que selecciona de la galeria que luego se tendran que subir
-    ficherosAnyadidos = [];
-    // estas son las url que se obtienen del servidor, es conveniente tenerlas en otro array
-    // asi modificar el array de urlModificadas y al darle guardar borrar del storage las url que no estan en modificadas
-    // TODO no se muestran las urls del servidor
-    urlServer = informeTemp.ficherosAdjuntos ?? [];
-    print("url server");
-    print(urlServer);
-    urlModficadas = [];
-    urlModficadas!.addAll(urlServer!);
-    
 
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
@@ -184,11 +174,6 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       onAccept: () async{
         _setLoading(true);
         await widget.informeApi!.delete(widget.informe!.id!);
-        if(widget.informe!.ficherosAdjuntos!=null){
-          for(String ref in widget.informe!.ficherosAdjuntos!){
-            deleteFile(ref);
-          }
-        }
         _setLoading(false);
         Navigator.pop(context);
       },
@@ -203,30 +188,6 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
      try{
       if(_formKeyInforme.currentState!.validate()){
-         // subir los nuevos ficheros
-       String uid = Provider.of<AppState>(context, listen:false).user!.uid;
-        for(PlatformFile file in ficherosAnyadidos){
-          String url = await uploadFile(file,"users/"+uid+"/ficherosAdjuntos/"+file.name);
-          urlModficadas!.add(url);
-        }
-        // borrar de las urls de la base de datos que el usuario ha quitado
-        List<String> listUrlABorrar = [];
-        for(String url in urlServer!){
-          if(!urlModficadas!.contains(url)){
-            listUrlABorrar.add(url);
-          }
-        }
-
-        print("URL MODIFICADAS: ");
-        print(urlModficadas);
-        print("URL A BORRAR: ");
-        print(listUrlABorrar);
-
-        for(String url in listUrlABorrar){
-         bool a = await deleteFile(url);
-        }
-        
-        informeTemp.ficherosAdjuntos = urlModficadas;
         if(isEditing){
           Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
         }else{
@@ -301,8 +262,12 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
             ),
             
             // Ficheros adjuntos
-            // TODO pensar mejor diseño
-            _buildSelectorFicheros(),
+            SelectorFicherosFirebase(
+              firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros",
+              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/ficherosAdjuntos/",  
+              titulo: "Ficheros adjuntos",
+              textoNoFicheros: "No se han añadido ficheros aun",
+            )
           ],
         ),
     );
@@ -349,42 +314,82 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
 
-  // Seccion del selector de ficheros
+}
+
+class SelectorFicherosFirebase extends StatefulWidget{
   
-  ///
-  /// Widget para seleccionar ficheros
-  ///
-  Widget _buildSelectorFicheros(){
-    return ListTile(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Ficheros"),
-                ElevatedButton(
-                  child: const Text("Añadir ficheros"),
-                  onPressed: _addFicheros, 
-                ),
-              ],
+  final String firebaseColecion;
+  final String storageRef;
+  final String titulo;
+  final String textoNoFicheros;
+  final double padding;
+
+  SelectorFicherosFirebase({Key? key, 
+    required this.firebaseColecion, 
+    required this.storageRef,
+    required this.titulo,
+    required this.textoNoFicheros,
+    this.padding = 16
+  }) : super(key: key);
+
+  @override
+  _SelectorFicherosFirebaseState createState() => _SelectorFicherosFirebaseState();
+  
+}
+
+class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
+  
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection(widget.firebaseColecion).snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+        // cargando || no hay datos 
+        if(!snapshot.hasData || _isLoading){
+          return const Center(
+            child: Padding(padding: EdgeInsets.all(64),child: Center(child:CircularProgressIndicator()),),
+          );
+        }
+        // hay datos o no esta cargando
+        return Column(
+          children: [
+            // TITULO
+            Padding(
+              padding: EdgeInsets.fromLTRB(widget.padding, widget.padding, widget.padding, 0),
+              child:  Row(
+                children: [
+                    Text(widget.titulo),
+                    const SizedBox(width: 16,),
+                    ElevatedButton(
+                      child: const Text("Añadir ficheros"),
+                      onPressed: _addFicheros, 
+                    ),
+                ],
+              ),
             ),
-            subtitle: ficherosAnyadidos.isEmpty && urlModficadas!.isEmpty
-                  ? const Text("Sin fichero adjuntos")
-                  : Column(
-                    children:[
-                        // ficheros
-                        Column(children: ficherosAnyadidos.map((PlatformFile file) {
-                            return _buildFileItem(file);
-                         }).toList(),),
-                         //urls
-                         Column(children: urlModficadas!.map((String ref) {
-                            return _buildRefFirebaseItem(ref);
-                         }).toList(),)
-                      ]
-                  )
-              
-            );
+          
+          // CUERPO
+          snapshot.data!.docs.isEmpty 
+            ? Padding(padding: const EdgeInsets.all(64),child: Center(child:Text(widget.textoNoFicheros)),)
+            : ListView.builder(
+              padding: EdgeInsets.fromLTRB(widget.padding, widget.padding, widget.padding, widget.padding),
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(), // se necesita para poder poner un list view dentro de otro
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index){
+                DocumentSnapshot doc = snapshot.data!.docs[index];
+                
+                return  _buildUrlFicherosSubidosItem(doc);
+                
+              }
+            )
+          ]
+        );
+    });
   }
-
-
+ 
   ///
   /// Callbcak del file picker
   ///
@@ -397,18 +402,38 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         allowedExtensions: ['jpg', 'png','pdf','txt']);
 
     if (result != null) {
-      setState(() {
-        ficherosAnyadidos.addAll(result.files);
-      });
+      _setLoading(true);
+      for(PlatformFile file in result.files){
+        String url = await uploadFile(file,widget.storageRef+file.name);
+        FirebaseFirestore.instance.collection(widget.firebaseColecion).add({
+          "url":url,
+          "nombre":file.name
+        });
+      }
+
+      _setLoading(false);
     }
   }
+  
+  ///
+  /// Callbcak borrar fichero
+  ///
+  void _borrarFichero(urlStorage,idColeccion) async{
+    
+    
+      _setLoading(true);
+      
+      // borrar de firestore
+      await FirebaseFirestore.instance.collection(widget.firebaseColecion).doc(idColeccion).delete();
 
-  ///
-  /// Item de la lista de ficheros seleccionados
-  ///
-  Widget _buildFileItem(PlatformFile file){
+      // borrar de storage
+      await deleteFile(urlStorage);
+    
+      _setLoading(false);
+    }
+
+  Widget _buildUrlFicherosSubidosItem(DocumentSnapshot<Object?> doc){
     // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
-    // TODO buscar una mejor solucion para el overflow del nombre del fichero
     double screenWidth = MediaQuery.of(context).size.width;
     return Card(
           elevation: 5,
@@ -423,7 +448,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                     const SizedBox(width: 8,),
                     const Icon(Icons.image),
                     const SizedBox(width: 8,),
-                    LimitedBox(maxWidth: screenWidth*0.7,child: Text(file.name, overflow: TextOverflow.ellipsis, softWrap: false,),)
+                    LimitedBox(maxWidth: screenWidth*0.7,child: Text(doc["nombre"], overflow: TextOverflow.ellipsis, softWrap: false,),)
                   ]
                   
               ),
@@ -431,7 +456,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 icon: const Icon(Icons.close),
                 onPressed: (){
                   setState(() {
-                    ficherosAnyadidos.remove(file);
+                    _borrarFichero(doc["url"],doc.id);
                   });
                 },
               ),
@@ -440,38 +465,11 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
 
-  Widget _buildRefFirebaseItem(String ref){
-    // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
-    double screenWidth = MediaQuery.of(context).size.width;
-    return Card(
-          elevation: 5,
-          shadowColor: Colors.black,
-          color: Colors.greenAccent[100],
-          // Dos rows para que el icono de la foto y el nombre salgan al lado y el eliminar a la otra punta
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-               Row(
-                  children: [
-                    const SizedBox(width: 8,),
-                    const Icon(Icons.image),
-                    const SizedBox(width: 8,),
-                    LimitedBox(maxWidth: screenWidth*0.7,child: Text(ref, overflow: TextOverflow.ellipsis, softWrap: false,),)
-                  ]
-                  
-              ),
-              IconButton( 
-                icon: const Icon(Icons.close),
-                onPressed: (){
-                  setState(() {
-                    urlModficadas?.remove(ref);
-                  });
-                },
-              ),
-            ],
-        ),
-    );
+
+  void _setLoading(bool v){
+    setState(() {
+      _isLoading = v;
+    });
   }
 
 }
-

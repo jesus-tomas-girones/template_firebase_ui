@@ -71,7 +71,7 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
     indemnizaciones = widget.informe?.indemnizaciones ?? [];
     pacienteSeleccionado = Paciente(); //widget.informe?.idPaciente;
     ficherosSeleccionados = [];
-    urlServer = widget.informe?.ficherosAdjuntos ?? [];
+    //urlServer = widget.informe?.ficherosAdjuntos ?? [];
     urlModficadas = [];
     urlModficadas!.addAll(urlServer!);
 

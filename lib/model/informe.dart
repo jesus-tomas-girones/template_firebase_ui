@@ -48,11 +48,11 @@ class Informe{
   TipoAccidente? tipoAccidente;
   String? companyiaAseguradora;
   String? idPaciente;
-  List<String>? ficherosAdjuntos = [];
+  //List<String>? ficherosAdjuntos = [];
   List<Indemnizacion>? indemnizaciones = [];
 
   Informe({this.fechaAccidente,this.descripcion = "",this.companyiaAseguradora,this.lugarAccidente,this.idPaciente,this.tipoAccidente,
-    this.ficherosAdjuntos,this.indemnizaciones});
+    /*this.ficherosAdjuntos,*/this.indemnizaciones});
   
   clone()=> Informe(
     fechaAccidente: fechaAccidente,
@@ -61,7 +61,7 @@ class Informe{
     lugarAccidente: lugarAccidente,
     idPaciente: idPaciente,
     tipoAccidente: tipoAccidente,
-    ficherosAdjuntos: ficherosAdjuntos,
+    //ficherosAdjuntos: ficherosAdjuntos,
     indemnizaciones: indemnizaciones
   )..id = id; // esto seria el equivalente de hacer un setId despues de hacer la instancia, no se pone en el constructor para evitar problemas
 
@@ -139,7 +139,7 @@ class Informe{
           lugarAccidente == other.lugarAccidente &&
           idPaciente == other.idPaciente &&
           tipoAccidente == other.tipoAccidente &&
-          ficherosAdjuntos == other.ficherosAdjuntos &&
+          //ficherosAdjuntos == other.ficherosAdjuntos &&
           indemnizaciones == other.indemnizaciones;
 
  
@@ -154,7 +154,7 @@ Informe _$InformeFromJson(Map<String, dynamic> json) {
       lugarAccidente: json['lugar_accidente'],
       idPaciente: json["paciente"],
       tipoAccidente: enumfromString(TipoAccidente.values, json["tipo_accidente"]),
-      ficherosAdjuntos: json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],
+      //ficherosAdjuntos: json["ficheros_adjuntos"] != null ? (json['ficheros_adjuntos'] as List).map((item) => item as String).toList() : [],
       indemnizaciones: [],// TODO obtener las indemnizaciones
     );
   
@@ -168,6 +168,6 @@ Map<String, dynamic> _$InformeToJson(Informe instance) => <String, dynamic>{
       'lugar_accidente': instance.lugarAccidente,
       'paciente': instance.idPaciente,
       'tipo_accidente': instance.tipoAccidente.toString(),
-      'ficheros_adjuntos': instance.ficherosAdjuntos,
+      //'ficheros_adjuntos': instance.ficherosAdjuntos,
       'indemnizaciones':instance.indemnizaciones
 };
