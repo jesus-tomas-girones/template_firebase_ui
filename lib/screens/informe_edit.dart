@@ -1,24 +1,23 @@
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/indemnizacion.dart';
-import 'package:firebase_ui/utils/enum_helpers.dart';
-import 'package:firebase_ui/widgets/editable_string.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
-import '../utils/firestore_utils.dart';
+import '../widgets/firebase_selector_ficheros_widget.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/form_miscelanius.dart';
+
+
+
 
 ///
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
 ///
-// TODO una variable bool isModified para que no te pregunte
 class InformeDetallePage extends StatefulWidget {
 
   Api<Informe>? informeApi;
@@ -316,160 +315,3 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
 
 }
 
-class SelectorFicherosFirebase extends StatefulWidget{
-  
-  final String firebaseColecion;
-  final String storageRef;
-  final String titulo;
-  final String textoNoFicheros;
-  final double padding;
-
-  SelectorFicherosFirebase({Key? key, 
-    required this.firebaseColecion, 
-    required this.storageRef,
-    required this.titulo,
-    required this.textoNoFicheros,
-    this.padding = 16
-  }) : super(key: key);
-
-  @override
-  _SelectorFicherosFirebaseState createState() => _SelectorFicherosFirebaseState();
-  
-}
-
-class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
-  
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection(widget.firebaseColecion).snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
-        // cargando || no hay datos 
-        if(!snapshot.hasData || _isLoading){
-          return const Center(
-            child: Padding(padding: EdgeInsets.all(64),child: Center(child:CircularProgressIndicator()),),
-          );
-        }
-        // hay datos o no esta cargando
-        return Column(
-          children: [
-            // TITULO
-            Padding(
-              padding: EdgeInsets.fromLTRB(widget.padding, widget.padding, widget.padding, 0),
-              child:  Row(
-                children: [
-                    Text(widget.titulo),
-                    const SizedBox(width: 16,),
-                    ElevatedButton(
-                      child: const Text("Añadir ficheros"),
-                      onPressed: _addFicheros, 
-                    ),
-                ],
-              ),
-            ),
-          
-          // CUERPO
-          snapshot.data!.docs.isEmpty 
-            ? Padding(padding: const EdgeInsets.all(64),child: Center(child:Text(widget.textoNoFicheros)),)
-            : ListView.builder(
-              padding: EdgeInsets.fromLTRB(widget.padding, widget.padding, widget.padding, widget.padding),
-              shrinkWrap: true,
-              physics: const ClampingScrollPhysics(), // se necesita para poder poner un list view dentro de otro
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index){
-                DocumentSnapshot doc = snapshot.data!.docs[index];
-                
-                return  _buildUrlFicherosSubidosItem(doc);
-                
-              }
-            )
-          ]
-        );
-    });
-  }
- 
-  ///
-  /// Callbcak del file picker
-  ///
-  void _addFicheros() async{
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(
-        type: FileType.custom,
-        allowMultiple: true,
-        onFileLoading: (FilePickerStatus status) => {},
-        allowedExtensions: ['jpg', 'png','pdf','txt']);
-
-    if (result != null) {
-      _setLoading(true);
-      for(PlatformFile file in result.files){
-        String url = await uploadFile(file,widget.storageRef+file.name);
-        FirebaseFirestore.instance.collection(widget.firebaseColecion).add({
-          "url":url,
-          "nombre":file.name
-        });
-      }
-
-      _setLoading(false);
-    }
-  }
-  
-  ///
-  /// Callbcak borrar fichero
-  ///
-  void _borrarFichero(urlStorage,idColeccion) async{
-    
-    
-      _setLoading(true);
-      
-      // borrar de firestore
-      await FirebaseFirestore.instance.collection(widget.firebaseColecion).doc(idColeccion).delete();
-
-      // borrar de storage
-      await deleteFile(urlStorage);
-    
-      _setLoading(false);
-    }
-
-  Widget _buildUrlFicherosSubidosItem(DocumentSnapshot<Object?> doc){
-    // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
-    double screenWidth = MediaQuery.of(context).size.width;
-    return Card(
-          elevation: 5,
-          shadowColor: Colors.black,
-          color: Colors.greenAccent[100],
-          // Dos rows para que el icono de la foto y el nombre salgan al lado y el eliminar a la otra punta
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-               Row(
-                  children: [
-                    const SizedBox(width: 8,),
-                    const Icon(Icons.image),
-                    const SizedBox(width: 8,),
-                    LimitedBox(maxWidth: screenWidth*0.7,child: Text(doc["nombre"], overflow: TextOverflow.ellipsis, softWrap: false,),)
-                  ]
-                  
-              ),
-              IconButton( 
-                icon: const Icon(Icons.close),
-                onPressed: (){
-                  setState(() {
-                    _borrarFichero(doc["url"],doc.id);
-                  });
-                },
-              ),
-            ],
-        ),
-    );
-  }
-
-
-  void _setLoading(bool v){
-    setState(() {
-      _isLoading = v;
-    });
-  }
-
-}
