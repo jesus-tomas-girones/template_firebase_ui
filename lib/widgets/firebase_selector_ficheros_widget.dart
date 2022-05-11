@@ -1,11 +1,16 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_ui/widgets/visor_fichero_http.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import '../utils/firestore_utils.dart';
-import 'visor_fichero_http.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+class SelectorFicherosFirebaseController {
+  late Function() borrarAnyadidos;
+  late Function() borrarTodos;
+}
+
 
 ///
 /// Clase que lista ficheros referenciados en una coleccion de firebase
@@ -18,13 +23,17 @@ class SelectorFicherosFirebase extends StatefulWidget{
   final String titulo;
   final String textoNoFicheros;
   final double padding;
+  final SelectorFicherosFirebaseController? controller;
+  final void Function()? callbackFicheroAnyadido;
 
   const SelectorFicherosFirebase({Key? key, 
     required this.firebaseColecion, 
     required this.storageRef,
     required this.titulo,
     required this.textoNoFicheros,
-    this.padding = 16
+    this.padding = 16,
+    this.controller,
+    this.callbackFicheroAnyadido
   }) : super(key: key);
 
   @override
@@ -32,10 +41,30 @@ class SelectorFicherosFirebase extends StatefulWidget{
   
 }
 
+
 class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
   
   bool _isLoading = false;
+  // para poder guardar los ficheros que se han añadido nuevos por si se cancela la edicion
+  // {nombre:"",url:"",id:""}
+  List<Map<String, String>> referenciasNuevas = [];
+  List<DocumentSnapshot<Object?>> todasReferencias = []; 
+  @override
+  void initState() {
+    if(widget.controller !=null){
+      widget.controller!.borrarAnyadidos = _borrarAnyadidos;
+      widget.controller!.borrarTodos = _borrarTodos;
+    }
+  }
 
+  @override
+  didUpdateWidget(oldWidget) { 
+    widget.controller!.borrarAnyadidos = _borrarAnyadidos; 
+    widget.controller!.borrarTodos = _borrarTodos;
+    super.didUpdateWidget(oldWidget); 
+  
+  }
+  
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
@@ -76,7 +105,7 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
               itemBuilder: (context, index){
                 DocumentSnapshot doc = snapshot.data!.docs[index];
                 
-                return  _buildListaFicherosSubidosItem(doc);
+                return  _buildUrlFicherosSubidosItem(doc);
                 
               }
             )
@@ -94,21 +123,24 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
         type: FileType.custom,
         allowMultiple: true,
         onFileLoading: (FilePickerStatus status) => {},
-        allowedExtensions: ['*']
-   //     allowedExtensions: ['jpg', 'jpeg', 'gif', 'png','pdf', 'doc', 'docx',
-   //       'xls', 'xlsm', 'ppt', 'pptx' 'txt', 'csv', ]
-    );
+        allowedExtensions: ['jpg', 'png','pdf']);
 
     if (result != null) {
       _setLoading(true);
       for(PlatformFile file in result.files){
         String url = await uploadFile(file,widget.storageRef+file.name);
-        FirebaseFirestore.instance.collection(widget.firebaseColecion).add({
+        var fichero = {
           "url":url,
           "nombre":file.name
-        });
+        };
+        DocumentReference doc = await FirebaseFirestore.instance.collection(widget.firebaseColecion).add(fichero);
+        fichero["id"] = doc.id;
+        referenciasNuevas.add(fichero);
       }
-
+      // llamar al callback si se paso
+      if(widget.callbackFicheroAnyadido!=null){
+        widget.callbackFicheroAnyadido!();
+      }
       _setLoading(false);
     }
   }
@@ -116,26 +148,62 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
   ///
   /// Callbcak borrar fichero
   ///
-  void _borrarFichero(urlStorage,idColeccion) async{
+  void _borrarAnyadidos() async{
+    
+    
       _setLoading(true);
+
+      // borrar las nuevas
+      for(Map<String,String> fichero in referenciasNuevas){
+        _borrarFichero(fichero["url"], fichero["id"]);
+      }
+    
+      _setLoading(false);
+    }
+   
+   void _borrarTodos() async{
+    
+    
+      _setLoading(true);
+
+      for(DocumentSnapshot<Object?> fichero in todasReferencias){
+        _borrarFichero(fichero["url"], fichero.id);
+      }
+      
+    
+      _setLoading(false);
+    }
+
+  ///
+  /// Callbcak borrar fichero
+  ///
+  void _borrarFichero(urlStorage,idColeccion) async{
+    
+      _setLoading(true);
+      
       // borrar de firestore
       await FirebaseFirestore.instance.collection(widget.firebaseColecion).doc(idColeccion).delete();
+
       // borrar de storage
       await deleteFile(urlStorage);
+    
       _setLoading(false);
-  }
+    }
 
-  Widget _buildListaFicherosSubidosItem(DocumentSnapshot<Object?> doc){
+  
+  Widget _buildUrlFicherosSubidosItem(DocumentSnapshot<Object?> doc){
     // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
     double screenWidth = MediaQuery.of(context).size.width;
+    todasReferencias.add(doc);
     return InkWell(
-      onTap: ()  {
+      onTap: (){
         Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
           return VisorFicheroHttp(
             url: doc["url"], 
             titulo: doc["nombre"],
             extension: doc["nombre"].toString().split(".")[1]);
         }));
+         
       },
       child: Card(
           elevation: 5,
@@ -143,26 +211,18 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
           color: Colors.greenAccent[100],
           // Dos rows para que el icono de la foto y el nombre salgan al lado y el eliminar a la otra punta
           child: Row(
-//            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               Expanded( child: Row(
+               Row(
                   children: [
-                    const SizedBox(width: 8),
-                    const Icon(Icons.image), //TODO Poner icono diferente según extensión.
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 8,),
+                    const Icon(Icons.image),
+                    const SizedBox(width: 8,),
                     LimitedBox(maxWidth: screenWidth*0.6,child: Text(doc["nombre"], overflow: TextOverflow.ellipsis, softWrap: false,),)
                   ]
-              )),
-              IconButton(
-                icon: const Icon(Icons.download),
-                onPressed: () async {
-                   //Solo funciona en Web
-                    if (await canLaunchUrlString(doc["url"]))
-                       await launchUrlString(doc["url"]);
-                    else throw "Could not launch url";
-                },
+                  
               ),
-              IconButton(
+              IconButton( 
                 icon: const Icon(Icons.close),
                 onPressed: (){
                   setState(() {
@@ -176,10 +236,12 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
     );
   }
 
+
   void _setLoading(bool v){
     setState(() {
       _isLoading = v;
     });
   }
+
 
 }

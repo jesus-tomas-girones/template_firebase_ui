@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import '../app.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
-import '../widgets/selector_ficheros_firebase.dart';
+import '../widgets/firebase_selector_ficheros_widget.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/form_miscelanius.dart';
 import 'paciente_edit.dart';
@@ -39,15 +39,17 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     Tab(child: Text("Indemnizaciones"),)
   ];
   late TabController _tabController;
+  late SelectorFicherosFirebaseController _ficherosFirebaseController;
   late int _currentTabIndex = 0;
   final _formKeyInforme = GlobalKey<FormState>();
-  // TODO hacer lo del informe.clone() como en el paciente
   late Informe informeTemp;
   late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
   late List<String>? urlFicherosSubidos;
   late String? pacienteSeleccionado;
   late bool isEditing;
+  late bool _seHaAnyadidoFichero = false;
+
   bool _isLoading = false;
 
   @override
@@ -58,10 +60,13 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       informeTemp = widget.informe!.clone();
       isEditing = true;
     } else {
-      // TODO cuando es uno nuevo salta error
+      _isLoading = true;
       informeTemp = Informe();
+      _crearInformeVacio(); // de esta forme tenemos una referencia a la bd y podemos añadirle imagenes
       isEditing = false;
     }
+
+    _ficherosFirebaseController = SelectorFicherosFirebaseController();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
             if (!_tabController.indexIsChanging) {
@@ -74,6 +79,15 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       });
     super.initState();
   }
+  
+  // crear un informe vacio para tener la referencia del id y asi poder subir imagenes
+  void _crearInformeVacio() async{
+    
+    informeTemp =  await widget.informeApi!.insert(informeTemp);
+    _setLoading(false);
+
+  }
+
 
   @override void dispose() {
     _tabController.dispose();
@@ -119,11 +133,19 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: (){
-          if (informeTemp != widget.informe) {
+          if (informeTemp != widget.informe || _seHaAnyadidoFichero) {
               showDialogSeguro(
                   context: context,
                   title: "Se perderán todos los cambios que no esten guardados",
                   onAccept: () async {
+                    _setLoading(true);
+                   
+                    await _ficherosFirebaseController.borrarAnyadidos();
+                    // si no se estaba editando y cancela cambios borramos el documentos
+                    if(!isEditing){
+                      await widget.informeApi!.delete(informeTemp.id!);
+                    }
+                    _setLoading(false);
                     Navigator.pop(context);
                   });
             } else {
@@ -156,6 +178,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       ok: 'BORRAR',
       onAccept: () async{
         _setLoading(true);
+        await _ficherosFirebaseController.borrarTodos();
         await widget.informeApi!.delete(widget.informe!.id!);
         _setLoading(false);
         Navigator.pop(context);
@@ -169,8 +192,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       if (_formKeyInforme.currentState!.validate()){
         if (isEditing) {
           Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
-        } else {
-          Informe res = await widget.informeApi!.insert(informeTemp);
+        }else{
+          Informe res = await widget.informeApi!.update(informeTemp,informeTemp.id!);
         }
         Navigator.of(context).pop();
       }
@@ -242,9 +265,13 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               ),
             SelectorFicherosFirebase(
               firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros",
-              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/ficherosAdjuntos/",
+              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/ficherosAdjuntos/"+informeTemp.id.toString()+"/",  
               titulo: "Ficheros adjuntos",
               textoNoFicheros: "No se han añadido ficheros aun",
+              controller: _ficherosFirebaseController,
+              callbackFicheroAnyadido: (){
+                _seHaAnyadidoFichero = true;
+              },
             )
           ],
         ),
