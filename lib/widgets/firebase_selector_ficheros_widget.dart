@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_ui/widgets/visor_fichero_http.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../utils/firestore_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -105,7 +105,7 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
               itemBuilder: (context, index){
                 DocumentSnapshot doc = snapshot.data!.docs[index];
                 
-                return  _buildUrlFicherosSubidosItem(doc);
+                return  _buildListaFicherosSubidosItem(doc);
                 
               }
             )
@@ -123,7 +123,10 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
         type: FileType.custom,
         allowMultiple: true,
         onFileLoading: (FilePickerStatus status) => {},
-        allowedExtensions: ['jpg', 'png','pdf']);
+        allowedExtensions: ['*']
+   //     allowedExtensions: ['jpg', 'jpeg', 'gif', 'png','pdf', 'doc', 'docx',
+   //       'xls', 'xlsm', 'ppt', 'pptx' 'txt', 'csv', ]
+        );
 
     if (result != null) {
       _setLoading(true);
@@ -191,7 +194,7 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
     }
 
   
-  Widget _buildUrlFicherosSubidosItem(DocumentSnapshot<Object?> doc){
+  Widget _buildListaFicherosSubidosItem(DocumentSnapshot<Object?> doc){
     // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
     double screenWidth = MediaQuery.of(context).size.width;
     todasReferencias.add(doc);
@@ -215,21 +218,32 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
             children: [
                Row(
                   children: [
-                    const SizedBox(width: 8,),
+                    const SizedBox(width: 8),
                     const Icon(Icons.image),
-                    const SizedBox(width: 8,),
+                    const SizedBox(width: 8),
                     LimitedBox(maxWidth: screenWidth*0.6,child: Text(doc["nombre"], overflow: TextOverflow.ellipsis, softWrap: false,),)
                   ]
                   
               ),
-              IconButton( 
-                icon: const Icon(Icons.close),
-                onPressed: (){
-                  setState(() {
-                    _borrarFichero(doc["url"],doc.id);
-                  });
-                },
-              ),
+             Row(
+               children: [
+                  IconButton(
+                    icon: const Icon(Icons.download),
+                    onPressed: () async {
+                      //Solo funciona en Web
+                        if (await canLaunchUrlString(doc["url"]))
+                          await launchUrlString(doc["url"]);
+                        else throw "Could not launch url";
+                    },
+                  ),
+                  IconButton( 
+                    icon: const Icon(Icons.close),
+                    onPressed: (){
+                      _borrarFichero(doc["url"],doc.id);
+                    },
+                  ),
+               ],
+             )
             ],
         ),
       ),
@@ -238,9 +252,11 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
 
 
   void _setLoading(bool v){
-    setState(() {
-      _isLoading = v;
-    });
+    if(mounted){
+      setState(() {
+        _isLoading = v;
+      });
+    }
   }
 
 

@@ -265,7 +265,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               ),
             SelectorFicherosFirebase(
               firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros",
-              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/ficherosAdjuntos/"+informeTemp.id.toString()+"/",  
+              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/",  
               titulo: "Ficheros adjuntos",
               textoNoFicheros: "No se han añadido ficheros aun",
               controller: _ficherosFirebaseController,
