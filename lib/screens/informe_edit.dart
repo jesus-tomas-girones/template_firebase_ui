@@ -8,9 +8,10 @@ import 'package:provider/provider.dart';
 import '../app.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
-import '../widgets/firebase_selector_ficheros_widget.dart';
+import '../widgets/selector_ficheros_firebase.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/form_miscelanius.dart';
+import 'paciente_edit.dart';
 
 
 
@@ -18,20 +19,20 @@ import '../widgets/form_miscelanius.dart';
 ///
 /// Clase que pinta la informacion de un informe, se puede editar y borrar
 ///
-class InformeDetallePage extends StatefulWidget {
+class InformeEditPage extends StatefulWidget {
 
   Api<Informe>? informeApi;
+  Api<Paciente>? pacienteApi;  // Para poder crear nuevos pacientes
   Informe? informe; // si es null es para crear
   List<Paciente>? pacientes;
-
-  InformeDetallePage({Key? key, this.informe,this.pacientes,this.informeApi}) : super(key: key);
+  InformeEditPage({Key? key, this.informe,this.pacientes,this.informeApi,this.pacienteApi}) : super(key: key);
 
   @override
-  _InformeDetallePageState createState() => _InformeDetallePageState();
+  _InformeEditPageState createState() => _InformeEditPageState();
 }
 
 // el with es para poder usar el tab controller
-class _InformeDetallePageState extends State<InformeDetallePage> with SingleTickerProviderStateMixin{
+class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProviderStateMixin{
 
   final List<Tab> _tabs = const [
     Tab(child: Text("Informe"),),
@@ -42,21 +43,16 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
   final _formKeyInforme = GlobalKey<FormState>();
   // TODO hacer lo del informe.clone() como en el paciente
   late Informe informeTemp;
-
   late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
   late List<String>? urlFicherosSubidos;
   late String? pacienteSeleccionado;
-
   late bool isEditing;
-
   bool _isLoading = false;
 
   @override
   void initState() {
     isEditing = widget.informe != null;
-
-
     if (widget.informe != null) {
       // Debemos hacer esto porque sino se estara modificando la referencia y puede dar a problemas
       informeTemp = widget.informe!.clone();
@@ -66,8 +62,6 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       informeTemp = Informe();
       isEditing = false;
     }
-
-
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
             if (!_tabController.indexIsChanging) {
@@ -78,31 +72,26 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
               });
             }
       });
-
-  
     super.initState();
   }
-  
-  @override
- void dispose() {
-   _tabController.dispose();
-   super.dispose();
- }
 
+  @override void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   void _setLoading(bool bool) {
     setState(() {
       _isLoading = bool;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return  DefaultTabController(
         length: _tabs.length,
         child: Stack(
           children: [
-            
-            // contenido
             Scaffold(
               floatingActionButton: _currentTabIndex == 1 ? _buildFab() : null,
               appBar: _buildAppBar(),
@@ -114,15 +103,12 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 ],
               )
             ),
-          
             // carga //TODO ¿Por que dos if?
             if (_isLoading) const Opacity(opacity: 0.1, child: ModalBarrier(dismissible: false, color: Colors.black),),
             if (_isLoading) const Center( child: CircularProgressIndicator(),),
           ],
         )
     );
-    
-       
   }
 
   PreferredSizeWidget? _buildAppBar(){
@@ -148,13 +134,13 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       actions: [
         // GUARDAR INFORME
         IconButton(
-          onPressed: _guardarInforme, 
+          onPressed: _guardarInforme,
           icon: const Icon(Icons.save)
         ),
         isEditing ? IconButton(
             icon: const Icon(Icons.delete),
             onPressed: _borrarInforme,
-        ) : Container() 
+        ) : Container()
       ],
       bottom: TabBar(
         controller: _tabController,
@@ -162,9 +148,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       ),
     );
   }
-  ///
-  /// Funcion que borra el informe
-  ///
+
   void _borrarInforme()async{
     await showDialogSeguro(
       context: context,
@@ -176,65 +160,72 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
         _setLoading(false);
         Navigator.pop(context);
       },
-      );
+    );
   }
 
-  ///
-  /// Funcion que guarda o actualiza el informe
-  ///
   void _guardarInforme() async{
     _setLoading(true);
-
-     try{
-      if(_formKeyInforme.currentState!.validate()){
-        if(isEditing){
+    try {
+      if (_formKeyInforme.currentState!.validate()){
+        if (isEditing) {
           Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
-        }else{
+        } else {
           Informe res = await widget.informeApi!.insert(informeTemp);
         }
         Navigator.of(context).pop();
       }
-     }catch(e){
+    } catch(e) {
        print("error al guardar informe");
        print(e);
       _setLoading(false);
-     }
-      _setLoading(false);
+    }
+    _setLoading(false);
   }
 
-
-  ///
-  /// Tab 1 detalles del informe
-  ///
+  // Tab 1 detalles del informe
   Widget _buildFormInforme(Informe? informe) {
-
     return Form(
         key: _formKeyInforme,
         child: ListView(
           children: [
-            // date picker fecha accidente
-            // TODO habra que ver si debemos poner la hora
-            FieldDate(
-                "Fecha del accidente",
+            //Paciente
+            Row( children: [
+              Expanded( child:
+              // TODO habra que ver si debemos poner la hora
+                FieldObjetList<Paciente>("Paciente",
+                  Paciente.findPacienteById(widget.pacientes!, informeTemp.idPaciente),
+                  widget.pacientes!,
+                  (Paciente? paciente) => informeTemp.idPaciente = paciente!.id,
+                  hint: "Selcciona el paciente"
+                ),),
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 16, 0),
+                child: IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => PacienteEditPage(
+                        pacienteApi: widget.pacienteApi,
+                        paciente: null)
+                      ));
+                  },
+                ),),
+              ],),
+            FieldDate("Fecha del accidente",
                 informeTemp.fechaAccidente,
                 (value) {setState(() {informeTemp.fechaAccidente = value;});},
                 context,
                 hint: "Seleccione la fecha del accidente"
               ),
-
-            // tipo de accidente
-            FieldEnum( 
-              "Tipo de accidente", 
-              informeTemp.tipoAccidente, 
+            FieldEnum("Tipo de accidente",
+              informeTemp.tipoAccidente,
               TipoAccidente.values,
               (newValue){
-                setState(() {
-                  informeTemp.tipoAccidente = newValue as TipoAccidente?;
-                });
+                setState(() {informeTemp.tipoAccidente = newValue as TipoAccidente?;});
               },
-              customNames: ["Trafico","Laboral","Deportivo","Via publica"], 
+              customNames: ["Trafico","Laboral","Deportivo","Via publica"],
               hint: "Selecciona el tipo de accidente"),
-          
             FieldText("Descripción", informeTemp.descripcion,
                 (value) => setState(() { informeTemp.descripcion = value; }),
                 hint: "Introduce la descripcion del informe",
@@ -249,21 +240,9 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
                 (value) => setState(() { informeTemp.companyiaAseguradora = value; }),
                 hint: "Introduce la compañía aseguradora",
               ),
-          
-            FieldObjetList<Paciente>(
-              "Paciente",
-              Paciente.findPacienteById(widget.pacientes!, informeTemp.idPaciente),
-              widget.pacientes!,
-              (Paciente? paciente){
-                informeTemp.idPaciente = paciente!.id;
-              },
-              hint: "Selcciona el paciente"
-            ),
-            
-            // Ficheros adjuntos
             SelectorFicherosFirebase(
               firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros",
-              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/ficherosAdjuntos/",  
+              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/ficherosAdjuntos/",
               titulo: "Ficheros adjuntos",
               textoNoFicheros: "No se han añadido ficheros aun",
             )
@@ -272,26 +251,21 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
     );
   }
 
-  ///
-  /// Tab 2 lista de indemnizaciones
-  ///
-  Widget _buildListaIndemnizaciones(List<Indemnizacion>? indemnizaciones) {
-    return Column(
+  // Tab 2 lista de indemnizaciones
+  Widget _buildListaIndemnizaciones(List<Indemnizacion>? indemnizaciones) =>
+    Column(
       children: [
         Expanded(
-          child: (indemnizaciones == null || indemnizaciones.isEmpty   
+          child: (indemnizaciones == null || indemnizaciones.isEmpty
               ? const Center(child: Text("Aun sin indemnizaciones"),)
               // TODO cambiar a obtenerlo de la BD
               :  ListView.separated(
-                  
-                  separatorBuilder: (context, index) => 
+                  separatorBuilder: (context, index) =>
                     const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Divider(color: Colors.black, thickness: 0.2,),),
-                  
                   itemBuilder: (context, index) {
                     return Text("Indemnizacion "+index.toString());
                   },
-
                   itemCount: indemnizaciones.length,
               )
           )
@@ -299,11 +273,7 @@ class _InformeDetallePageState extends State<InformeDetallePage> with SingleTick
       ],
     );
 
-  }
-
-  ///
-  /// Floating action button = añadir informe
-  ///
+  // Floating action button = añadir informe
   Widget _buildFab(){
     return FloatingActionButton(
       child: const Icon(Icons.add),

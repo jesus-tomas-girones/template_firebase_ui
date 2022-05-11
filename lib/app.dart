@@ -109,7 +109,6 @@ class AuthGate extends StatelessWidget {
               print("1");
               _user.sendEmailVerification(); // TODO ver como enviar solo la primera vez (Guardarlo en el servidor o Shared preferences???)
               return const UserSignInScreen();
-              
             }
             print("2");
 

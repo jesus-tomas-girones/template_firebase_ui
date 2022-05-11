@@ -93,8 +93,9 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => InformeDetallePage(
+            builder: (context) => InformeEditPage(
               informeApi: api!.informes,
+              pacienteApi: api!.pacientes,
               informe: null,
               pacientes: pacientes,)),
       );

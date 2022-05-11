@@ -6,7 +6,6 @@ import '../app.dart';
 import '../model/paciente.dart';
 import '../api/api.dart';
 import '../widgets/form_fields.dart';
-
 import '../widgets/form_miscelanius.dart';
 
 /// Clase que pinta la informacion de un paciente, se puede editar y borrar
@@ -196,14 +195,13 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
       leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            if (pacienteTemp != widget.paciente) { //si se ha editado algo
+            if (pacienteTemp != widget.paciente && //si se ha cambiado algo y
+                pacienteTemp !=  Paciente()) {     //no está en blanco
               //TODO Mejor poner tres botones: "PERDERLOS", "GUARDARLOS" Y "SEGUIR EDITANDO"
               showDialogSeguro(
                   context: context,
                   title: "Se perderán todos los cambios que no esten guardados",
-                  onAccept: () async {
-                    Navigator.pop(context);
-                  });
+                  onAccept: () async { Navigator.pop(context); });
             } else {
               Navigator.pop(context);
             }

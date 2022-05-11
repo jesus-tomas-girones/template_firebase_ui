@@ -1,8 +1,10 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../utils/firestore_utils.dart';
-import 'http_visualizador_fichero_widget.dart';
+import 'visor_fichero_http.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 ///
@@ -74,7 +76,7 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
               itemBuilder: (context, index){
                 DocumentSnapshot doc = snapshot.data!.docs[index];
                 
-                return  _buildUrlFicherosSubidosItem(doc);
+                return  _buildListaFicherosSubidosItem(doc);
                 
               }
             )
@@ -92,7 +94,10 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
         type: FileType.custom,
         allowMultiple: true,
         onFileLoading: (FilePickerStatus status) => {},
-        allowedExtensions: ['jpg', 'png','pdf']);
+        allowedExtensions: ['*']
+   //     allowedExtensions: ['jpg', 'jpeg', 'gif', 'png','pdf', 'doc', 'docx',
+   //       'xls', 'xlsm', 'ppt', 'pptx' 'txt', 'csv', ]
+    );
 
     if (result != null) {
       _setLoading(true);
@@ -112,31 +117,25 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
   /// Callbcak borrar fichero
   ///
   void _borrarFichero(urlStorage,idColeccion) async{
-    
-    
       _setLoading(true);
-      
       // borrar de firestore
       await FirebaseFirestore.instance.collection(widget.firebaseColecion).doc(idColeccion).delete();
-
       // borrar de storage
       await deleteFile(urlStorage);
-    
       _setLoading(false);
-    }
+  }
 
-  Widget _buildUrlFicherosSubidosItem(DocumentSnapshot<Object?> doc){
+  Widget _buildListaFicherosSubidosItem(DocumentSnapshot<Object?> doc){
     // para controlar el nombre del fichero (por ejmplo el 60% de la pantalla)
     double screenWidth = MediaQuery.of(context).size.width;
     return InkWell(
-      onTap: (){
+      onTap: ()  {
         Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
-          return HttpVisualizadorFichero(
+          return VisorFicheroHttp(
             url: doc["url"], 
             titulo: doc["nombre"],
             extension: doc["nombre"].toString().split(".")[1]);
         }));
-         
       },
       child: Card(
           elevation: 5,
@@ -144,18 +143,26 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
           color: Colors.greenAccent[100],
           // Dos rows para que el icono de la foto y el nombre salgan al lado y el eliminar a la otra punta
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               Row(
+               Expanded( child: Row(
                   children: [
-                    const SizedBox(width: 8,),
-                    const Icon(Icons.image),
-                    const SizedBox(width: 8,),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.image), //TODO Poner icono diferente según extensión.
+                    const SizedBox(width: 8),
                     LimitedBox(maxWidth: screenWidth*0.6,child: Text(doc["nombre"], overflow: TextOverflow.ellipsis, softWrap: false,),)
                   ]
-                  
+              )),
+              IconButton(
+                icon: const Icon(Icons.download),
+                onPressed: () async {
+                   //Solo funciona en Web
+                    if (await canLaunchUrlString(doc["url"]))
+                       await launchUrlString(doc["url"]);
+                    else throw "Could not launch url";
+                },
               ),
-              IconButton( 
+              IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: (){
                   setState(() {
@@ -169,12 +176,10 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
     );
   }
 
-
   void _setLoading(bool v){
     setState(() {
       _isLoading = v;
     });
   }
-
 
 }

@@ -115,8 +115,9 @@ class InformeTile extends StatelessWidget {
           Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => InformeDetallePage(
+                      builder: (context) => InformeEditPage(
                             informeApi: appState!.informes,
+                            pacienteApi: appState.pacientes,
                             informe: informe,
                             pacientes: pacienteState.pacientes,
                     )),
