@@ -67,7 +67,7 @@ class Paciente {
         ..id = id;
 
   @override
-  bool operator ==(Object other) => // NO se compara el id.
+  bool operator == (Object other) => // NO se compara el id.
   identical(this, other) ||
       other is Paciente &&
           runtimeType == other.runtimeType &&
@@ -87,7 +87,6 @@ class Paciente {
 
   @override
   String toString() => (nombre ?? "") + " " + (apellidos ?? "");
-
 
   factory Paciente.fromJson(Map<String, dynamic> json){
     try {

@@ -33,13 +33,12 @@ extension TipoAccidenteExtension on TipoAccidente {
 
   String get value =>
       ["Trafico", "Laboral", "Deportivo", "Via publica"][this.index];
-
-  }
+}
 
 ///
 /// Clase que representa un informe
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true) // Por tener clase anidada
 class Informe {
   @JsonKey(ignore: true)
   String? id;
@@ -155,17 +154,17 @@ class Informe {
           idPaciente: json["paciente"],
           tipoAccidente: enumfromString(
               TipoAccidente.values, json["tipo_accidente"]),
-          hayMuerte: json['hayMuerte'],
-          familiares: json['familiares'],
-          embarazada: json['embarazada'],
-          hayLesion: json['hayLesion'],
+          hayMuerte: json['hayMuerte'] ?? false,
+          familiares: json['familiares'] ?? <Familiar>[],
+          embarazada: json['embarazada'] ?? false,
+          hayLesion: json['hayLesion'] ?? false,
           lesiones: json['lesiones'],
-          diasUci: json['diasUci'],
-          diasPlanta: json['diasPlanta'],
-          diasBaja: json['diasBaja'],
-          diasPerjuicio: json['diasPerjuicio'],
-          haySecuela: json['haySecuela'],
-          secuelas: json['secuelas']
+          diasUci: json['diasUci'] ?? 0,
+          diasPlanta: json['diasPlanta'] ?? 0,
+          diasBaja: json['diasBaja'] ?? 0,
+          diasPerjuicio: json['diasPerjuicio'] ?? 0,
+          haySecuela: json['haySecuela'] ?? false,
+          secuelas: json['secuelas'] ?? <Secuela>[]
       );
     } catch (e) {
       print("Error en Informe.fromJson");
