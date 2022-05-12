@@ -48,25 +48,27 @@ class Paciente {
     this.empresa,
   });
 
-  clone() => Paciente(  //TODO Explicar por que no se copia el id. No lo entiendo
-    nombre: nombre,
-    apellidos: apellidos,
-    fechaNacimiento: fechaNacimiento,
-    sexo: sexo,
-    domicilio: domicilio,
-    telefono: telefono,
-    dni: dni,
-    nuss: nuss,
-    nivelFormacion: nivelFormacion,
-    antecedentesMedicos: antecedentesMedicos,
-    situacionLaboral: situacionLaboral,
-    ocupacion: ocupacion,
-    empresa: empresa,
-  )..id = id;
+  clone() =>
+      Paciente(
+        nombre: nombre,
+        apellidos: apellidos,
+        fechaNacimiento: fechaNacimiento,
+        sexo: sexo,
+        domicilio: domicilio,
+        telefono: telefono,
+        dni: dni,
+        nuss: nuss,
+        nivelFormacion: nivelFormacion,
+        antecedentesMedicos: antecedentesMedicos,
+        situacionLaboral: situacionLaboral,
+        ocupacion: ocupacion,
+        empresa: empresa,
+      )
+        ..id = id;
 
   @override
-  bool operator ==(Object other) =>   // NO se compara el id.
-      identical(this, other) ||
+  bool operator ==(Object other) => // NO se compara el id.
+  identical(this, other) ||
       other is Paciente &&
           runtimeType == other.runtimeType &&
           nombre == other.nombre &&
@@ -88,12 +90,13 @@ class Paciente {
 
 
   factory Paciente.fromJson(Map<String, dynamic> json){
-    try{
-      return  Paciente(
+    try {
+      return Paciente(
         nombre: json['nombre'],
         apellidos: json['apellidos'],
-        fechaNacimiento: json['fecha_nacimiento'] == null ? null :
-        timestampToDateTime(json['fecha_nacimiento'] as Timestamp),
+        fechaNacimiento: json['fecha_nacimiento'] == null
+            ? null
+            : timestampToDateTime(json['fecha_nacimiento'] as Timestamp),
         sexo: enumfromString(Sexo.values, json['sexo']),
         domicilio: json['domicilio'],
         telefono: json['telefono'],
@@ -105,19 +108,19 @@ class Paciente {
         ocupacion: json['ocupacion'],
         empresa: json['empresa'],
       );
-    }catch(e){
-      print("Error on paciente");
+    } catch (e) {
+      print("Error en Paciente.fromJson");
       print(e);
       return Paciente();
     }
-
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
       'nombre': nombre,
       'apellidos': apellidos,
-      'fecha_nacimiento': fechaNacimiento == null ? null : dateTimeToTimestamp(fechaNacimiento!),
+      'fecha_nacimiento': fechaNacimiento == null ? null : dateTimeToTimestamp(
+          fechaNacimiento!),
       'sexo': sexo.toString(),
       'domicilio': domicilio,
       'telefono': telefono,
@@ -129,82 +132,12 @@ class Paciente {
       'ocupacion': ocupacion,
       'empresa': empresa,
     };
-    map.removeWhere((key, value) => value==null);
-    map.removeWhere((key, value) => value=="null");
+    map.removeWhere((key, value) => value == null);
+    map.removeWhere((key, value) => value == "null");
     return map;
   }
 
-
-  //TODO: Quitar hasta el final
-  static List<Paciente> mockListaPacientes() {
-    Paciente p = Paciente(
-          nombre: "Paciente 1",
-          apellidos: "apell",
-          fechaNacimiento: DateTime.now(),
-          sexo: Sexo.hombre,
-          domicilio: "1",
-          telefono: "tel 1",
-          dni: "dni 1",
-          nuss: "nuss 1",
-          nivelFormacion: NivelFormacion.analfabeto,
-          antecedentesMedicos: "1",
-          situacionLaboral: SituacionLaboral.activo,
-          ocupacion: "1",
-          empresa: "1")..id = "1";
-    Paciente p2 = Paciente(
-          nombre: "Paciente 2",
-          apellidos: "apell",
-          fechaNacimiento: DateTime.now(),
-          sexo: Sexo.hombre,
-          domicilio: "1",
-          telefono: "tel 1",
-          dni: "dni 1",
-          nuss: "nuss 1",
-          nivelFormacion: NivelFormacion.analfabeto,
-          antecedentesMedicos: "1",
-          situacionLaboral: SituacionLaboral.activo,
-          ocupacion: "1",
-          empresa: "1")..id = "2";
-    Paciente p3 = Paciente(
-          nombre: "Paciente 3",
-          apellidos: "apell",
-          fechaNacimiento: DateTime.now(),
-          sexo: Sexo.hombre,
-          domicilio: "1",
-          telefono: "tel 1",
-          dni: "dni 1",
-          nuss: "nuss 1",
-          nivelFormacion: NivelFormacion.analfabeto,
-          antecedentesMedicos: "1",
-          situacionLaboral: SituacionLaboral.activo,
-          ocupacion: "1",
-          empresa: "1")..id = "3";
-    return [
-      p,
-      p2,
-      p3,
-      p3..id = "4",
-      p3..id = "5",
-      p3..id = "6",
-      p3..id = "7",
-      p3..id = "8",
-      p3..id = "9",
-      p3..id = "10",
-      p3..id = "11",
-      p3..id = "12",
-      p3..id = "13",
-      p3..id = "14",
-      p3..id = "15",
-      p3..id = "16",
-      p3..id = "17",
-      p3..id = "18",
-      p3..id = "19",
-    ];
-  }
-
-  ///
-  /// Funcion que devuelve el paciente con el ese id asociado
-  ///
+  // Funcion que devuelve el paciente con el ese id asociado
   static Paciente? findPacienteById(List<Paciente>? pacientes, id) {
     if (pacientes != null) {
       for (Paciente p in pacientes) {
@@ -216,64 +149,3 @@ class Paciente {
     return null;
   }
 }
-
-/*Paciente _$PacienteFromJson(Map<String, dynamic> json) =>
-  //dynamic getIfExist(String s) => json[s] == null ? null : json[s];
-
-  Paciente(
-    nombre: json['nombre'],
-    apellidos: json['apellidos'],
-    fechaNacimiento: json['fecha_nacimiento'] == null ? null :
-             timestampToDateTime(json['fecha_nacimiento'] as Timestamp),
-    sexo: json['sexo'],
-    domicilio: json['domicilio'],
-    telefono: json['telefono'],
-    dni: json['dni'],
-    nuss: json['nuss'],
-    nivelFormacion: json['nivel_formacion'],
-    antecedentesMedicos: json['antecedentes_medicos'],
-    situacionLaboral: json['situacion_laboral'],
-    ocupacion: json['ocupacion'],
-    empresa: json['empresa'],
-  );
-
-Map<String, dynamic> _$PacienteToJson(Paciente instance) {
-  Map<String, dynamic> map = {
-    'nombre': instance.nombre,
-    'apellidos': instance.apellidos,
-    'fecha_nacimiento': instance.fechaNacimiento == null ? null :
-        dateTimeToTimestamp(instance.fechaNacimiento!),
-    'sexo': instance.sexo.toString(),
-    'domicilio': instance.domicilio,
-    'telefono': instance.telefono,
-    'dni': instance.dni,
-    'nuss': instance.nuss,
-    'nivel_formacion': instance.nivelFormacion.toString(),
-    'antecedentes_medicos': instance.antecedentesMedicos,
-    'situacion_laboral': instance.situacionLaboral.toString(),
-    'ocupacion': instance.ocupacion,
-    'empresa': instance.empresa,
-  };
-  map.removeWhere((key, value) => value==null);
-  map.removeWhere((key, value) => value=="null");
-  return map;
-}
-
-Map<String, dynamic> __$PacienteToJson(Paciente instance) => <String, dynamic>{
-      //String? putIf(String s) => s == null ? null : s;
-
-      'nombre': instance.nombre,
-      'apellidos': instance.apellidos,
-      'fecha_nacimiento':
-          dateTimeToTimestamp(instance.fechaNacimiento ?? DateTime.now()),
-      'sexo': instance.sexo.toString(),
-      'domicilio': instance.domicilio,
-      'telefono': instance.telefono,
-      'dni': instance.dni,
-      'nuss': instance.nuss,
-      'nivel_formacion': instance.nivelFormacion.toString(),
-      'antecedentes_medicos': instance.antecedentesMedicos,
-      'situacion_laboral': instance.situacionLaboral.toString(),
-      'ocupacion': instance.ocupacion,
-      'empresa': instance.empresa,
-    };*/

@@ -1,6 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
-import 'package:firebase_ui/model/indemnizacion.dart';
+import 'package:firebase_ui/model/borrar_indemnizacion.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import '../app.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
-import '../widgets/firebase_selector_ficheros_widget.dart';
+import '../widgets/selector_ficheros_firebase.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/form_miscelanius.dart';
 import 'paciente_edit.dart';
@@ -113,7 +113,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                 controller: _tabController,
                 children: [
                   _buildFormInforme(informeTemp),
-                  _buildListaIndemnizaciones(informeTemp.indemnizaciones)
+                  //_buildListaIndemnizaciones(informeTemp.indemnizaciones)
                 ],
               )
             ),
@@ -265,7 +265,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               ),
             SelectorFicherosFirebase(
               firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros",
-              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/",  
+              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/",
               titulo: "Ficheros adjuntos",
               textoNoFicheros: "No se han añadido ficheros aun",
               controller: _ficherosFirebaseController,

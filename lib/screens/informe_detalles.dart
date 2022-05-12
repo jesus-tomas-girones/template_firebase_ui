@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../api/informe_firebase.dart';
 import '../app.dart';
-import '../model/indemnizacion.dart';
+import '../model/borrar_indemnizacion.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
 import '../utils/firestore_utils.dart';
@@ -68,7 +68,7 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
     descripcion = widget.informe?.descripcion;
     lugarAccidente = widget.informe?.lugarAccidente;
     aseguradora = widget.informe?.companyiaAseguradora;
-    indemnizaciones = widget.informe?.indemnizaciones ?? [];
+    //indemnizaciones = widget.informe?.indemnizaciones ?? [];
     pacienteSeleccionado = Paciente(); //widget.informe?.idPaciente;
     ficherosSeleccionados = [];
     //urlServer = widget.informe?.ficherosAdjuntos ?? [];

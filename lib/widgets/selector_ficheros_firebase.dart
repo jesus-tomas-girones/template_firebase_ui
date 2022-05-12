@@ -2,9 +2,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/widgets/visor_fichero_http.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/firestore_utils.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SelectorFicherosFirebaseController {
   late Function() borrarAnyadidos;
@@ -216,20 +216,21 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               Row(
+               Expanded ( child: Row(
                   children: [
                     const SizedBox(width: 8),
                     const Icon(Icons.image),
                     const SizedBox(width: 8),
+                    //TODO Aprender a ajustar el texto automáticamente
                     LimitedBox(maxWidth: screenWidth*0.6,child: Text(doc["nombre"], overflow: TextOverflow.ellipsis, softWrap: false,),)
                   ]
-                  
-              ),
+              ),),
              Row(
                children: [
                   IconButton(
                     icon: const Icon(Icons.download),
                     onPressed: () async {
+                      //TODO Cambiar por una descarga de fichero que funcione en Movil
                       //Solo funciona en Web
                         if (await canLaunchUrlString(doc["url"]))
                           await launchUrlString(doc["url"]);
