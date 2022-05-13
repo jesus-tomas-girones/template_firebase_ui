@@ -1,5 +1,6 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
 
 
@@ -13,10 +14,11 @@ Widget FieldText(  /// Campo de texto normal
     ValueChanged<String>? onChanged,
     {String hint = "",
       bool mandatory = false,
+      bool isNumeric = false,
       int maxLines = 1,
       String? mensajeError,
       String? Function(String?)? validator,
-      double padding = 16
+      double padding = 16,
     }) =>
     Padding(
       padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
@@ -25,6 +27,10 @@ Widget FieldText(  /// Campo de texto normal
         validator: (mandatory) ? validatorMandatory(validator) : validator,
         maxLines: maxLines,
         initialValue: value,
+        keyboardType: isNumeric ? TextInputType.number : null,
+        inputFormatters: isNumeric ? <TextInputFormatter>[
+            FilteringTextInputFormatter.digitsOnly
+        ] : null,
         decoration: InputDecoration(
           border: const OutlineInputBorder(),
           filled: value?.isNotEmpty ?? false,
@@ -176,6 +182,22 @@ Widget FieldObjetList<T>(
     );
 }
 
+Widget FieldCheckBox(
+  String title,
+  bool initValue,
+  void Function(bool?)? onChanged,
+  {double padding = 16, 
+  bool enable = true}
+){
+    return Padding(
+      padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+      child: CheckboxListTile(
+        title: Text(title),
+        value: enable ? initValue : false, 
+        onChanged: enable ? onChanged : null // de esta forme se vuelve gris y no se puede interactuar
+      ),
+    );
+}
 
 
 /*Widget CampoTexto(String? valorInicial, String? titulo,

@@ -1,13 +1,16 @@
+
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
-import 'package:firebase_ui/model/borrar_indemnizacion.dart';
+import 'package:firebase_ui/widgets/form_fields_edit.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app.dart';
+import '../model/familiar.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
+import '../widgets/field_lista_objetos.dart';
 import '../widgets/selector_ficheros_firebase.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/form_miscelanius.dart';
@@ -35,14 +38,16 @@ class InformeEditPage extends StatefulWidget {
 class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProviderStateMixin{
 
   final List<Tab> _tabs = const [
-    Tab(child: Text("Informe"),),
-    Tab(child: Text("Indemnizaciones"),)
+    Tab(child: Text("Datos"),),
+    Tab(child: Text("Indemnizaciones"),),
+    Tab(child: Text("Gastos"),),
   ];
   late TabController _tabController;
   late SelectorFicherosFirebaseController _ficherosFirebaseController;
   late int _currentTabIndex = 0;
   final _formKeyInforme = GlobalKey<FormState>();
   late Informe informeTemp;
+  Familiar familiarTemp = Familiar();
   late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
   late List<String>? urlFicherosSubidos;
@@ -107,13 +112,14 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         child: Stack(
           children: [
             Scaffold(
-              floatingActionButton: _currentTabIndex == 1 ? _buildFab() : null,
+              //floatingActionButton: _currentTabIndex == 1 ? _buildFab() : null,
               appBar: _buildAppBar(),
               body: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildFormInforme(informeTemp),
-                  //_buildListaIndemnizaciones(informeTemp.indemnizaciones)
+                  _TabDetalles(informeTemp),
+                  _TabIndemnizaciones(),
+                  _TabGastos()
                 ],
               )
             ),
@@ -127,7 +133,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
   PreferredSizeWidget? _buildAppBar(){
     return AppBar(
-      title: !isEditing ? const Text("Añadir Informe"): const Text("Detalles Informe"),
+      title: !isEditing ? const Text("Añadir Informe"): const Text("Informe"),
       automaticallyImplyLeading: true,
       // leading es el icono de la izquierda
       leading: IconButton(
@@ -205,8 +211,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     _setLoading(false);
   }
 
-  // Tab 1 detalles del informe
-  Widget _buildFormInforme(Informe? informe) {
+  // ======================================================================================
+  // Tab 1 Detalles
+  // ======================================================================================
+  Widget _TabDetalles(Informe? informe) {
     return Form(
         key: _formKeyInforme,
         child: ListView(
@@ -277,28 +285,192 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         ),
     );
   }
-
-  // Tab 2 lista de indemnizaciones
-  Widget _buildListaIndemnizaciones(List<Indemnizacion>? indemnizaciones) =>
-    Column(
+  
+  // ======================================================================================
+  // Tab 2 indemnizaciones
+  // ======================================================================================
+  Widget _TabIndemnizaciones() {
+    return ListView(
       children: [
-        Expanded(
-          child: (indemnizaciones == null || indemnizaciones.isEmpty
-              ? const Center(child: Text("Aun sin indemnizaciones"),)
-              // TODO cambiar a obtenerlo de la BD
-              :  ListView.separated(
-                  separatorBuilder: (context, index) =>
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Divider(color: Colors.black, thickness: 0.2,),),
-                  itemBuilder: (context, index) {
-                    return Text("Indemnizacion "+index.toString());
-                  },
-                  itemCount: indemnizaciones.length,
-              )
-          )
-        )
+        // TODO ¿¿¿poner valores iniciales que dependen de el cuando desmarcamos uno de los checkbox????
+        //-------------------------------------------------
+        FieldCheckBox("Hay muerte", informeTemp.hayMuerte, 
+          (newValue){setState(() {informeTemp.hayMuerte = newValue ?? false;});},
+          padding: 0
+        ),
+        informeTemp.hayMuerte ? _mostrarCamposMuerte() : Container(),
+
+        const Divider(),
+
+        //-------------------------------------------------
+        FieldCheckBox("Hay lesiones temproales", informeTemp.hayLesion, 
+          (newValue){setState(() {informeTemp.hayLesion = newValue ?? false;});},
+          padding: 0,
+          enable: !informeTemp.hayMuerte
+        ),
+        (informeTemp.hayLesion && !informeTemp.hayMuerte) ? _mostrarCamposLesionTemporales() : Container(),
+        
+        const Divider(),
+
+        //-------------------------------------------------
+        FieldCheckBox("Hay secuelas", informeTemp.haySecuela,
+            (newValue){setState(() {informeTemp.haySecuela = newValue ?? false;});},
+            padding: 0,
+            enable: !informeTemp.hayMuerte
+          ),
+          (informeTemp.haySecuela && !informeTemp.hayMuerte) ? _mostrarCamposSecuelas() : Container(),
+          
       ],
     );
+  }
+  
+  final _formKey = GlobalKey<FormState>();
+  
+  // TODO falta saber porque no se puede actualizar el dialog desde aqui aun teniendo el StetefullBuilder en la clase
+  Widget _mostrarCamposMuerte(){
+    return Column(
+      children: [
+        FieldListaObjetos<Familiar>(
+          title: "Añadir Familiar",
+          listaObjetos: informeTemp.familiares,
+          objetoAAnyadir: familiarTemp,
+          onSave: (newFamiliar){
+            setState(() {
+               informeTemp.familiares.add((newFamiliar as Familiar).clone());
+               familiarTemp.vaciar();
+            });
+          },
+          onCancel: (){
+            setState(() {
+              familiarTemp.vaciar();
+            });
+          },
+          itemBuilder: (item){
+            return Text(item.nombre.toString());
+          },
+          formKey: _formKey,
+          form: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  FieldText("Nombre", familiarTemp.nombre, (newValue){
+                    setState(() {
+                      familiarTemp.nombre = newValue;
+                      print(familiarTemp.toString());
+                    });
+                  }, mandatory: true),
+                  FieldText("Apellidos", familiarTemp.apellidos, (newValue){
+                    setState(() {
+                      familiarTemp.apellidos = newValue;
+                    });
+                  }, mandatory: true),
+                  FieldEnum<Parentesco>(
+                    "Parentesco", familiarTemp.parentesco,Parentesco.values,
+                    (newValue){
+                      setState(() {
+                        familiarTemp.parentesco = newValue;
+                      });
+                    },
+                    validator: (value){
+                      if(value==null){
+                        return "Campo obligatorio";
+                      }
+                    }
+                  ),
+                  FieldDate("Fecha de nacimiento", 
+                  familiarTemp.fechaNacimiento, 
+                  (value){
+                    setState(() {
+                      familiarTemp.fechaNacimiento = value;
+                    });
+                  }, 
+                  context),
+                  FieldText("DNI", familiarTemp.dni, (newValue){
+                    setState(() {
+                      familiarTemp.dni = newValue;
+                    });
+                  }, mandatory: true),
+                  FieldCheckBox("Discapacidad", familiarTemp.discapacidad??false, 
+                  (newValue)=>setState(() {familiarTemp.discapacidad = newValue;})
+                  )
+                ],
+              )
+            ),
+          
+          
+          
+        ),
+        FieldCheckBox("Persona embarazada", informeTemp.embarazada, 
+            (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
+          ),
+
+        // lista de familiares
+      ],
+    );
+  }
+
+  Widget _mostrarCamposLesionTemporales(){
+    return Column(
+      children: [
+        // Lista de Texto 
+        FieldText("Lesiones", informeTemp.lesiones, 
+          (newValue)async{
+            setState(() {
+              informeTemp.lesiones = newValue;
+            });
+          },
+          maxLines: 4,
+          hint: "Introduzca las lesiones temporales del paciente"
+        ),
+        
+        Row(
+          children: [
+            Flexible(
+              child: FieldText("Días de UCI", informeTemp.diasUci == 0 ? "" : informeTemp.diasUci.toString(),
+              (newValue)async{setState(() {informeTemp.diasUci = newValue == "" ?  0 :  int.parse(newValue);});},
+              isNumeric: true,
+              hint: "Introduce los días que el paciente estuvo en la uci",
+            )),
+            Flexible(
+              child: FieldText("Días hospitalizado", informeTemp.diasPlanta == 0 ? "" : informeTemp.diasPlanta.toString(),
+              (newValue)async{setState(() {informeTemp.diasPlanta = newValue == "" ?  0 :  int.parse(newValue);});},
+              isNumeric: true,
+              hint: "Introduce los días que el paciente estuvo hospitalizado"
+            )),
+            Flexible(
+              child: FieldText("Días de baja laboral", informeTemp.diasBaja == 0 ? "" : informeTemp.diasBaja.toString(),
+              (newValue)async{setState(() {informeTemp.diasBaja = newValue == "" ?  0 :  int.parse(newValue);});},
+              isNumeric: true,
+              hint: "Introduce los días que el paciente estuvo de baja laboral"
+            )),
+          ],
+        ),
+        
+        // Dias de perjuicio basico
+        FieldText("Días de perjuicio básico", informeTemp.diasPerjuicio == 0 ? "" : informeTemp.diasPerjuicio.toString(),
+          (newValue)async{setState(() {informeTemp.diasPerjuicio = newValue == "" ?  0 :  int.parse(newValue);});},
+          isNumeric: true,
+          hint: "Introduce los días de perjucio básico del paciente"
+        ),
+      ],
+    );
+  }
+
+  Widget _mostrarCamposSecuelas(){
+    return Column(
+      children: [
+       
+      ],
+    );
+  }
+
+
+  
+  // ======================================================================================
+  // Tab 3 gastos
+  // ======================================================================================
+  Widget _TabGastos() =>
+    Center(child: Text("Gastos"),);
 
   // Floating action button = añadir informe
   Widget _buildFab(){
@@ -311,4 +483,3 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   }
 
 }
-

@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
         MaterialPageRoute(
             builder: (context) => InformeEditPage(
               informeApi: api!.informes,
-              pacienteApi: api!.pacientes,
+              pacienteApi: api.pacientes,
               informe: null,
               pacientes: pacientes,)),
       );

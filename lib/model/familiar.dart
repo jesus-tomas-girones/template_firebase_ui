@@ -6,13 +6,13 @@ import '../utils/date_time_helpers.dart';
 enum Parentesco { hijo, padre, conyuge, parejaHecho, divorciado }
 
 @JsonSerializable()
-class Familiar {
+class Familiar{
   String? nombre;
   String? apellidos;
   Parentesco? parentesco;
   DateTime? fechaNacimiento;
   String? dni;
-  bool discapacidad = false;
+  bool? discapacidad = false;
 
   Familiar({
       this.nombre,
@@ -22,6 +22,33 @@ class Familiar {
       this.dni,
       this.discapacidad = false });
 
+  @override
+  String toString(){
+    return {nombre, apellidos, parentesco, fechaNacimiento,
+      dni, discapacidad}.toString();
+  }
+
+
+  clone() => Familiar(
+    nombre: nombre,
+    apellidos: apellidos,
+    parentesco: parentesco,
+    fechaNacimiento: fechaNacimiento,
+    dni: dni,
+    discapacidad: discapacidad
+  );
+
+ 
+  void vaciar() {
+    nombre = null;
+    apellidos = null;
+    parentesco = null;
+    fechaNacimiento = null;
+    dni = null;
+    discapacidad = null;
+  }
+
+  //TODO terinarclase
   // clone() =>
   // operator ==    ¿Hace falta?
 

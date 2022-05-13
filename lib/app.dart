@@ -105,21 +105,26 @@ class AuthGate extends StatelessWidget {
             // Render your application if authenticated
             var _user = snapshot.data!;
             // ver si esta verificado el correo o no
-            if(!_user.emailVerified){
-              print("1");
+            if(_user.emailVerified){
+              print("verificado");
+              Provider.of<AppState>(context, listen: false).updateUserAndNotify(_user);
+              Provider.of<AppState>(context, listen: false).updateApiAndNotify(FirebaseDashboardApi(FirebaseFirestore.instance, _user.uid));
+              
+              Provider.of<AppState>(context,listen: false).api!.pacientes.list().then((pacientes) {
+                    Provider.of<AppState>(context,listen: false).updatePacientesAndNotify(pacientes);
+              });
+              
+              return const HomePage();
+              
+            }else{
+              print("no verificado");
               _user.sendEmailVerification(); // TODO ver como enviar solo la primera vez (Guardarlo en el servidor o Shared preferences???)
               return const UserSignInScreen();
-            }
-            print("2");
 
-            Provider.of<AppState>(context, listen: false).updateUserAndNotify(_user);
-            Provider.of<AppState>(context, listen: false).updateApiAndNotify(FirebaseDashboardApi(FirebaseFirestore.instance, _user.uid));
+            }
+           
+
             
-            Provider.of<AppState>(context,listen: false).api!.pacientes.list().then((pacientes) {
-                  Provider.of<AppState>(context,listen: false).updatePacientesAndNotify(pacientes);
-            });
-            
-            return const HomePage();
           }
         },
       );

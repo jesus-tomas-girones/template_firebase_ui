@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 
 import '../api/informe_firebase.dart';
 import '../app.dart';
-import '../model/borrar_indemnizacion.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
 import '../utils/firestore_utils.dart';
@@ -49,7 +48,6 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
   late String? descripcion;
   late String? lugarAccidente;
   late String? aseguradora;
-  late List<Indemnizacion>? indemnizaciones;
   late List<PlatformFile>? ficherosSeleccionados;
   late List<String>? urlServer;
   late List<String>? urlModficadas;
@@ -116,7 +114,7 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
                 controller: _tabController,
                 children: [
                   _buildFormInforme(widget.informe),
-                  _buildListaIndemnizaciones(indemnizaciones)
+                  //_buildListaIndemnizaciones(indemnizaciones)
                 ],
               )
             ),
@@ -294,7 +292,7 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
   ///
   /// Tab 2 lista de indemnizaciones
   ///
-  Widget _buildListaIndemnizaciones(List<Indemnizacion>? indemnizaciones) {
+  /*Widget _buildListaIndemnizaciones(List<Indemnizacion>? indemnizaciones) {
     return Column(
       children: [
         Expanded(
@@ -318,7 +316,7 @@ class _InformeDetallesPageState extends State<InformeDetallesPage> with SingleTi
       ],
     );
 
-  }
+  }*/
 
   ///
   /// Floating action button = añadir informe
