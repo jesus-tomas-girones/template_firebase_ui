@@ -2,11 +2,12 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/date_time_helpers.dart';
+import '../widgets/editor_lista_objetos.dart';
 
 enum Parentesco { hijo, padre, conyuge, parejaHecho, divorciado }
 
 @JsonSerializable()
-class Familiar{
+class Familiar implements ClonableVaciable {
   String? nombre;
   String? apellidos;
   Parentesco? parentesco;
@@ -39,7 +40,7 @@ class Familiar{
   );
 
  
-  void vaciar() {
+  vaciar() {
     nombre = null;
     apellidos = null;
     parentesco = null;

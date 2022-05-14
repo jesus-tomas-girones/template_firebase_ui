@@ -1,4 +1,3 @@
-
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/widgets/form_fields_edit.dart';
@@ -10,6 +9,7 @@ import '../app.dart';
 import '../model/familiar.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
+import '../widgets/editor_lista_objetos.dart';
 import '../widgets/field_lista_objetos.dart';
 import '../widgets/selector_ficheros_firebase.dart';
 import '../widgets/form_fields.dart';
@@ -47,7 +47,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   late int _currentTabIndex = 0;
   final _formKeyInforme = GlobalKey<FormState>();
   late Informe informeTemp;
-  Familiar familiarTemp = Familiar();
+  Familiar temp = Familiar();
   late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
   late List<String>? urlFicherosSubidos;
@@ -285,7 +285,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         ),
     );
   }
-  
+
+
+
+
   // ======================================================================================
   // Tab 2 indemnizaciones
   // ======================================================================================
@@ -294,55 +297,91 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       children: [
         // TODO ¿¿¿poner valores iniciales que dependen de el cuando desmarcamos uno de los checkbox????
         //-------------------------------------------------
-        FieldCheckBox("Hay muerte", informeTemp.hayMuerte, 
-          (newValue){setState(() {informeTemp.hayMuerte = newValue ?? false;});},
-          padding: 0
+        FieldCheckBox("Hay muerte", informeTemp.hayMuerte,
+                (newValue){setState(() {informeTemp.hayMuerte = newValue ?? false;});},
+            padding: 0
         ),
         informeTemp.hayMuerte ? _mostrarCamposMuerte() : Container(),
 
         const Divider(),
 
         //-------------------------------------------------
-        FieldCheckBox("Hay lesiones temproales", informeTemp.hayLesion, 
-          (newValue){setState(() {informeTemp.hayLesion = newValue ?? false;});},
-          padding: 0,
-          enable: !informeTemp.hayMuerte
+        FieldCheckBox("Hay lesiones temproales", informeTemp.hayLesion,
+                (newValue){setState(() {informeTemp.hayLesion = newValue ?? false;});},
+            padding: 0,
+            enable: !informeTemp.hayMuerte
         ),
         (informeTemp.hayLesion && !informeTemp.hayMuerte) ? _mostrarCamposLesionTemporales() : Container(),
-        
+
         const Divider(),
 
         //-------------------------------------------------
         FieldCheckBox("Hay secuelas", informeTemp.haySecuela,
-            (newValue){setState(() {informeTemp.haySecuela = newValue ?? false;});},
+                (newValue){setState(() {informeTemp.haySecuela = newValue ?? false;});},
             padding: 0,
             enable: !informeTemp.hayMuerte
-          ),
-          (informeTemp.haySecuela && !informeTemp.hayMuerte) ? _mostrarCamposSecuelas() : Container(),
-          
+        ),
+        (informeTemp.haySecuela && !informeTemp.hayMuerte) ? _mostrarCamposSecuelas() : Container(),
+
       ],
     );
   }
-  
+
   final _formKey = GlobalKey<FormState>();
-  
+
   // TODO falta saber porque no se puede actualizar el dialog desde aqui aun teniendo el StetefullBuilder en la clase
   Widget _mostrarCamposMuerte(){
     return Column(
       children: [
-        FieldListaObjetos<Familiar>(
+
+    EditorListaObjetos<Familiar>(
+      titulo: "Lista de familiares", // Encabezado de la lista. NO DE EL DIALOG
+      listaObjetos: informeTemp.familiares,
+      objetoTemporal: temp,
+      elementoLista: (item) => Text(item.nombre.toString() +" "+ item.apellidos.toString()),
+      formulario: Form(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16,16,16,0),
+                child: Text('Añadir familiar', style: Theme.of(context).textTheme.titleLarge,),
+              ),
+              FieldText("Nombre", temp.nombre,
+                  (value) => setState(() { temp.nombre=value; }),
+                  mandatory: true),
+              FieldText("Apellidos", temp.apellidos,
+                  (value) => setState(() { temp.apellidos=value; }),
+                  mandatory: true),
+              FieldEnum<Parentesco>(
+                  "Parentesco", temp.parentesco, Parentesco.values,
+                  (value) => setState(() { temp.parentesco = value; }),
+                  validator: (value) => value==null ? "Campo obligatorio" : null),
+              FieldDate("Fecha de nacimiento", temp.fechaNacimiento,
+                  (value) => setState(() { temp.fechaNacimiento = value; }),
+                  context),
+              FieldText("DNI", temp.dni,
+                  (value) => setState(() { temp.dni = value; }),
+                  mandatory: true),
+              FieldCheckBox("Discapacidad", temp.discapacidad??false,
+                  (value) => setState(() { temp.discapacidad = value; }))
+            ],
+          )
+        ),
+      ),
+
+      FieldListaObjetos<Familiar>(
           title: "Añadir Familiar",
           listaObjetos: informeTemp.familiares,
-          objetoAAnyadir: familiarTemp,
+          objetoTemporal: temp,
           onSave: (newFamiliar){
             setState(() {
-               informeTemp.familiares.add((newFamiliar as Familiar).clone());
-               familiarTemp.vaciar();
+              informeTemp.familiares.add((newFamiliar as Familiar).clone());
+              temp.vaciar();
             });
           },
           onCancel: (){
             setState(() {
-              familiarTemp.vaciar();
+              temp.vaciar();
             });
           },
           itemBuilder: (item){
@@ -353,56 +392,38 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               key: _formKey,
               child: Column(
                 children: [
-                  FieldText("Nombre", familiarTemp.nombre, (newValue){
-                    setState(() {
-                      familiarTemp.nombre = newValue;
-                      print(familiarTemp.toString());
-                    });
-                  }, mandatory: true),
-                  FieldText("Apellidos", familiarTemp.apellidos, (newValue){
-                    setState(() {
-                      familiarTemp.apellidos = newValue;
-                    });
-                  }, mandatory: true),
-                  FieldEnum<Parentesco>(
-                    "Parentesco", familiarTemp.parentesco,Parentesco.values,
-                    (newValue){
-                      setState(() {
-                        familiarTemp.parentesco = newValue;
-                      });
-                    },
-                    validator: (value){
-                      if(value==null){
-                        return "Campo obligatorio";
-                      }
-                    }
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16,16,16,0),
+                    child: Text('Añadir familiar', style: Theme.of(context).textTheme.titleLarge,),
                   ),
-                  FieldDate("Fecha de nacimiento", 
-                  familiarTemp.fechaNacimiento, 
-                  (value){
-                    setState(() {
-                      familiarTemp.fechaNacimiento = value;
-                    });
-                  }, 
-                  context),
-                  FieldText("DNI", familiarTemp.dni, (newValue){
-                    setState(() {
-                      familiarTemp.dni = newValue;
-                    });
-                  }, mandatory: true),
-                  FieldCheckBox("Discapacidad", familiarTemp.discapacidad??false, 
-                  (newValue)=>setState(() {familiarTemp.discapacidad = newValue;})
-                  )
+                  FieldText("Nombre", temp.nombre,
+                          (value) => setState(() { temp.nombre=value; }),
+                      mandatory: true),
+                  FieldText("Apellidos", temp.apellidos,
+                          (value) => setState(() { temp.apellidos=value; }),
+                      mandatory: true),
+                  FieldEnum<Parentesco>(
+                      "Parentesco", temp.parentesco, Parentesco.values,
+                          (value) => setState(() { temp.parentesco = value; }),
+                      validator: (value) => value==null ? "Campo obligatorio" : null),
+                  FieldDate("Fecha de nacimiento", temp.fechaNacimiento,
+                          (value) => setState(() { temp.fechaNacimiento = value; }),
+                      context),
+                  FieldText("DNI", temp.dni,
+                          (value) => setState(() { temp.dni = value; }),
+                      mandatory: true),
+                  FieldCheckBox("Discapacidad", temp.discapacidad??false,
+                          (value) => setState(() { temp.discapacidad = value; }))
                 ],
               )
-            ),
-          
-          
-          
-        ),
-        FieldCheckBox("Persona embarazada", informeTemp.embarazada, 
-            (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
           ),
+
+
+
+        ),
+        FieldCheckBox("Persona embarazada", informeTemp.embarazada,
+              (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
+        ),
 
         // lista de familiares
       ],
@@ -412,45 +433,45 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   Widget _mostrarCamposLesionTemporales(){
     return Column(
       children: [
-        // Lista de Texto 
-        FieldText("Lesiones", informeTemp.lesiones, 
-          (newValue)async{
-            setState(() {
-              informeTemp.lesiones = newValue;
-            });
-          },
-          maxLines: 4,
-          hint: "Introduzca las lesiones temporales del paciente"
+        // Lista de Texto
+        FieldText("Lesiones", informeTemp.lesiones,
+                (newValue)async{
+              setState(() {
+                informeTemp.lesiones = newValue;
+              });
+            },
+            maxLines: 4,
+            hint: "Introduzca las lesiones temporales del paciente"
         ),
-        
+
         Row(
           children: [
             Flexible(
-              child: FieldText("Días de UCI", informeTemp.diasUci == 0 ? "" : informeTemp.diasUci.toString(),
-              (newValue)async{setState(() {informeTemp.diasUci = newValue == "" ?  0 :  int.parse(newValue);});},
-              isNumeric: true,
-              hint: "Introduce los días que el paciente estuvo en la uci",
-            )),
+                child: FieldText("Días de UCI", informeTemp.diasUci == 0 ? "" : informeTemp.diasUci.toString(),
+                      (newValue)async{setState(() {informeTemp.diasUci = newValue == "" ?  0 :  int.parse(newValue);});},
+                  isNumeric: true,
+                  hint: "Introduce los días que el paciente estuvo en la uci",
+                )),
             Flexible(
-              child: FieldText("Días hospitalizado", informeTemp.diasPlanta == 0 ? "" : informeTemp.diasPlanta.toString(),
-              (newValue)async{setState(() {informeTemp.diasPlanta = newValue == "" ?  0 :  int.parse(newValue);});},
-              isNumeric: true,
-              hint: "Introduce los días que el paciente estuvo hospitalizado"
-            )),
+                child: FieldText("Días hospitalizado", informeTemp.diasPlanta == 0 ? "" : informeTemp.diasPlanta.toString(),
+                        (newValue)async{setState(() {informeTemp.diasPlanta = newValue == "" ?  0 :  int.parse(newValue);});},
+                    isNumeric: true,
+                    hint: "Introduce los días que el paciente estuvo hospitalizado"
+                )),
             Flexible(
-              child: FieldText("Días de baja laboral", informeTemp.diasBaja == 0 ? "" : informeTemp.diasBaja.toString(),
-              (newValue)async{setState(() {informeTemp.diasBaja = newValue == "" ?  0 :  int.parse(newValue);});},
-              isNumeric: true,
-              hint: "Introduce los días que el paciente estuvo de baja laboral"
-            )),
+                child: FieldText("Días de baja laboral", informeTemp.diasBaja == 0 ? "" : informeTemp.diasBaja.toString(),
+                        (newValue)async{setState(() {informeTemp.diasBaja = newValue == "" ?  0 :  int.parse(newValue);});},
+                    isNumeric: true,
+                    hint: "Introduce los días que el paciente estuvo de baja laboral"
+                )),
           ],
         ),
-        
+
         // Dias de perjuicio basico
         FieldText("Días de perjuicio básico", informeTemp.diasPerjuicio == 0 ? "" : informeTemp.diasPerjuicio.toString(),
-          (newValue)async{setState(() {informeTemp.diasPerjuicio = newValue == "" ?  0 :  int.parse(newValue);});},
-          isNumeric: true,
-          hint: "Introduce los días de perjucio básico del paciente"
+                (newValue)async{setState(() {informeTemp.diasPerjuicio = newValue == "" ?  0 :  int.parse(newValue);});},
+            isNumeric: true,
+            hint: "Introduce los días de perjucio básico del paciente"
         ),
       ],
     );
@@ -459,26 +480,26 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   Widget _mostrarCamposSecuelas(){
     return Column(
       children: [
-       
+
       ],
     );
   }
 
 
-  
+
   // ======================================================================================
   // Tab 3 gastos
   // ======================================================================================
   Widget _TabGastos() =>
-    Center(child: Text("Gastos"),);
+      Center(child: Text("Gastos"),);
 
   // Floating action button = añadir informe
   Widget _buildFab(){
     return FloatingActionButton(
-      child: const Icon(Icons.add),
-      onPressed: (){
+        child: const Icon(Icons.add),
+        onPressed: (){
 
-      }
+        }
     );
   }
 

@@ -1,7 +1,4 @@
-import 'dart:async';
-import 'package:firebase_ui/model/paciente.dart';
 import 'package:firebase_ui/screens/informe_edit.dart';
-import 'package:firebase_ui/utils/firestore_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
@@ -9,8 +6,6 @@ import 'package:provider/provider.dart';
 import '../api/api.dart';
 import '../app.dart';
 import '../model/informe.dart';
-import '../widgets/form_fields.dart';
-import 'informe_detalles.dart';
 
 ///
 /// Pantalla que lista los informes creados por el usuario y que le permite crear

@@ -13,7 +13,7 @@ typedef CustomCallback<T> = void Function(T value);
 /// y un objeto de tipo [T] podemos mostrar un fomrulario para crear un objeto 
 /// y pasarla por calback meidante el [CustomCallback]
 /// Cuando creas la clase los onchange del formulario [form]
-/// deben modificar el objeto que se pasa al widget como [objetoAAnyadir]
+/// deben modificar el objeto que se pasa al widget como [objetoTemporal]
 /// 
 /// En el dialog donde se representa el formulario hay un action de onsumbit donde pasa el objeto 
 /// por el callback [onSave] 
@@ -22,37 +22,32 @@ typedef CustomCallback<T> = void Function(T value);
 /// 
 /// El [itemBuilder] y la [listaObjetos] los usamos para representar los objetos
 /// 
-/// El [objetoAAnyadir] debe tener la clase wrapper 
+/// El [objetoTemporal] debe tener la clase wrapper
 class FieldListaObjetos<T> extends StatefulWidget{
 
   List<T> listaObjetos;
   final String title;
-  final CustomCallback onSave;
+  final CustomCallback onSave;    //
   final void Function() onCancel;
   final ItemBuilder<T> itemBuilder;
   final GlobalKey<FormState>? formKey;
   Form form;
-  T objetoAAnyadir;
+  T objetoTemporal;
 
   FieldListaObjetos({Key? key, 
     required this.title,
     required this.listaObjetos,
-    required this.objetoAAnyadir, 
-    required this.onSave,
-    required this.onCancel,
+    required this.objetoTemporal,
+    required this.onSave,           // ???? Por que no dentro
+    required this.onCancel,         // ???? Por que no dentro
     required this.itemBuilder,
     required this.form, 
     this.formKey,
-
   }) : super(key: key);
-
 
   @override
   _FieldListaObjetosState<T> createState() => _FieldListaObjetosState<T>();
- 
-
 }
-
 
 class _FieldListaObjetosState<T> extends State<FieldListaObjetos<T>>{
 
@@ -98,7 +93,7 @@ class _FieldListaObjetosState<T> extends State<FieldListaObjetos<T>>{
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //--------------- TITULO
-            Padding(
+            Padding(  //TODO Pasar esto al formulario
               padding: const EdgeInsets.fromLTRB(16,16,16,0),
               child: Text(widget.title,style: Theme.of(context).textTheme.titleLarge,),
             ),
@@ -126,17 +121,14 @@ class _FieldListaObjetosState<T> extends State<FieldListaObjetos<T>>{
           onPressed: () {
             // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
             if(widget.formKey == null ){
-              
-              widget.onSave.call(widget.objetoAAnyadir);  
+              widget.onSave.call(widget.objetoTemporal);
               Navigator.pop(context);
             }else{
               if(widget.formKey!.currentState!.validate()){
-                widget.onSave.call(widget.objetoAAnyadir);
+                widget.onSave.call(widget.objetoTemporal);
                 Navigator.pop(context);
               }
             }
-            
-            
           }),
         
         const SizedBox(width: 8,),
