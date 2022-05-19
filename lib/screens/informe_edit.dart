@@ -194,20 +194,25 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
   void _guardarInforme() async{
     _setLoading(true);
-    try {
-      if (_formKeyInforme.currentState!.validate()){
-        if (isEditing) {
-          Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
-        }else{
+//    try {
+      print(informeTemp.id);
+      print(informeTemp.toJson());
+//      print(_formKeyInforme.currentState!.validate());
+
+//      if (_formKeyInforme.currentState!.validate()){
+   //     if (isEditing) {
+   //       Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
+   //     }else{
           Informe res = await widget.informeApi!.update(informeTemp,informeTemp.id!);
-        }
+   //     }
         Navigator.of(context).pop();
-      }
-    } catch(e) {
+//      }
+/*    } catch(e) {
+       print('isEditing: ' + isEditing.toString());
        print("error al guardar informe");
        print(e);
       _setLoading(false);
-    }
+    }*/
     _setLoading(false);
   }
 
@@ -331,17 +336,21 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
   // TODO falta saber porque no se puede actualizar el dialog desde aqui aun teniendo el StetefullBuilder en la clase
   Widget _mostrarCamposMuerte(){
-    return Column(
+
+    void Function(void Function())? setStateDialog;
+
+    return
+      Column(
       children: [
 
     EditorListaObjetos<Familiar>(
-      titulo: "Lista de familiares", // Encabezado de la lista. NO DE EL DIALOG
+      titulo: "Lista de familiares...", // Encabezado de la lista. NO DE EL DIALOG
       listaObjetos: informeTemp.familiares,
       objetoTemporal: temp,
       elementoLista: (item) => Text(item.nombre.toString() +" "+ item.apellidos.toString()),
+      onSetStateInitialiced: (setState_) { print('onSetStateInitialiced'); print(setState_); setStateDialog = setState_; },
       formulario: Form(
-          child: Column(
-            children: [
+          child: Column( children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16,16,16,0),
                 child: Text('Añadir familiar', style: Theme.of(context).textTheme.titleLarge,),
@@ -357,13 +366,14 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                   (value) => setState(() { temp.parentesco = value; }),
                   validator: (value) => value==null ? "Campo obligatorio" : null),
               FieldDate("Fecha de nacimiento", temp.fechaNacimiento,
-                  (value) => setState(() { temp.fechaNacimiento = value; }),
+                  (value) => setStateDialog!(() { print(value); temp.fechaNacimiento = value; print('fecha');}),
                   context),
               FieldText("DNI", temp.dni,
-                  (value) => setState(() { temp.dni = value; }),
+                  //(value) => setState(() { temp.dni = value; print('dni');}),
+                  (value) => temp.dni = value,
                   mandatory: true),
               FieldCheckBox("Discapacidad", temp.discapacidad??false,
-                  (value) => setState(() { temp.discapacidad = value; }))
+                  (value) =>  temp.discapacidad = value, ),
             ],
           )
         ),
@@ -417,14 +427,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                 ],
               )
           ),
-
-
-
         ),
         FieldCheckBox("Persona embarazada", informeTemp.embarazada,
               (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
         ),
-
         // lista de familiares
       ],
     );

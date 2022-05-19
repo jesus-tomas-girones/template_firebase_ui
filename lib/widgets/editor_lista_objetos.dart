@@ -24,12 +24,17 @@ class EditorListaObjetos<T> extends StatefulWidget{
   Form formulario;
   T objetoTemporal; // Objeto que se está editando. Se usa para poder acceder a el desde el form
 
+  ValueChanged<void Function(void Function())> onSetStateInitialiced;
+
+  //void Function(void Function())? setStateDialog;
+
   EditorListaObjetos({Key? key,
     required this.titulo,
     required this.listaObjetos,
     required this.objetoTemporal,
     required this.elementoLista,
     required this.formulario,
+    required this.onSetStateInitialiced,
   }) : super(key: key);
 
   @override
@@ -47,10 +52,21 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
           onPressed: (){
             showDialog(
               barrierDismissible: false,
-              context: context, 
-              builder: (context){
-                return StatefulBuilder(// para que los set state tengan efecto
-                  builder: (context, setState) =>  _buildDialog(),
+              context: context,
+              builder: (context) {
+                return  Dialog(
+                  child: StatefulBuilder(
+                    builder: (context, setState) {
+                      widget.onSetStateInitialiced(setState);
+                      return otra();}
+                 ),
+/*              return _buildDialog();
+                  return StatefulBuilder(// para que los set state tengan efecto
+                  builder: (context, setState) {
+                    widget.onSetStateInitialiced(setState);
+//                    widget.setStateDialog=setState;
+                    return _buildDialog(/*setState*/);
+                  }*/
                 );
               }
             ); 
@@ -70,11 +86,50 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
     );
   }
 
-  Widget _buildDialog(){
-    return Dialog(
+  Widget otra() =>
+//      Dialog(
+//        shape: RoundedRectangleBorder( borderRadius:BorderRadius.circular(50.0)),
+  //      child:
+  Material( child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            widget.formulario,
+            //---------------- ACTIONS
+            Padding(
+              padding: const EdgeInsets.only(right: 16, top: 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Spacer(),// asi podemos obligar a que vaya a la derecha del todo aun poniendo en la columna superior que empiecen en la izquierda
+                  ElevatedButton(
+                      child: const Text("Guardar"),
+                      onPressed: () {
+                        // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
+                        setState(() {
+                          widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
+                          (widget.objetoTemporal as ClonableVaciable).vaciar();
+                        });
+                        Navigator.pop(context);
+                      }),
+
+                  const SizedBox(width: 8,),
+                  ElevatedButton(
+                      child: const Text("Cancelar"),
+                      onPressed: () {
+                        (widget.objetoTemporal as ClonableVaciable).vaciar();
+                        Navigator.pop(context);
+                      })
+                ],
+              ),
+            )
+          ],
+        ),
+  );
+
+  Widget _buildDialog(/*setState*/) =>
+     Dialog(
         shape: RoundedRectangleBorder( borderRadius:BorderRadius.circular(50.0)), 
-        child: Material(
-        child: Column(
+        child: Material( child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             widget.formulario,
@@ -107,10 +162,7 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
               ),
             )
           ],
-        ),
-        ) ,
-
+        ), ) ,
     );
-  }
 
 }

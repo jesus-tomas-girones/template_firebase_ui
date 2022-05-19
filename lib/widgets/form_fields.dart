@@ -10,7 +10,7 @@ import 'package:intl/intl.dart' as intl;
 
 Widget FieldText(  /// Campo de texto normal
     String title,
-    String? value,
+    String? value_,
     ValueChanged<String>? onChanged,
     {String hint = "",
       bool mandatory = false,
@@ -26,14 +26,14 @@ Widget FieldText(  /// Campo de texto normal
         onChanged: onChanged,
         validator: (mandatory) ? validatorMandatory(validator) : validator,
         maxLines: maxLines,
-        initialValue: value,
+        initialValue: value_,
         keyboardType: isNumeric ? TextInputType.number : null,
         inputFormatters: isNumeric ? <TextInputFormatter>[
             FilteringTextInputFormatter.digitsOnly
         ] : null,
         decoration: InputDecoration(
           border: const OutlineInputBorder(),
-          filled: value?.isNotEmpty ?? false,
+          filled: value_?.isNotEmpty ?? false,
           hintText: hint,
           label: mandatory
               ? RichText(
@@ -63,6 +63,7 @@ String? Function(String? p1)? validatorMandatory(String? Function(String? p1)? v
     }
   };
 }
+
 Widget FieldDate(  /// Campo de fecha
     String title,
     DateTime? value,
@@ -87,6 +88,7 @@ Widget FieldDate(  /// Campo de fecha
             // Don't change the date if the date picker returns null.
             if (newDate == null) return;
             onChanged(newDate);
+
           },
           decoration: InputDecoration(
             border: const OutlineInputBorder(),

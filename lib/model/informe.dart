@@ -155,7 +155,7 @@ class Informe {
           tipoAccidente: enumfromString(
               TipoAccidente.values, json["tipo_accidente"]),
           hayMuerte: json['hayMuerte'] ?? false,
-          familiares: json['familiares'] ?? <Familiar>[],
+          familiares: (json['familiares'] as List).map((item) => Familiar.fromJson(item)).toList() ?? <Familiar>[],
           embarazada: json['embarazada'] ?? false,
           hayLesion: json['hayLesion'] ?? false,
           lesiones: json['lesiones'],
@@ -164,7 +164,7 @@ class Informe {
           diasBaja: json['diasBaja'] ?? 0,
           diasPerjuicio: json['diasPerjuicio'] ?? 0,
           haySecuela: json['haySecuela'] ?? false,
-          secuelas: json['secuelas'] ?? <Secuela>[]
+          secuelas: <Secuela>[] //json['secuelas'] ?? <Secuela>[]
       );
     } catch (e) {
       print("Error en Informe.fromJson");
@@ -182,7 +182,7 @@ class Informe {
         'paciente': idPaciente,
         'tipo_accidente': tipoAccidente.toString(),
         'hayMuerte': hayMuerte,
-        'familiares': familiares,
+        'familiares': familiares.map((i) => i.toJson()).toList(),
         'embarazada': embarazada,
         'hayLesion': hayLesion,
         'lesiones': lesiones,
@@ -194,7 +194,9 @@ class Informe {
         'secuelas': secuelas
       };
     map.removeWhere((key, value) => value == null);
+//    map.removeWhere((key, value) => value == []);
     map.removeWhere((key, value) => value == "null");
+    print(map);
     return map;
   }
 }
