@@ -23,8 +23,10 @@ class EditorListaObjetos<T> extends StatefulWidget{
   final ItemBuilder<T> elementoLista; //Para construir el Widget de cada elemento de la lista
   Form formulario;
   T objetoTemporal; // Objeto que se está editando. Se usa para poder acceder a el desde el form
-
-  ValueChanged<void Function(void Function())> onSetStateInitialiced;
+  final GlobalKey<FormState>? formKey;
+  final void Function()? onChange; // El vaciar no hace efecto en el padre (No se vacia el formulario al guardar), por tanto mediante un callback avisamos que ha cambiado y hacemos un setState
+  final double padding;
+  //ValueChanged<void Function(void Function())> onSetStateInitialiced;
 
   //void Function(void Function())? setStateDialog;
 
@@ -34,7 +36,10 @@ class EditorListaObjetos<T> extends StatefulWidget{
     required this.objetoTemporal,
     required this.elementoLista,
     required this.formulario,
-    required this.onSetStateInitialiced,
+    this.formKey, // para poder validar el formulario
+    this.onChange, 
+    this.padding = 16,
+    //required this.onSetStateInitialiced,
   }) : super(key: key);
 
   @override
@@ -43,126 +48,98 @@ class EditorListaObjetos<T> extends StatefulWidget{
 
 class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
 
+  bool _mostrarForm = false;
+
+  void mostrarForm(bool value){
+    setState(() {
+       _mostrarForm = value;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(widget.titulo),
-        ElevatedButton(
-          onPressed: (){
-            showDialog(
-              barrierDismissible: false,
-              context: context,
-              builder: (context) {
-                return  Dialog(
-                  child: StatefulBuilder(
-                    builder: (context, setState) {
-                      widget.onSetStateInitialiced(setState);
-                      return otra();}
-                 ),
-/*              return _buildDialog();
-                  return StatefulBuilder(// para que los set state tengan efecto
-                  builder: (context, setState) {
-                    widget.onSetStateInitialiced(setState);
-//                    widget.setStateDialog=setState;
-                    return _buildDialog(/*setState*/);
-                  }*/
-                );
-              }
-            ); 
-          }, 
-          child: const Text("Añadir")
-        ),
-        ListView.builder(
-          physics: const ClampingScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: widget.listaObjetos.length,
-          itemBuilder: ((context, index) {
-            return widget.elementoLista(
-              widget.listaObjetos[index]
-            );
-        })) 
-      ],
+    return Padding(
+      padding: EdgeInsets.all(widget.padding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(widget.titulo),
+              ElevatedButton(
+                onPressed: (){
+                  mostrarForm(!_mostrarForm);
+                }, 
+                child: const Text("Añadir")
+              ),
+            ],
+          ),
+          ListView.builder(
+            physics: const ClampingScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: widget.listaObjetos.length,
+            itemBuilder: ((context, index) {
+              return widget.elementoLista(
+                widget.listaObjetos[index]
+              );
+          })),
+          _mostrarForm ? _buildForm() : const Center() 
+        ],
+      ),
     );
   }
 
-  Widget otra() =>
-//      Dialog(
-//        shape: RoundedRectangleBorder( borderRadius:BorderRadius.circular(50.0)),
-  //      child:
-  Material( child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            widget.formulario,
-            //---------------- ACTIONS
-            Padding(
-              padding: const EdgeInsets.only(right: 16, top: 16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Spacer(),// asi podemos obligar a que vaya a la derecha del todo aun poniendo en la columna superior que empiecen en la izquierda
-                  ElevatedButton(
-                      child: const Text("Guardar"),
-                      onPressed: () {
-                        // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
-                        setState(() {
+  Widget _buildForm(){
+    return Material( 
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Colors.grey, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          widget.formulario,
+          //---------------- ACTIONS
+          Padding(
+            padding: const EdgeInsets.only(right: 16, top: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Spacer(),// asi podemos obligar a que vaya a la derecha del todo aun poniendo en la columna superior que empiecen en la izquierda
+                ElevatedButton(
+                    child: const Text("Guardar"),
+                    onPressed: () {
+                      // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
+                      setState(() {
+                        if(widget.formKey!=null){
+                          if(widget.formKey!.currentState!.validate()){
+                             widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
+                            (widget.objetoTemporal as ClonableVaciable).vaciar();
+                          }
+                        }else{
                           widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
                           (widget.objetoTemporal as ClonableVaciable).vaciar();
-                        });
-                        Navigator.pop(context);
-                      }),
+                        }
+                         widget.onChange!=null ? widget.onChange!.call() :null; // avisar al padre para que repinte
+                         mostrarForm(false);
+                      });
+                    }),
 
-                  const SizedBox(width: 8,),
-                  ElevatedButton(
-                      child: const Text("Cancelar"),
-                      onPressed: () {
-                        (widget.objetoTemporal as ClonableVaciable).vaciar();
-                        Navigator.pop(context);
-                      })
-                ],
-              ),
-            )
-          ],
-        ),
-  );
-
-  Widget _buildDialog(/*setState*/) =>
-     Dialog(
-        shape: RoundedRectangleBorder( borderRadius:BorderRadius.circular(50.0)), 
-        child: Material( child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            widget.formulario,
-            //---------------- ACTIONS
-            Padding(
-              padding: const EdgeInsets.only(right: 16, top: 16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Spacer(),// asi podemos obligar a que vaya a la derecha del todo aun poniendo en la columna superior que empiecen en la izquierda
-                  ElevatedButton(
-                      child: const Text("Guardar"),
-                      onPressed: () {
-                        // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
-                          setState(() {
-                            widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
-                            (widget.objetoTemporal as ClonableVaciable).vaciar();
-                          });
-                          Navigator.pop(context);
-                      }),
-
-                  const SizedBox(width: 8,),
-                  ElevatedButton(
-                      child: const Text("Cancelar"),
-                      onPressed: () {
-                        (widget.objetoTemporal as ClonableVaciable).vaciar();
-                        Navigator.pop(context);
-                      })
-                ],
-              ),
-            )
-          ],
-        ), ) ,
+                const SizedBox(width: 8,),
+                ElevatedButton(
+                    child: const Text("Cancelar"),
+                    onPressed: () {
+                      (widget.objetoTemporal as ClonableVaciable).vaciar();
+                      widget.onChange!=null ? widget.onChange!.call() :null;// avisar al padre para que repinte
+                      mostrarForm(false);
+                    })
+              ],
+            ),
+          )
+        ],
+      ),
     );
+  }
 
 }

@@ -46,6 +46,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   late SelectorFicherosFirebaseController _ficherosFirebaseController;
   late int _currentTabIndex = 0;
   final _formKeyInforme = GlobalKey<FormState>();
+  final _formKeyAddFamiliar = GlobalKey<FormState>();
   late Informe informeTemp;
   Familiar temp = Familiar();
   late List<PlatformFile> ficherosAnyadidos;
@@ -332,102 +333,57 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     );
   }
 
-  final _formKey = GlobalKey<FormState>();
+  
 
-  // TODO falta saber porque no se puede actualizar el dialog desde aqui aun teniendo el StetefullBuilder en la clase
   Widget _mostrarCamposMuerte(){
 
-    void Function(void Function())? setStateDialog;
+    //void Function(void Function())? setStateDialog;
 
-    return
-      Column(
+    return Column(
       children: [
-
-    EditorListaObjetos<Familiar>(
-      titulo: "Lista de familiares...", // Encabezado de la lista. NO DE EL DIALOG
-      listaObjetos: informeTemp.familiares,
-      objetoTemporal: temp,
-      elementoLista: (item) => Text(item.nombre.toString() +" "+ item.apellidos.toString()),
-      onSetStateInitialiced: (setState_) { print('onSetStateInitialiced'); print(setState_); setStateDialog = setState_; },
-      formulario: Form(
-          child: Column( children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16,16,16,0),
-                child: Text('Añadir familiar', style: Theme.of(context).textTheme.titleLarge,),
-              ),
-              FieldText("Nombre", temp.nombre,
-                  (value) => setState(() { temp.nombre=value; }),
-                  mandatory: true),
-              FieldText("Apellidos", temp.apellidos,
-                  (value) => setState(() { temp.apellidos=value; }),
-                  mandatory: true),
-              FieldEnum<Parentesco>(
-                  "Parentesco", temp.parentesco, Parentesco.values,
-                  (value) => setState(() { temp.parentesco = value; }),
-                  validator: (value) => value==null ? "Campo obligatorio" : null),
-              FieldDate("Fecha de nacimiento", temp.fechaNacimiento,
-                  (value) => setStateDialog!(() { print(value); temp.fechaNacimiento = value; print('fecha');}),
-                  context),
-              FieldText("DNI", temp.dni,
-                  //(value) => setState(() { temp.dni = value; print('dni');}),
-                  (value) => temp.dni = value,
-                  mandatory: true),
-              FieldCheckBox("Discapacidad", temp.discapacidad??false,
-                  (value) =>  temp.discapacidad = value, ),
-            ],
-          )
-        ),
-      ),
-
-      FieldListaObjetos<Familiar>(
-          title: "Añadir Familiar",
+        EditorListaObjetos<Familiar>(
+          titulo: "Lista de familiares...", // Encabezado de la lista. NO DE EL DIALOG
           listaObjetos: informeTemp.familiares,
+          formKey: _formKeyAddFamiliar,
           objetoTemporal: temp,
-          onSave: (newFamiliar){
-            setState(() {
-              informeTemp.familiares.add((newFamiliar as Familiar).clone());
-              temp.vaciar();
-            });
+          onChange:(){
+            // se guardo o cancelo en el widget, repintamos
+            setState(() {});
           },
-          onCancel: (){
-            setState(() {
-              temp.vaciar();
-            });
-          },
-          itemBuilder: (item){
-            return Text(item.nombre.toString());
-          },
-          formKey: _formKey,
-          form: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16,16,16,0),
-                    child: Text('Añadir familiar', style: Theme.of(context).textTheme.titleLarge,),
-                  ),
-                  FieldText("Nombre", temp.nombre,
-                          (value) => setState(() { temp.nombre=value; }),
-                      mandatory: true),
-                  FieldText("Apellidos", temp.apellidos,
-                          (value) => setState(() { temp.apellidos=value; }),
-                      mandatory: true),
-                  FieldEnum<Parentesco>(
-                      "Parentesco", temp.parentesco, Parentesco.values,
-                          (value) => setState(() { temp.parentesco = value; }),
-                      validator: (value) => value==null ? "Campo obligatorio" : null),
-                  FieldDate("Fecha de nacimiento", temp.fechaNacimiento,
-                          (value) => setState(() { temp.fechaNacimiento = value; }),
-                      context),
-                  FieldText("DNI", temp.dni,
-                          (value) => setState(() { temp.dni = value; }),
-                      mandatory: true),
-                  FieldCheckBox("Discapacidad", temp.discapacidad??false,
-                          (value) => setState(() { temp.discapacidad = value; }))
-                ],
-              )
+          // TODO Pensar como hacer que cada elemento se puede desplegar informacion
+          elementoLista: (item) => Text(item.nombre.toString() +" "+ item.apellidos.toString()),
+          formulario: Form(
+            key: _formKeyAddFamiliar,
+            child: Column( 
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16,16,16,0),
+                  child: Text('Añadir nuevo familiar', style: Theme.of(context).textTheme.titleLarge,),
+                ),
+                FieldText("Nombre", temp.nombre,
+                    (value) => setState(() { temp.nombre=value; }),
+                    mandatory: true),
+                FieldText("Apellidos", temp.apellidos,
+                    (value) => setState(() { temp.apellidos=value; }),
+                    mandatory: true),
+                FieldEnum<Parentesco>(
+                    "Parentesco", temp.parentesco, Parentesco.values,
+                    (value) => setState(() { temp.parentesco = value; }),
+                    validator: (value) => value==null ? "Campo obligatorio" : null),
+                FieldDate("Fecha de nacimiento", temp.fechaNacimiento,
+                    (value) => setState(() { temp.fechaNacimiento = value;}),
+                    context),
+                FieldText("DNI", temp.dni,
+                    (value) => setState(() { temp.dni = value;}),
+                    mandatory: true),
+                FieldCheckBox("Discapacidad", temp.discapacidad??false,
+                    (value) => setState(() { temp.discapacidad = value;})),
+              ],
+            )
           ),
         ),
+
         FieldCheckBox("Persona embarazada", informeTemp.embarazada,
               (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
         ),

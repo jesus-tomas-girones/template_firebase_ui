@@ -1,3 +1,4 @@
+import 'package:firebase_ui/utils/enum_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -49,16 +50,12 @@ class Familiar implements ClonableVaciable {
     discapacidad = null;
   }
 
-  //TODO terinarclase
-  // clone() =>
-  // operator ==    ¿Hace falta?
-
   factory Familiar.fromJson(Map<String, dynamic> json) {
     try {
       return Familiar(
           nombre: json['nombre'],
           apellidos: json['apellidos'],
-          parentesco: json['parentesco'],
+          parentesco: enumfromString(Parentesco.values, json['parentesco']),
           fechaNacimiento: json['fecha_nacimiento'] == null
               ? null
               : timestampToDateTime(json['fecha_nacimiento'] as Timestamp),

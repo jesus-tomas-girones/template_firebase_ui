@@ -155,7 +155,7 @@ class Informe {
           tipoAccidente: enumfromString(
               TipoAccidente.values, json["tipo_accidente"]),
           hayMuerte: json['hayMuerte'] ?? false,
-          familiares: (json['familiares'] as List).map((item) => Familiar.fromJson(item)).toList() ?? <Familiar>[],
+          familiares: json['familiares']!=null ? (json['familiares'] as List).map((item) => Familiar.fromJson(item)).toList() : <Familiar>[],
           embarazada: json['embarazada'] ?? false,
           hayLesion: json['hayLesion'] ?? false,
           lesiones: json['lesiones'],
@@ -164,7 +164,7 @@ class Informe {
           diasBaja: json['diasBaja'] ?? 0,
           diasPerjuicio: json['diasPerjuicio'] ?? 0,
           haySecuela: json['haySecuela'] ?? false,
-          secuelas: <Secuela>[] //json['secuelas'] ?? <Secuela>[]
+          secuelas: json['secuelas']!=null ? (json['secuelas'] as List).map((item) => Secuela.fromJson(item)).toList() : <Secuela>[],
       );
     } catch (e) {
       print("Error en Informe.fromJson");
