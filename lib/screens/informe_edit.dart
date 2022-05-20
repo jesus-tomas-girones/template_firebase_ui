@@ -39,7 +39,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
   final List<Tab> _tabs = const [
     Tab(child: Text("Datos"),),
-    Tab(child: Text("Indemnizaciones"),),
+    Tab(child: Text("Indemnización"),),
     Tab(child: Text("Gastos"),),
   ];
   late TabController _tabController;
@@ -119,7 +119,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                 controller: _tabController,
                 children: [
                   _TabDetalles(informeTemp),
-                  _TabIndemnizaciones(),
+                  _TabIndemnizacion(),
                   _TabGastos()
                 ],
               )
@@ -296,9 +296,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
 
   // ======================================================================================
-  // Tab 2 indemnizaciones
+  // Tab 2 indemnización
   // ======================================================================================
-  Widget _TabIndemnizaciones() {
+  Widget _TabIndemnizacion() {
     return ListView(
       children: [
         // TODO ¿¿¿poner valores iniciales que dependen de el cuando desmarcamos uno de los checkbox????
@@ -308,7 +308,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             padding: 0
         ),
         informeTemp.hayMuerte ? _mostrarCamposMuerte() : Container(),
-
         const Divider(),
 
         //-------------------------------------------------
@@ -336,13 +335,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   
 
   Widget _mostrarCamposMuerte(){
-
-    //void Function(void Function())? setStateDialog;
-
     return Column(
       children: [
         EditorListaObjetos<Familiar>(
-          titulo: "Lista de familiares...", // Encabezado de la lista. NO DE EL DIALOG
+          titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
           listaObjetos: informeTemp.familiares,
           formKey: _formKeyAddFamiliar,
           objetoTemporal: temp,
@@ -350,8 +346,12 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             // se guardo o cancelo en el widget, repintamos
             setState(() {});
           },
-          // TODO Pensar como hacer que cada elemento se puede desplegar informacion
-          elementoLista: (item) => Text(item.nombre.toString() +" "+ item.apellidos.toString()),
+          elementoLista: (item) => Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(child: Text(item.nombre.toString() +" "+ item.apellidos.toString())),
+                Flexible(child: Text(" 5.000 €")),
+              ])),
           formulario: Form(
             key: _formKeyAddFamiliar,
             child: Column( 
@@ -359,7 +359,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16,16,16,0),
-                  child: Text('Añadir nuevo familiar', style: Theme.of(context).textTheme.titleLarge,),
+                  child: Text('Añadir nuevo familiar', style: Theme.of(context).textTheme.titleMedium,),
                 ),
                 FieldText("Nombre", temp.nombre,
                     (value) => setState(() { temp.nombre=value; }),
@@ -367,24 +367,41 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                 FieldText("Apellidos", temp.apellidos,
                     (value) => setState(() { temp.apellidos=value; }),
                     mandatory: true),
-                FieldEnum<Parentesco>(
-                    "Parentesco", temp.parentesco, Parentesco.values,
-                    (value) => setState(() { temp.parentesco = value; }),
-                    validator: (value) => value==null ? "Campo obligatorio" : null),
-                FieldDate("Fecha de nacimiento", temp.fechaNacimiento,
-                    (value) => setState(() { temp.fechaNacimiento = value;}),
-                    context),
-                FieldText("DNI", temp.dni,
-                    (value) => setState(() { temp.dni = value;}),
-                    mandatory: true),
-                FieldCheckBox("Discapacidad", temp.discapacidad??false,
-                    (value) => setState(() { temp.discapacidad = value;})),
-              ],
-            )
-          ),
+                Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
+                  child: Row(children: [
+                    Flexible(child:
+                      FieldEnum<Parentesco>(
+                        "Parentesco", temp.parentesco, Parentesco.values,
+                        (value) => setState(() { temp.parentesco = value; }),
+                        padding: 8,
+                        validator: (value) => value==null ? "Campo obligatorio" : null),
+                    ),
+                    Flexible(child:
+                      FieldDate("Fecha nacimiento", temp.fechaNacimiento,
+                        (value) => setState(() { temp.fechaNacimiento = value;}),
+                        context, padding: 8,),
+                    ),]
+                ),),
+                Padding(padding: EdgeInsets.fromLTRB(8, 8, 0, 0),
+                  child: Row(children: [
+                    Flexible(child:
+                      FieldText("DNI", temp.dni,
+                        (value) => setState(() { temp.dni = value;}),
+                        mandatory: true, padding: 8),
+                    ),
+                    Flexible(child:
+                      FieldCheckBox("Discapacidad", temp.discapacidad??false,
+                        (value) => setState(() { temp.discapacidad = value;}),
+                        padding: 0),
+                    ),
+                  ],),
+            ),
+          ]
+        ),
+        ),
         ),
 
-        FieldCheckBox("Persona embarazada", informeTemp.embarazada,
+        FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
               (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
         ),
         // lista de familiares

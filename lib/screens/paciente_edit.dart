@@ -88,8 +88,12 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
                     : (value[0] != value[0].toUpperCase())
                         ? "La inicial ha de estar en mayúsculas"
                         : null),
-            FieldText( "Apellidos", paciente.apellidos,
-              (value) => setState(() { paciente.apellidos = value; }),
+            FieldText(
+              "Apellidos",
+              paciente.apellidos,
+              (value) => setState(() {
+                paciente.apellidos = value;
+              }),
               hint: "Introduce los apellidos del paciente",
             ),
             FieldDate(
@@ -102,12 +106,16 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
               },
               context,
             ),
-            FieldEnum( "Sexo del paciente", paciente.sexo, Sexo.values,
-              (dynamic value) => setState(() { paciente.sexo = value; }),
-              customNames: ["Hombre","Mujer"],
+            FieldEnum(
+              "Sexo del paciente",
+              paciente.sexo,
+              Sexo.values,
+              (dynamic value) => setState(() {
+                paciente.sexo = value;
+              }),
+              customNames: ["Hombre", "Mujer"],
               hint: "Seleccione el sexo",
             ),
-
             FieldText(
               "Domicilio",
               paciente.domicilio,
@@ -124,29 +132,36 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
               }),
               hint: "Introduce el teléfono del paciente",
             ),
-            Row(
-              children: [
-                // Los text fields y el row se expanden el width hasta el infinito y da problemas de render
-                // hay varias soluciones, poniendole un expanded un flexible o un limited box para ponerle un tamaño al text field
-                Flexible(
-                  child: FieldText(
-                  "DNI",
-                  paciente.dni,
-                  (value) async => setState(() {
+            Padding(
+              padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: Row(
+                children: [
+                  // Los text fields y el row se expanden el width hasta el infinito y da problemas de render
+                  // hay varias soluciones, poniendole un expanded un flexible o un limited box para ponerle un tamaño al text field
+                  Flexible(
+                    child: FieldText(
+                      "DNI",
+                      paciente.dni,
+                      (value) async => setState(() {
                         paciente.dni = value;
                       }),
-                  hint: "Introduce el DNI del paciente"),
-                ),
-                Flexible(
-                  child: FieldText(
-                  "NUSS",
-                  paciente.nuss,
-                  (value) async => setState(() {
+                      hint: "Introduce el DNI del paciente",
+                      padding: 8,
+                    ),
+                  ),
+                  Flexible(
+                    child: FieldText(
+                      "NUSS",
+                      paciente.nuss,
+                      (value) async => setState(() {
                         paciente.nuss = value;
                       }),
-                  hint: "Introduce el NUSS del paciente"),
-                )
-              ],
+                      hint: "Introduce el NUSS del paciente",
+                      padding: 8,
+                    ),
+                  ),
+                ],
+              ),
             ),
             FieldText(
                 "Antecedentes medicos",
@@ -196,12 +211,15 @@ class _PacienteEditPageState extends State<PacienteEditPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             if (pacienteTemp != widget.paciente && //si se ha cambiado algo y
-                pacienteTemp !=  Paciente()) {     //no está en blanco
+                pacienteTemp != Paciente()) {
+              //no está en blanco
               //TODO Mejor poner tres botones: "PERDERLOS", "GUARDARLOS" Y "SEGUIR EDITANDO"
               showDialogSeguro(
                   context: context,
                   title: "Se perderán todos los cambios que no esten guardados",
-                  onAccept: () async { Navigator.pop(context); });
+                  onAccept: () async {
+                    Navigator.pop(context);
+                  });
             } else {
               Navigator.pop(context);
             }

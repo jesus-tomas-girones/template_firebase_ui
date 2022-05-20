@@ -125,7 +125,6 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
                          mostrarForm(false);
                       });
                     }),
-
                 const SizedBox(width: 8,),
                 ElevatedButton(
                     child: const Text("Cancelar"),
