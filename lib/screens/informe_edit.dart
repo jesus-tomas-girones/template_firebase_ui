@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
+import 'package:firebase_ui/model/secuela.dart';
 import 'package:firebase_ui/widgets/form_fields_edit.dart';
 
 import 'package:flutter/material.dart';
@@ -47,8 +48,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   late int _currentTabIndex = 0;
   final _formKeyInforme = GlobalKey<FormState>();
   final _formKeyAddFamiliar = GlobalKey<FormState>();
+  final _formKeyAddSecuela = GlobalKey<FormState>();
   late Informe informeTemp;
-  Familiar temp = Familiar();
+  Familiar tempFamiliar = Familiar();
+  Secuela tempSecuela = Secuela();
   late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
   late List<String>? urlFicherosSubidos;
@@ -196,8 +199,19 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   void _guardarInforme() async{
     _setLoading(true);
 //    try {
-      print(informeTemp.id);
-      print(informeTemp.toJson());
+      
+      if(informeTemp.hayMuerte){
+        // no guardar secuelas y lesiones si esta marcado hayMuerte
+        informeTemp.hayLesion = false;
+        informeTemp.haySecuela = false;
+        informeTemp.lesiones = "";
+        informeTemp.diasBaja = 0;
+        informeTemp.diasPerjuicio = 0;
+        informeTemp.diasPlanta = 0;
+        informeTemp.diasUci = 0;
+        informeTemp.secuelas = [];
+      }
+      
 //      print(_formKeyInforme.currentState!.validate());
 
 //      if (_formKeyInforme.currentState!.validate()){
@@ -301,7 +315,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   Widget _TabIndemnizacion() {
     return ListView(
       children: [
-        // TODO ¿¿¿poner valores iniciales que dependen de el cuando desmarcamos uno de los checkbox????
         //-------------------------------------------------
         FieldCheckBox("Hay muerte", informeTemp.hayMuerte,
                 (newValue){setState(() {informeTemp.hayMuerte = newValue ?? false;});},
@@ -335,35 +348,55 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   
 
   Widget _mostrarCamposMuerte(){
-    return Column(
-      children: [
-        EditorListaObjetos<Familiar>(
-          titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
-          listaObjetos: informeTemp.familiares,
-          formKey: _formKeyAddFamiliar,
-          objetoTemporal: temp,
-          onChange:(){
-            // se guardo o cancelo en el widget, repintamos
-            setState(() {});
-          },
-          
-          elementoLista: (item) {
-            return ListViewItemDesplegable(
-              itemLista: Padding(padding: const EdgeInsets.all(8),child: Text(item.nombre.toString() +" "+ item.apellidos.toString()),), 
-              itemDesplegado: Container(
-                color:const Color.fromARGB(255, 225, 225, 225),
-                child: _buildFormFamiliar("",item),
-              ) // TODO mostrar
-            );
-          },
-          formulario: _buildFormFamiliar('Añadir nuevo familiar',temp),
-        ),
-
-        FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
-              (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
-        ),
-        // lista de familiares
-      ],
+    return Container(
+      color: const Color.fromARGB(200, 240, 240, 240),
+      child: Column(
+        children: [
+          FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
+                (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
+          ),
+          EditorListaObjetos<Familiar>(
+            titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
+            listaObjetos: informeTemp.familiares,
+            formKey: _formKeyAddFamiliar,
+            objetoTemporal: tempFamiliar,
+            onChange:(){
+              // se guardo o cancelo en el widget, repintamos
+              setState(() {});
+            },
+            
+            elementoLista: (item) {
+              return ListViewItemDesplegable(
+                itemLista: Padding(padding: const EdgeInsets.all(8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(item.nombre.toString() +" "+ item.apellidos.toString()),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: (){
+                          showDialogSeguro(context: context, title: "¿Borrar el familiar?", 
+                          onAccept: () async{
+                            setState(() {
+                              informeTemp.familiares.remove(item);
+                            });
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                ), 
+                itemDesplegado: Container(
+                  color:const Color.fromARGB(255, 225, 225, 225),
+                  child: _buildFormFamiliar("Editar familiar",item),
+                ) 
+              );
+            },
+            formulario: _buildFormFamiliar('Añadir nuevo familiar',tempFamiliar),
+          ),
+      
+        ],
+      ),
     );
   }
 
@@ -397,69 +430,135 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
           FieldText("DNI", f.dni,
               (value) => setState(() { f.dni = value;}),
               mandatory: true),
-          FieldCheckBox("Discapacidad", f.discapacidad??false,
-              (value) => setState(() { f.discapacidad = value;})),
+          // mostrar si no es padre
+          f.parentesco != Parentesco.padre ? FieldCheckBox("Discapacidad", f.discapacidad??false,
+              (value) => setState(() { f.discapacidad = value;})):Container(),
         ],
       )
     );
   }
 
   Widget _mostrarCamposLesionTemporales(){
-    return Column(
-      children: [
-        // Lista de Texto
-        FieldText("Lesiones", informeTemp.lesiones,
-                (newValue)async{
-              setState(() {
-                informeTemp.lesiones = newValue;
-              });
-            },
-            maxLines: 4,
-            hint: "Introduzca las lesiones temporales del paciente"
-        ),
+    return Container(
+      color: const Color.fromARGB(200, 240, 240, 240),
+      child: Column(
+        children: [
+          // Lista de Texto
+          FieldText("Lesiones", informeTemp.lesiones,
+                  (newValue)async{
+                setState(() {
+                  informeTemp.lesiones = newValue;
+                });
+              },
+              maxLines: 4,
+              hint: "Introduzca las lesiones temporales del paciente"
+          ),
 
-        Row(
-          children: [
-            Flexible(
-                child: FieldText("Días de UCI", informeTemp.diasUci == 0 ? "" : informeTemp.diasUci.toString(),
-                      (newValue)async{setState(() {informeTemp.diasUci = newValue == "" ?  0 :  int.parse(newValue);});},
-                  isNumeric: true,
-                  hint: "Introduce los días que el paciente estuvo en la uci",
-                )),
-            Flexible(
-                child: FieldText("Días hospitalizado", informeTemp.diasPlanta == 0 ? "" : informeTemp.diasPlanta.toString(),
-                        (newValue)async{setState(() {informeTemp.diasPlanta = newValue == "" ?  0 :  int.parse(newValue);});},
+          Row(
+            children: [
+              Flexible(
+                  child: FieldText("Días de UCI", informeTemp.diasUci == 0 ? "" : informeTemp.diasUci.toString(),
+                        (newValue)async{setState(() {informeTemp.diasUci = newValue == "" ?  0 :  int.parse(newValue);});},
                     isNumeric: true,
-                    hint: "Introduce los días que el paciente estuvo hospitalizado"
-                )),
-            Flexible(
-                child: FieldText("Días de baja laboral", informeTemp.diasBaja == 0 ? "" : informeTemp.diasBaja.toString(),
-                        (newValue)async{setState(() {informeTemp.diasBaja = newValue == "" ?  0 :  int.parse(newValue);});},
-                    isNumeric: true,
-                    hint: "Introduce los días que el paciente estuvo de baja laboral"
-                )),
-          ],
-        ),
+                    hint: "Introduce los días que el paciente estuvo en la uci",
+                  )),
+              Flexible(
+                  child: FieldText("Días hospitalizado", informeTemp.diasPlanta == 0 ? "" : informeTemp.diasPlanta.toString(),
+                          (newValue)async{setState(() {informeTemp.diasPlanta = newValue == "" ?  0 :  int.parse(newValue);});},
+                      isNumeric: true,
+                      hint: "Introduce los días que el paciente estuvo hospitalizado"
+                  )),
+              Flexible(
+                  child: FieldText("Días de baja laboral", informeTemp.diasBaja == 0 ? "" : informeTemp.diasBaja.toString(),
+                          (newValue)async{setState(() {informeTemp.diasBaja = newValue == "" ?  0 :  int.parse(newValue);});},
+                      isNumeric: true,
+                      hint: "Introduce los días que el paciente estuvo de baja laboral"
+                  )),
+            ],
+          ),
 
-        // Dias de perjuicio basico
-        FieldText("Días de perjuicio básico", informeTemp.diasPerjuicio == 0 ? "" : informeTemp.diasPerjuicio.toString(),
-                (newValue)async{setState(() {informeTemp.diasPerjuicio = newValue == "" ?  0 :  int.parse(newValue);});},
-            isNumeric: true,
-            hint: "Introduce los días de perjucio básico del paciente"
-        ),
-      ],
+          // Dias de perjuicio basico
+          FieldText("Días de perjuicio básico", informeTemp.diasPerjuicio == 0 ? "" : informeTemp.diasPerjuicio.toString(),
+                  (newValue)async{setState(() {informeTemp.diasPerjuicio = newValue == "" ?  0 :  int.parse(newValue);});},
+              isNumeric: true,
+              hint: "Introduce los días de perjucio básico del paciente"
+          ),
+        ],
+      )
     );
   }
 
   Widget _mostrarCamposSecuelas(){
-    return Column(
-      children: [
-
-      ],
+    return Container(
+      color: const Color.fromARGB(200, 240, 240, 240),
+      child: Column(
+        children: [
+          EditorListaObjetos<Secuela>(
+            titulo: "Lista de secuelas:", // Encabezado de la lista. NO DE EL DIALOG
+            listaObjetos: informeTemp.secuelas,
+            formKey: _formKeyAddSecuela,
+            objetoTemporal: tempSecuela,
+            onChange:(){
+              // se guardo o cancelo en el widget, repintamos
+              setState(() {});
+            },
+            
+            elementoLista: (item) {
+              return ListViewItemDesplegable(
+                itemLista: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(item.descripcion.toString()),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: (){
+                          showDialogSeguro(context: context, title: "¿Borrar la secuela?", 
+                          onAccept: () async{
+                            setState(() {
+                              informeTemp.secuelas.remove(item);
+                            });
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                ), 
+                itemDesplegado: Container(
+                  color:const Color.fromARGB(255, 225, 225, 225),
+                  child: _buildFormSecuela("Editar secuela",item),
+                ) 
+              );
+            },
+            formulario: _buildFormSecuela('Añadir nueva secuela',tempSecuela),
+          ),
+        ],
+      )
     );
   }
 
-  
+   ///
+  ///
+  /// Crear un formulario en base a un familiar
+  ///
+  Form _buildFormSecuela(String tituloForm, Secuela s){
+    return Form(
+      key: _formKeyAddSecuela,
+      child: Column( 
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16,16,16,0),
+            child: Text(tituloForm, style: Theme.of(context).textTheme.titleLarge,),
+          ),
+          FieldText("Descripcion", s.descripcion,
+              (value) => setState(() { s.descripcion=value; }),
+              mandatory: true),
+        ],
+      )
+    );
+  }
 
   // ======================================================================================
   // Tab 3 gastos

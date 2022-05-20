@@ -1,9 +1,23 @@
+import 'package:firebase_ui/utils/enum_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../widgets/editor_lista_objetos.dart';
+
 @JsonSerializable(explicitToJson: true) // Por tener clase anidada
-class Secuela {
+class Secuela implements ClonableVaciable{
   String? descripcion;
   List<SecuelaTipo> secuelas;
+
+  clone() => Secuela(
+    descripcion: descripcion,
+    secuelas: secuelas
+  );
+
+ 
+  vaciar() {
+    descripcion = null;
+    secuelas = [];
+  }
 
   Secuela({ this.descripcion, this.secuelas = const [] });
 
@@ -11,7 +25,7 @@ class Secuela {
     try {
       return Secuela(
           descripcion: json['descripcion'],
-          secuelas: json['secuelas'],
+          secuelas: json['secuelas'] != null ? (json['secuelas'] as List).map((secuela) => SecuelaTipo.fromJson(secuela)).toList() : <SecuelaTipo>[],
       );
     } catch (e) {
       print("Error en Secuelas.fromJson");

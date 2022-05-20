@@ -191,7 +191,7 @@ class Informe {
         'diasBaja': diasBaja,
         'diasPerjuicio': diasPerjuicio,
         'haySecuela': haySecuela,
-        'secuelas': secuelas
+        'secuelas': secuelas.map((i) => i.toJson()).toList()
       };
     map.removeWhere((key, value) => value == null);
 //    map.removeWhere((key, value) => value == []);

@@ -75,16 +75,18 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
               ),
             ],
           ),
-          ListView.separated(
-            separatorBuilder: (context, index) => Divider(),
-            physics: const ClampingScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: widget.listaObjetos.length,
-            itemBuilder: ((context, index) {
-              return widget.elementoLista(
-                widget.listaObjetos[index]
-              );
-          })),
+          widget.listaObjetos.isNotEmpty 
+          ? ListView.separated(
+              separatorBuilder: (context, index) => const Divider(),
+              physics: const ClampingScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: widget.listaObjetos.length,
+              itemBuilder: ((context, index) {
+                return widget.elementoLista(
+                  widget.listaObjetos[index]
+                );
+            }))
+          :  const Padding(padding: EdgeInsets.all(16), child: Center(child:Text("No hay elementos")),),
           _mostrarForm ? _buildForm() : const Center() 
         ],
       ),
