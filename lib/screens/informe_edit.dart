@@ -358,8 +358,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
           },
           formulario: _buildFormFamiliar('Añadir nuevo familiar',temp),
         ),
-        ),
-        ),
 
         FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
               (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
