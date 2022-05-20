@@ -75,7 +75,8 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
               ),
             ],
           ),
-          ListView.builder(
+          ListView.separated(
+            separatorBuilder: (context, index) => Divider(),
             physics: const ClampingScrollPhysics(),
             shrinkWrap: true,
             itemCount: widget.listaObjetos.length,

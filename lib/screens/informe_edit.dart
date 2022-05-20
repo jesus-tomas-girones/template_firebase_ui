@@ -346,57 +346,17 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             // se guardo o cancelo en el widget, repintamos
             setState(() {});
           },
-          elementoLista: (item) => Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(child: Text(item.nombre.toString() +" "+ item.apellidos.toString())),
-                Flexible(child: Text(" 5.000 €")),
-              ])),
-          formulario: Form(
-            key: _formKeyAddFamiliar,
-            child: Column( 
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16,16,16,0),
-                  child: Text('Añadir nuevo familiar', style: Theme.of(context).textTheme.titleMedium,),
-                ),
-                FieldText("Nombre", temp.nombre,
-                    (value) => setState(() { temp.nombre=value; }),
-                    mandatory: true),
-                FieldText("Apellidos", temp.apellidos,
-                    (value) => setState(() { temp.apellidos=value; }),
-                    mandatory: true),
-                Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
-                  child: Row(children: [
-                    Flexible(child:
-                      FieldEnum<Parentesco>(
-                        "Parentesco", temp.parentesco, Parentesco.values,
-                        (value) => setState(() { temp.parentesco = value; }),
-                        padding: 8,
-                        validator: (value) => value==null ? "Campo obligatorio" : null),
-                    ),
-                    Flexible(child:
-                      FieldDate("Fecha nacimiento", temp.fechaNacimiento,
-                        (value) => setState(() { temp.fechaNacimiento = value;}),
-                        context, padding: 8,),
-                    ),]
-                ),),
-                Padding(padding: EdgeInsets.fromLTRB(8, 8, 0, 0),
-                  child: Row(children: [
-                    Flexible(child:
-                      FieldText("DNI", temp.dni,
-                        (value) => setState(() { temp.dni = value;}),
-                        mandatory: true, padding: 8),
-                    ),
-                    Flexible(child:
-                      FieldCheckBox("Discapacidad", temp.discapacidad??false,
-                        (value) => setState(() { temp.discapacidad = value;}),
-                        padding: 0),
-                    ),
-                  ],),
-            ),
-          ]
+          
+          elementoLista: (item) {
+            return ListViewItemDesplegable(
+              itemLista: Padding(padding: const EdgeInsets.all(8),child: Text(item.nombre.toString() +" "+ item.apellidos.toString()),), 
+              itemDesplegado: Container(
+                color:const Color.fromARGB(255, 225, 225, 225),
+                child: _buildFormFamiliar("",item),
+              ) // TODO mostrar
+            );
+          },
+          formulario: _buildFormFamiliar('Añadir nuevo familiar',temp),
         ),
         ),
         ),
@@ -406,6 +366,43 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         ),
         // lista de familiares
       ],
+    );
+  }
+
+  ///
+  ///
+  /// Crear un formulario en base a un familiar
+  ///
+  Form _buildFormFamiliar(String tituloForm, Familiar f){
+    return Form(
+      key: _formKeyAddFamiliar,
+      child: Column( 
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16,16,16,0),
+            child: Text(tituloForm, style: Theme.of(context).textTheme.titleLarge,),
+          ),
+          FieldText("Nombre", f.nombre,
+              (value) => setState(() { f.nombre=value; }),
+              mandatory: true),
+          FieldText("Apellidos", f.apellidos,
+              (value) => setState(() { f.apellidos=value; }),
+              mandatory: true),
+          FieldEnum<Parentesco>(
+              "Parentesco", f.parentesco, Parentesco.values,
+              (value) => setState(() { f.parentesco = value; }),
+              validator: (value) => value==null ? "Campo obligatorio" : null),
+          FieldDate("Fecha de nacimiento", f.fechaNacimiento,
+              (value) => setState(() { f.fechaNacimiento = value;}),
+              context),
+          FieldText("DNI", f.dni,
+              (value) => setState(() { f.dni = value;}),
+              mandatory: true),
+          FieldCheckBox("Discapacidad", f.discapacidad??false,
+              (value) => setState(() { f.discapacidad = value;})),
+        ],
+      )
     );
   }
 
@@ -464,7 +461,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     );
   }
 
-
+  
 
   // ======================================================================================
   // Tab 3 gastos
@@ -482,4 +479,46 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     );
   }
 
+}
+
+
+class ListViewItemDesplegable extends StatefulWidget{
+
+  final Widget itemLista;
+  final Widget itemDesplegado;
+
+  ListViewItemDesplegable({Key? key, 
+    required this.itemLista,
+    required this.itemDesplegado,
+  }) : super(key: key);
+
+  @override
+  _ListViewItemDesplegable createState() => _ListViewItemDesplegable();
+
+}
+
+class _ListViewItemDesplegable extends State<ListViewItemDesplegable>{
+ 
+
+  bool _mostrar = false;
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: (){
+            setState(() {
+              _mostrar = !_mostrar;
+            });
+          },
+          child: widget.itemLista,
+        ),
+        _mostrar ? widget.itemDesplegado : Container()
+      ],
+    );
+  }
+  
 }

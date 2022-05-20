@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
 
+
+// Clase para poder pasar un booleano como referencia
+class BooleanWraper {
+  bool value;
+  BooleanWraper(this.value);
+}
+
 /// Se incluyen diferentes Widgets que se usan como campos de formulario
 /// Son formularios normales.
 /// En form_fields_icon se definen campos alternativos donde para editar hay que pulsar un botón

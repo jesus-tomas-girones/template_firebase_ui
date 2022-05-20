@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import 'form_fields.dart';
 ///
 /// Widget que consiste de un boton que al darle lanza 
 /// un dialog con un formulario para cambiar la contraseña
@@ -244,8 +246,3 @@ class _CambiarFirebasePasswordWidgetState extends State<CambiarFirebasePasswordW
 
 }
 
-// Clase para poder pasar un booleano como referencia
-class BooleanWraper {
-  bool value;
-  BooleanWraper(this.value);
-}
