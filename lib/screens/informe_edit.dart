@@ -11,13 +11,11 @@ import '../model/familiar.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
 import '../widgets/editor_lista_objetos.dart';
-import '../widgets/field_lista_objetos.dart';
+import '../widgets/editor_lista_objetos2.dart';
 import '../widgets/selector_ficheros_firebase.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/form_miscelanius.dart';
 import 'paciente_edit.dart';
-
-
 
 
 ///
@@ -88,10 +86,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       });
     super.initState();
   }
-  
+
   // crear un informe vacio para tener la referencia del id y asi poder subir imagenes
   void _crearInformeVacio() async{
-    
+
     informeTemp =  await widget.informeApi!.insert(informeTemp);
     _setLoading(false);
 
@@ -149,7 +147,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                   title: "Se perderán todos los cambios que no esten guardados",
                   onAccept: () async {
                     _setLoading(true);
-                   
+
                     await _ficherosFirebaseController.borrarAnyadidos();
                     // si no se estaba editando y cancela cambios borramos el documentos
                     if(!isEditing){
@@ -199,7 +197,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   void _guardarInforme() async{
     _setLoading(true);
 //    try {
-      
+
       if(informeTemp.hayMuerte){
         // no guardar secuelas y lesiones si esta marcado hayMuerte
         informeTemp.hayLesion = false;
@@ -211,7 +209,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         informeTemp.diasUci = 0;
         informeTemp.secuelas = [];
       }
-      
+
 //      print(_formKeyInforme.currentState!.validate());
 
 //      if (_formKeyInforme.currentState!.validate()){
@@ -306,9 +304,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     );
   }
 
-
-
-
   // ======================================================================================
   // Tab 2 indemnización
   // ======================================================================================
@@ -345,8 +340,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     );
   }
 
-  
-
   Widget _mostrarCamposMuerte(){
     return Container(
       color: const Color.fromARGB(200, 240, 240, 240),
@@ -355,16 +348,76 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
           FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
                 (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
           ),
-          EditorListaObjetos<Familiar>(
+      EditorListaObjetos<Familiar>(
+        titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
+        listaObjetos: informeTemp.familiares,
+        formKey: _formKeyAddFamiliar,
+        objetoTemporal: tempFamiliar,
+        onChange:() { setState(() {}); },
+        elementoLista: (item) => Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(child: Text(item.nombre.toString() +" "+ item.apellidos.toString())),
+                  Flexible(child: Text(" 5.000 €")),
+                ])
+          ),
+        formulario: Form(
+          key: _formKeyAddFamiliar,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Padding(padding: const EdgeInsets.fromLTRB(16,16,16,0),
+                  child: Text('Edición de familiar', style: Theme.of(context).textTheme.titleMedium,),
+            ),
+            FieldText("Nombre", tempFamiliar.nombre,
+                (value) => setState(() { tempFamiliar.nombre=value; }),
+                mandatory: true),
+            FieldText("Apellidos", tempFamiliar.apellidos,
+                (value) => setState(() { tempFamiliar.apellidos=value; }),
+                mandatory: true),
+            Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: Row(children: [
+                Flexible(child:
+                  FieldEnum<Parentesco>(
+                  "Parentesco", tempFamiliar.parentesco, Parentesco.values,
+                      (value) => setState(() { tempFamiliar.parentesco = value; }),
+                  padding: 8,
+                  validator: (value) => value==null ? "Campo obligatorio" : null),
+                ),
+                Flexible(child:
+                  FieldDate("Fecha nacimiento", tempFamiliar.fechaNacimiento,
+                  (value) => setState(() { tempFamiliar.fechaNacimiento = value;}),
+                  context, padding: 8,),
+                ),
+              ],),
+            ),
+            Padding(padding: EdgeInsets.fromLTRB(8, 8, 0, 0),
+              child: Row(children: [
+                Flexible(child:
+                  FieldText("DNI", tempFamiliar.dni,
+                    (value) => setState(() { tempFamiliar.dni = value;}),
+                    mandatory: true, padding: 8),
+                ),
+                Flexible(child:
+                  FieldCheckBox("Discapacidad", tempFamiliar.discapacidad??false,
+                    (value) => setState(() { tempFamiliar.discapacidad = value;}),
+                    padding: 0),
+                  ),
+              ] ),
+            ),
+          ], ),
+        ),
+      ),
+      EditorListaObjetos2<Familiar>(
             titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
             listaObjetos: informeTemp.familiares,
+            formulario: _buildFormFamiliar('Añadir nuevo familiar', tempFamiliar),
             formKey: _formKeyAddFamiliar,
             objetoTemporal: tempFamiliar,
             onChange:(){
               // se guardo o cancelo en el widget, repintamos
               setState(() {});
             },
-            
             elementoLista: (item) {
               return ListViewItemDesplegable(
                 itemLista: Padding(padding: const EdgeInsets.all(8),
@@ -375,7 +428,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: (){
-                          showDialogSeguro(context: context, title: "¿Borrar el familiar?", 
+                          showDialogSeguro(context: context, title: "¿Borrar el familiar?",
                           onAccept: () async{
                             setState(() {
                               informeTemp.familiares.remove(item);
@@ -385,16 +438,15 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                       )
                     ],
                   ),
-                ), 
+                ),
+
                 itemDesplegado: Container(
                   color:const Color.fromARGB(255, 225, 225, 225),
                   child: _buildFormFamiliar("Editar familiar",item),
-                ) 
+                )
               );
             },
-            formulario: _buildFormFamiliar('Añadir nuevo familiar',tempFamiliar),
           ),
-      
         ],
       ),
     );
@@ -407,7 +459,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   Form _buildFormFamiliar(String tituloForm, Familiar f){
     return Form(
       key: _formKeyAddFamiliar,
-      child: Column( 
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -493,7 +545,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       color: const Color.fromARGB(200, 240, 240, 240),
       child: Column(
         children: [
-          EditorListaObjetos<Secuela>(
+          EditorListaObjetos2<Secuela>(
             titulo: "Lista de secuelas:", // Encabezado de la lista. NO DE EL DIALOG
             listaObjetos: informeTemp.secuelas,
             formKey: _formKeyAddSecuela,
@@ -502,7 +554,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               // se guardo o cancelo en el widget, repintamos
               setState(() {});
             },
-            
             elementoLista: (item) {
               return ListViewItemDesplegable(
                 itemLista: Padding(
@@ -514,7 +565,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: (){
-                          showDialogSeguro(context: context, title: "¿Borrar la secuela?", 
+                          showDialogSeguro(context: context, title: "¿Borrar la secuela?",
                           onAccept: () async{
                             setState(() {
                               informeTemp.secuelas.remove(item);
@@ -524,11 +575,11 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                       )
                     ],
                   ),
-                ), 
+                ),
                 itemDesplegado: Container(
                   color:const Color.fromARGB(255, 225, 225, 225),
                   child: _buildFormSecuela("Editar secuela",item),
-                ) 
+                )
               );
             },
             formulario: _buildFormSecuela('Añadir nueva secuela',tempSecuela),
@@ -545,7 +596,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   Form _buildFormSecuela(String tituloForm, Secuela s){
     return Form(
       key: _formKeyAddSecuela,
-      child: Column( 
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -584,7 +635,7 @@ class ListViewItemDesplegable extends StatefulWidget{
   final Widget itemLista;
   final Widget itemDesplegado;
 
-  ListViewItemDesplegable({Key? key, 
+  ListViewItemDesplegable({Key? key,
     required this.itemLista,
     required this.itemDesplegado,
   }) : super(key: key);
@@ -595,10 +646,8 @@ class ListViewItemDesplegable extends StatefulWidget{
 }
 
 class _ListViewItemDesplegable extends State<ListViewItemDesplegable>{
- 
 
   bool _mostrar = false;
-
 
   @override
   Widget build(BuildContext context) {
@@ -617,5 +666,5 @@ class _ListViewItemDesplegable extends State<ListViewItemDesplegable>{
       ],
     );
   }
-  
+
 }

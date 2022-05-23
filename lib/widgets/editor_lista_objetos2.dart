@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'form_miscelanius.dart';
-
 /// Clase que representa un objeto que puede ser clonado y vaciado
 /// Los objetos que queramos editar han de impementar este interfaz
 
@@ -18,7 +16,7 @@ typedef ItemBuilder<T> = Widget Function(T item);
 /// y un objeto de tipo [T] podemos mostrar un fomrulario para crear un objeto
 /// El [elementoLista] representa un objeto en la lista
 
-class EditorListaObjetos<T> extends StatefulWidget{
+class EditorListaObjetos2<T> extends StatefulWidget{
 
   List<T> listaObjetos;
   final String titulo;
@@ -32,7 +30,7 @@ class EditorListaObjetos<T> extends StatefulWidget{
 
   //void Function(void Function())? setStateDialog;
 
-  EditorListaObjetos({Key? key,
+  EditorListaObjetos2({Key? key,
     required this.titulo,
     required this.listaObjetos,
     required this.objetoTemporal,
@@ -45,10 +43,10 @@ class EditorListaObjetos<T> extends StatefulWidget{
   }) : super(key: key);
 
   @override
-  _EditorListaObjetosState<T> createState() => _EditorListaObjetosState<T>();
+  _EditorListaObjetos2State<T> createState() => _EditorListaObjetos2State<T>();
 }
 
-class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
+class _EditorListaObjetos2State<T> extends State<EditorListaObjetos2<T>>{
 
   bool _mostrarForm = false;
 
@@ -84,25 +82,9 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
               shrinkWrap: true,
               itemCount: widget.listaObjetos.length,
               itemBuilder: ((context, index) {
-        //        return
-                return Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(child:
-                      widget.elementoLista(widget.listaObjetos[index])),
-                    Flexible(child:
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: (){
-                          showDialogSeguro(context: context, title: "¿Borrar el familiar?",
-                            onAccept: () async{
-                              setState(() {
-                                //print(widget.listaObjetos[index]);
-                                widget.listaObjetos.removeAt(index);
-                              });
-                            });
-                      },
-                    ),),
-                  ],);
+                return widget.elementoLista(
+                  widget.listaObjetos[index]
+                );
             }))
           :  const Padding(padding: EdgeInsets.all(16), child: Center(child:Text("No hay elementos")),),
           _mostrarForm ? _buildForm() : const Center() 
