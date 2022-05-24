@@ -1,3 +1,6 @@
+import 'dart:js_util';
+
+import 'package:firebase_ui/screens/informe_edit.dart';
 import 'package:flutter/material.dart';
 
 import 'form_miscelanius.dart';
@@ -21,27 +24,29 @@ typedef ItemBuilder<T> = Widget Function(T item);
 class EditorListaObjetos<T> extends StatefulWidget{
 
   List<T> listaObjetos;
-  final String titulo;
+  final String? titulo;
+  final String tituloAnyadir;
   final ItemBuilder<T> elementoLista; //Para construir el Widget de cada elemento de la lista
-  Form formulario;
   T objetoTemporal; // Objeto que se está editando. Se usa para poder acceder a el desde el form
   final GlobalKey<FormState>? formKey;
   final void Function()? onChange; // El vaciar no hace efecto en el padre (No se vacia el formulario al guardar), por tanto mediante un callback avisamos que ha cambiado y hacemos un setState
   final double padding;
+
+  final Form Function(T item) crearFormulario; 
   //ValueChanged<void Function(void Function())> onSetStateInitialiced;
 
   //void Function(void Function())? setStateDialog;
 
   EditorListaObjetos({Key? key,
-    required this.titulo,
+    this.titulo,
     required this.listaObjetos,
     required this.objetoTemporal,
     required this.elementoLista,
-    required this.formulario,
+    required this.crearFormulario,
     this.formKey, // para poder validar el formulario
     this.onChange, 
+    this.tituloAnyadir = "Añadir nuevo elemento",
     this.padding = 16,
-    //required this.onSetStateInitialiced,
   }) : super(key: key);
 
   @override
@@ -50,11 +55,26 @@ class EditorListaObjetos<T> extends StatefulWidget{
 
 class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
 
-  bool _mostrarForm = false;
+  bool _formCrearAbierto = false;
+  int _indiceformEdicionAbierto = -1; // -1 == ninguo
 
-  void mostrarForm(bool value){
+  //T objetoTemporal = newObject();
+
+  @override
+  void initState() {
+    
+    super.initState();
+  }
+
+  void mostrarFormCrear(bool value){
     setState(() {
-       _mostrarForm = value;
+       _formCrearAbierto = value;
+    });
+  }
+
+  void mostrarFormEdicion(int indice){
+    setState(() {
+       _indiceformEdicionAbierto = indice;
     });
   }
 
@@ -68,11 +88,12 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(widget.titulo),
+              if(widget.titulo!=null)Text(widget.titulo!),
               ElevatedButton(
-                onPressed: (){
-                  mostrarForm(!_mostrarForm);
-                }, 
+                // si no hay on pressed se desactiva el boton (sale en gris)
+                onPressed: _indiceformEdicionAbierto == -1 ? (){
+                  mostrarFormCrear(!_formCrearAbierto);
+                } : null, 
                 child: const Text("Añadir")
               ),
             ],
@@ -84,30 +105,59 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
               shrinkWrap: true,
               itemCount: widget.listaObjetos.length,
               itemBuilder: ((context, index) {
-        //        return
-                return Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return Column(
                   children: [
-                    Flexible(child:
-                      widget.elementoLista(widget.listaObjetos[index])),
-                    Flexible(child:
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: (){
-                          showDialogSeguro(context: context, title: "¿Borrar el familiar?",
-                            onAccept: () async{
-                              setState(() {
-                                //print(widget.listaObjetos[index]);
-                                widget.listaObjetos.removeAt(index);
-                              });
-                            });
-                      },
-                    ),),
-                  ],);
+                    InkWell(
+                      // onTap en null equivale a desavilitarlo
+                      onTap: !_formCrearAbierto ?  (){
+                          if(_indiceformEdicionAbierto == index || _indiceformEdicionAbierto != -1){
+                            // cerramos el formulario
+                            mostrarFormEdicion(-1); 
+                          }else{
+                            mostrarFormEdicion(index); 
+                          }
+                      } : null,
+                      child: _buildItemList(index),
+                    ),
+                    if(_indiceformEdicionAbierto == index) Container(
+                        color:const Color.fromARGB(255, 225, 225, 225),
+                        child: widget.crearFormulario(widget.listaObjetos[index]),
+                      )
+                    
+                     
+                  ],
+                );
             }))
           :  const Padding(padding: EdgeInsets.all(16), child: Center(child:Text("No hay elementos")),),
-          _mostrarForm ? _buildForm() : const Center() 
+
+
+          _formCrearAbierto ? Column(children: [const SizedBox(height: 16),_buildForm()],) : const Center() 
         ],
       ),
+    );
+  }
+
+  Widget _buildItemList(index){
+    return Row( 
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(flex: 12,child: widget.elementoLista(widget.listaObjetos[index])),
+        Flexible(
+          flex: 1,
+          child: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: (){
+              showDialogSeguro(context: context, title: "¿Borrar el familiar?",
+                onAccept: () async{
+                  setState(() {
+                    //print(widget.listaObjetos[index]);
+                    widget.listaObjetos.removeAt(index);
+                  });
+                });
+          },
+        ),),
+      ],
     );
   }
 
@@ -120,10 +170,15 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          widget.formulario,
+          // ----------- titulo formulario
+          if(widget.tituloAnyadir!=null) Padding(padding: const EdgeInsets.fromLTRB(16,16,16,0),
+              child: Text(widget.tituloAnyadir, style: Theme.of(context).textTheme.titleMedium,),
+          ),
+          // --------------- Formulario
+          widget.crearFormulario(widget.objetoTemporal),
           //---------------- ACTIONS
           Padding(
-            padding: const EdgeInsets.only(right: 16, top: 16),
+            padding: const EdgeInsets.only(right: 16, top: 16, bottom: 16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -143,7 +198,7 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
                           (widget.objetoTemporal as ClonableVaciable).vaciar();
                         }
                          widget.onChange!=null ? widget.onChange!.call() :null; // avisar al padre para que repinte
-                         mostrarForm(false);
+                         mostrarFormCrear(false);
                       });
                     }),
                 const SizedBox(width: 8,),
@@ -152,7 +207,7 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
                     onPressed: () {
                       (widget.objetoTemporal as ClonableVaciable).vaciar();
                       widget.onChange!=null ? widget.onChange!.call() :null;// avisar al padre para que repinte
-                      mostrarForm(false);
+                      mostrarFormCrear(false);
                     })
               ],
             ),

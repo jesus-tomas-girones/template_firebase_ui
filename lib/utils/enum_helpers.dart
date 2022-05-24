@@ -18,28 +18,3 @@ dynamic enumfromString<T>(List<dynamic> values, String? value){
   return null;
 }
 
-
-
-// TODO quitar
-String getCustomEnumName(e){
-  try{
-    switch(e){
-    case Sexo.hombre:
-      return "Hombre";
-    case Sexo.mujer:
-      return "Mujer";
-    case TipoAccidente.Deportivo:
-      return "Deportivo";
-    case TipoAccidente.Laboral:
-      return "Laboral";
-    case TipoAccidente.ViaPublica:
-      return "Via publica";
-    case TipoAccidente.Trafico:
-      return "Trafico";
-    default:
-      return e.name;
-    }
-  }catch(e){
-    return "";
-  }
-}

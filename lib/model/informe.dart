@@ -10,19 +10,6 @@ enum TipoAccidente{
   Trafico, Laboral, Deportivo,  ViaPublica }
 
 extension TipoAccidenteExtension on TipoAccidente {
-  /*String get value_borrar {
-    switch (this) {
-      case TipoAccidente.Trafico:
-        return "Trafico";
-      case TipoAccidente.Laboral:
-        return "Laboral";
-      case TipoAccidente.Deportivo:
-        return "Deportivo";
-      case TipoAccidente.ViaPublica:
-        return "Via publica";
-      default:
-        return "sin valor";
-    }*/
   String get value2 {
     try {
       return ["Trafico", "Laboral", "Deportivo", "Via publica"][this.index];

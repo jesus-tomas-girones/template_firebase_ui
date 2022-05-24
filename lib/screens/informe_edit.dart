@@ -11,7 +11,6 @@ import '../model/familiar.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
 import '../widgets/editor_lista_objetos.dart';
-import '../widgets/editor_lista_objetos2.dart';
 import '../widgets/selector_ficheros_firebase.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/form_miscelanius.dart';
@@ -200,9 +199,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
       if(informeTemp.hayMuerte){
         // no guardar secuelas y lesiones si esta marcado hayMuerte
+        // TODO valorar si ponerlo o no 
         informeTemp.hayLesion = false;
         informeTemp.haySecuela = false;
-        informeTemp.lesiones = "";
+        informeTemp.lesiones = null;
         informeTemp.diasBaja = 0;
         informeTemp.diasPerjuicio = 0;
         informeTemp.diasPlanta = 0;
@@ -348,105 +348,28 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
           FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
                 (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
           ),
-      EditorListaObjetos<Familiar>(
-        titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
-        listaObjetos: informeTemp.familiares,
-        formKey: _formKeyAddFamiliar,
-        objetoTemporal: tempFamiliar,
-        onChange:() { setState(() {}); },
-        elementoLista: (item) => Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(child: Text(item.nombre.toString() +" "+ item.apellidos.toString())),
-                  Flexible(child: Text(" 5.000 €")),
-                ])
-          ),
-        formulario: Form(
-          key: _formKeyAddFamiliar,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-            Padding(padding: const EdgeInsets.fromLTRB(16,16,16,0),
-                  child: Text('Edición de familiar', style: Theme.of(context).textTheme.titleMedium,),
-            ),
-            FieldText("Nombre", tempFamiliar.nombre,
-                (value) => setState(() { tempFamiliar.nombre=value; }),
-                mandatory: true),
-            FieldText("Apellidos", tempFamiliar.apellidos,
-                (value) => setState(() { tempFamiliar.apellidos=value; }),
-                mandatory: true),
-            Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Row(children: [
-                Flexible(child:
-                  FieldEnum<Parentesco>(
-                  "Parentesco", tempFamiliar.parentesco, Parentesco.values,
-                      (value) => setState(() { tempFamiliar.parentesco = value; }),
-                  padding: 8,
-                  validator: (value) => value==null ? "Campo obligatorio" : null),
-                ),
-                Flexible(child:
-                  FieldDate("Fecha nacimiento", tempFamiliar.fechaNacimiento,
-                  (value) => setState(() { tempFamiliar.fechaNacimiento = value;}),
-                  context, padding: 8,),
-                ),
-              ],),
-            ),
-            Padding(padding: EdgeInsets.fromLTRB(8, 8, 0, 0),
-              child: Row(children: [
-                Flexible(child:
-                  FieldText("DNI", tempFamiliar.dni,
-                    (value) => setState(() { tempFamiliar.dni = value;}),
-                    mandatory: true, padding: 8),
-                ),
-                Flexible(child:
-                  FieldCheckBox("Discapacidad", tempFamiliar.discapacidad??false,
-                    (value) => setState(() { tempFamiliar.discapacidad = value;}),
-                    padding: 0),
-                  ),
-              ] ),
-            ),
-          ], ),
-        ),
-      ),
-      EditorListaObjetos2<Familiar>(
+        EditorListaObjetos<Familiar>(
             titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
             listaObjetos: informeTemp.familiares,
-            formulario: _buildFormFamiliar('Añadir nuevo familiar', tempFamiliar),
+            tituloAnyadir: "Añadir nuevo familiar",
             formKey: _formKeyAddFamiliar,
-            objetoTemporal: tempFamiliar,
-            onChange:(){
-              // se guardo o cancelo en el widget, repintamos
-              setState(() {});
-            },
-            elementoLista: (item) {
-              return ListViewItemDesplegable(
-                itemLista: Padding(padding: const EdgeInsets.all(8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            objetoTemporal: tempFamiliar, // TODO intentar quitar y que solo este en editor_lista_objetos
+            crearFormulario: _buildFormFamiliar,
+            onChange:() { setState(() {}); },
+            elementoLista: (item) => Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(item.nombre.toString() +" "+ item.apellidos.toString()),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: (){
-                          showDialogSeguro(context: context, title: "¿Borrar el familiar?",
-                          onAccept: () async{
-                            setState(() {
-                              informeTemp.familiares.remove(item);
-                            });
-                          });
-                        },
-                      )
-                    ],
-                  ),
-                ),
-
-                itemDesplegado: Container(
-                  color:const Color.fromARGB(255, 225, 225, 225),
-                  child: _buildFormFamiliar("Editar familiar",item),
-                )
-              );
-            },
+                      Flexible(flex: 2,child: Text(item.nombre.toString() +" "+ item.apellidos.toString(),overflow: TextOverflow.ellipsis, maxLines: 2,),),
+                      Flexible(child: Text(item.parentesco!.name)),
+                      Flexible(child: Text(" 5.000 €")), // TODO calcular importe del familiar, crear funcion en familiar
+                    ])
+              ),
+            //formulario: _buildFormFamiliar(tempFamiliar, tituloForm: "Añadir Familiar"),
           ),
+       
+           
         ],
       ),
     );
@@ -456,37 +379,51 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   ///
   /// Crear un formulario en base a un familiar
   ///
-  Form _buildFormFamiliar(String tituloForm, Familiar f){
+  Form _buildFormFamiliar( Familiar f, {String? tituloForm}){
     return Form(
       key: _formKeyAddFamiliar,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16,16,16,0),
-            child: Text(tituloForm, style: Theme.of(context).textTheme.titleLarge,),
-          ),
-          FieldText("Nombre", f.nombre,
-              (value) => setState(() { f.nombre=value; }),
-              mandatory: true),
-          FieldText("Apellidos", f.apellidos,
-              (value) => setState(() { f.apellidos=value; }),
-              mandatory: true),
-          FieldEnum<Parentesco>(
+        FieldText("Nombre", f.nombre,
+            (value) => setState(() { f.nombre=value; }),
+            mandatory: true),
+        FieldText("Apellidos", f.apellidos,
+            (value) => setState(() { f.apellidos=value; }),
+            mandatory: true),
+        Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
+          child: Row(children: [
+            Flexible(child:
+              FieldEnum<Parentesco>(
               "Parentesco", f.parentesco, Parentesco.values,
-              (value) => setState(() { f.parentesco = value; }),
+                  (value) => setState(() { f.parentesco = value; },
+                  ),
+              customNames:  ["Hijo", "Padre", "Conyuge", "Pareja de hecho","Divorciado"], // TODO obtener automaticamente con bucle
+              padding: 8,
               validator: (value) => value==null ? "Campo obligatorio" : null),
-          FieldDate("Fecha de nacimiento", f.fechaNacimiento,
+            ),
+            Flexible(child:
+              FieldDate("Fecha nacimiento", f.fechaNacimiento,
               (value) => setState(() { f.fechaNacimiento = value;}),
-              context),
-          FieldText("DNI", f.dni,
-              (value) => setState(() { f.dni = value;}),
-              mandatory: true),
-          // mostrar si no es padre
-          f.parentesco != Parentesco.padre ? FieldCheckBox("Discapacidad", f.discapacidad??false,
-              (value) => setState(() { f.discapacidad = value;})):Container(),
-        ],
-      )
+              context, padding: 8,),
+            ),
+          ],),
+        ),
+        Padding(padding: EdgeInsets.fromLTRB(8, 8, 0, 0),
+          child: Row(children: [
+            Flexible(child:
+              FieldText("DNI", f.dni,
+                (value) => setState(() { f.dni = value;}),
+                mandatory: true, padding: 8),
+            ),
+            Flexible(child:
+              FieldCheckBox("Discapacidad", f.discapacidad??false,
+                (value) => setState(() { f.discapacidad = value;}),
+                padding: 0),
+              ),
+          ] ),
+        ),
+      ], ),
     );
   }
 
@@ -545,7 +482,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       color: const Color.fromARGB(200, 240, 240, 240),
       child: Column(
         children: [
-          EditorListaObjetos2<Secuela>(
+          EditorListaObjetos<Secuela>(
             titulo: "Lista de secuelas:", // Encabezado de la lista. NO DE EL DIALOG
             listaObjetos: informeTemp.secuelas,
             formKey: _formKeyAddSecuela,
@@ -555,34 +492,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               setState(() {});
             },
             elementoLista: (item) {
-              return ListViewItemDesplegable(
-                itemLista: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(item.descripcion.toString()),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: (){
-                          showDialogSeguro(context: context, title: "¿Borrar la secuela?",
-                          onAccept: () async{
-                            setState(() {
-                              informeTemp.secuelas.remove(item);
-                            });
-                          });
-                        },
-                      )
-                    ],
-                  ),
-                ),
-                itemDesplegado: Container(
-                  color:const Color.fromARGB(255, 225, 225, 225),
-                  child: _buildFormSecuela("Editar secuela",item),
-                )
-              );
+              return Text(item.descripcion.toString());
             },
-            formulario: _buildFormSecuela('Añadir nueva secuela',tempSecuela),
+            crearFormulario: _buildFormSecuela,
           ),
         ],
       )
@@ -593,16 +505,12 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   ///
   /// Crear un formulario en base a un familiar
   ///
-  Form _buildFormSecuela(String tituloForm, Secuela s){
+  Form _buildFormSecuela(Secuela s){
     return Form(
       key: _formKeyAddSecuela,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16,16,16,0),
-            child: Text(tituloForm, style: Theme.of(context).textTheme.titleLarge,),
-          ),
           FieldText("Descripcion", s.descripcion,
               (value) => setState(() { s.descripcion=value; }),
               mandatory: true),
@@ -624,46 +532,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         onPressed: (){
 
         }
-    );
-  }
-
-}
-
-
-class ListViewItemDesplegable extends StatefulWidget{
-
-  final Widget itemLista;
-  final Widget itemDesplegado;
-
-  ListViewItemDesplegable({Key? key,
-    required this.itemLista,
-    required this.itemDesplegado,
-  }) : super(key: key);
-
-  @override
-  _ListViewItemDesplegable createState() => _ListViewItemDesplegable();
-
-}
-
-class _ListViewItemDesplegable extends State<ListViewItemDesplegable>{
-
-  bool _mostrar = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: (){
-            setState(() {
-              _mostrar = !_mostrar;
-            });
-          },
-          child: widget.itemLista,
-        ),
-        _mostrar ? widget.itemDesplegado : Container()
-      ],
     );
   }
 

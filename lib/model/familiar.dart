@@ -5,7 +5,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/date_time_helpers.dart';
 import '../widgets/editor_lista_objetos.dart';
 
-enum Parentesco { hijo, padre, conyuge, parejaHecho, divorciado }
+enum Parentesco { 
+  
+  hijo, padre, conyuge, parejaHecho, divorciado
+
+  //String toString() => "a"
+}
+
+extension ParentescoExtension on Parentesco {
+
+  
+  String get name =>
+      ["Hijo", "Padre", "Conyuge", "Pareja de hecho","Divorciado"][this.index];
+}
+
 
 @JsonSerializable()
 class Familiar implements ClonableVaciable {
