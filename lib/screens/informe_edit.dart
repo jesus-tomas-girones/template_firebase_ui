@@ -46,9 +46,11 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   final _formKeyInforme = GlobalKey<FormState>();
   final _formKeyAddFamiliar = GlobalKey<FormState>();
   final _formKeyAddSecuela = GlobalKey<FormState>();
+  final _formKeyAddTipoSecuela = GlobalKey<FormState>();
   late Informe informeTemp;
   Familiar tempFamiliar = Familiar();
   Secuela tempSecuela = Secuela();
+  SecuelaTipo tempTipoSecuela = SecuelaTipo();
   late List<PlatformFile> ficherosAnyadidos;
   late List<String>? urlServer;
   late List<String>? urlFicherosSubidos;
@@ -501,9 +503,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     );
   }
 
-   ///
   ///
-  /// Crear un formulario en base a un familiar
+  ///
+  /// Crear un formulario en base a una secuela
   ///
   Form _buildFormSecuela(Secuela s){
     return Form(
@@ -514,6 +516,77 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
           FieldText("Descripcion", s.descripcion,
               (value) => setState(() { s.descripcion=value; }),
               mandatory: true),
+          EditorListaObjetos<SecuelaTipo>(
+            titulo: "Lista de tipos secuelas:",
+            //key: _formKeyAddTipoSecuela,
+            listaObjetos: s.secuelas, 
+            objetoTemporal: tempTipoSecuela, 
+            elementoLista: (item){
+              return Text(item.especialidad ?? "");
+            }, 
+            crearFormulario: _buildFormTipoSecuela
+            )
+        ],
+      )
+    );
+  }
+
+
+  ///
+  ///
+  /// Crear un formulario en base a tipo secuela
+  ///
+  // TODO cambiar al bueno, ahora es form de prueba
+  Form _buildFormTipoSecuela(SecuelaTipo s){
+    return Form(
+      //key: _formKeyAddTipoSecuela,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FieldListString("Especialidad", SecuelaTipo.listaEspecialidades(), s.especialidad, 
+            (newValue){setState(() {
+              s.especialidad = newValue;
+              // si cambiamos la especialidad, los campos que dependen de el ponerlos a null para borrarlos
+              s.secuela = null;
+              s.nivel = null;
+            });},
+            hint: "Elige la especialidad"
+          ),
+          FieldListString("Secuela", SecuelaTipo.listaSecuela(s.especialidad ?? ""), s.secuela, 
+            (newValue){setState(() {
+              s.secuela = newValue;
+              // si cambiamos la secuela, los campos que dependen de el ponerlos a null para borrarlos
+              s.nivel = null;
+            });},
+            hint: "Elige la secuela",
+            enable: s.especialidad!=null // si la especialidad no esta puesta deshabilitarlo
+          ),
+          FieldListString("Nivel", SecuelaTipo.listaNiveles(s.especialidad ?? "",s.secuela ?? "" ), s.nivel, 
+            (newValue){setState(() {s.nivel = newValue; s.puntos = 0;});},
+            hint: "Elige el nivel",
+            enable: s.secuela!=null // si la secuela no esta puesta deshabilitarlo
+          ),
+          FieldText(
+            "Puntos", s.puntos.toString(), (newValue){
+              setState(() {
+                s.puntos = newValue.isNotEmpty ? int.parse(newValue) : 0;
+              });
+            },
+            isNumeric: true,
+            enable: s.nivel!=null, // si el nivel no esta puesta deshabilitarlo
+            //mandatory: true,
+            validator: (value){
+              // TODO no valida bien, da problemas de key duplicadas
+              value = value ?? "";
+              int valueInt = value.isNotEmpty ? int.parse(value) : 0;
+              // [0] -> min, [1]-> max
+              List<int> rangoMaxMinPuntos = SecuelaTipo.rangoPuntos(s.especialidad ?? "", s.secuela ?? "", s.nivel ?? "");
+              if(valueInt<rangoMaxMinPuntos[0] || valueInt > rangoMaxMinPuntos[1]){
+                return "El valor debe estar entre " + rangoMaxMinPuntos[0].toString() + " y " + rangoMaxMinPuntos[1].toString();
+              }
+              return null;
+            }
+          )
         ],
       )
     );

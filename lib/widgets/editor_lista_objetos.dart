@@ -177,8 +177,10 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
                     onPressed: () {
                       // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
                       setState(() {
+                        print("guardar");
                         if(widget.formKey!=null){
                           if(widget.formKey!.currentState!.validate()){
+                            
                              widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
                             (widget.objetoTemporal as ClonableVaciable).vaciar();
                           }

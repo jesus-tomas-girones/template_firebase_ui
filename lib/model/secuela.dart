@@ -8,6 +8,7 @@ import '../widgets/editor_lista_objetos.dart';
 /// La siguiente tabla recoge las especialidades, secuelas, niveles y rango de puntos que se pueden asignar
 
 const SECUELAS = {
+  // los rangos indican [minimo, maximo]
   "oftalmologia": {
     "perdida de visión": {
       "5% - 20%": [2, 6],
@@ -48,15 +49,25 @@ const SECUELAS_ALTERNATIVA = { // Los niveles son el índice
 };
 
 List<String> listaEspecialidades() {
-  return ["oftalmologia", "traumatología"]; //TODO obtener lista dinámicamente. Mejor dejar en una variable estática
+  return SECUELAS.keys.toList();
 }
 
 List<String> listaSecuela(String especialidad) {
-  return ["perdida de visión", "estravismo"]; //TODO obtener lista dinámicamente.
+  if(SECUELAS[especialidad]!=null){
+    print(SECUELAS[especialidad]!.keys.toList());
+    return SECUELAS[especialidad]!.keys.toList();
+  }else{
+    return [];
+  }
 }
 
 List<String> listaNiveles(String especialidad, String secuela) {
-  return ["5% - 20%", "20% - 60%"]; //TODO obtener lista dinámicamente.
+  if(SECUELAS[especialidad]!=null && SECUELAS[especialidad]![secuela]!=null){ 
+    print(SECUELAS[especialidad]![secuela]!.keys.toList());
+    return SECUELAS[especialidad]![secuela]!.keys.toList();
+  }else{
+    return [];
+  }
 }
 
 List rangoPuntos(String especialidad, String secuela, String nivel) {
@@ -68,6 +79,8 @@ class Secuela implements ClonableVaciable{
   String? descripcion;
   List<SecuelaTipo> secuelas;
 
+  Secuela({ this.descripcion, List<SecuelaTipo>? secuelas }) : secuelas = secuelas ?? [];
+
   clone() => Secuela(
     descripcion: descripcion,
     secuelas: secuelas
@@ -77,8 +90,6 @@ class Secuela implements ClonableVaciable{
     descripcion = null;
     secuelas = [];
   }
-
-  Secuela({ this.descripcion, this.secuelas = const [] });
 
   factory Secuela.fromJson(Map<String, dynamic> json) {
     try {
@@ -106,13 +117,41 @@ class Secuela implements ClonableVaciable{
 
 
 @JsonSerializable()
-class SecuelaTipo {
-  String especialidad;  //Especialidad médica
-  String secuela;       //Descripción de la secuela
-  String nivel;         //Cada tipo de secuela tienen varios niveles
+class SecuelaTipo implements ClonableVaciable{
+  String? especialidad;  //Especialidad médica
+  String? secuela;       //Descripción de la secuela
+  String? nivel;         //Cada tipo de secuela tienen varios niveles
   int puntos;           //puntos asignados por el périto. Para cada indice,nivel hay un rango posible.
 
-  SecuelaTipo({ this.especialidad = "", this.secuela = "" , this.nivel = "", this.puntos = 0 });
+  static List<String> listaEspecialidades() {
+    return SECUELAS.keys.toList();
+  }
+
+  static List<String> listaSecuela(String especialidad) {
+    if(SECUELAS[especialidad]!=null){
+      return SECUELAS[especialidad]!.keys.toList();
+    }else{
+      return [];
+    }
+  }
+
+  static List<String> listaNiveles(String especialidad, String secuela) {
+    if(SECUELAS[especialidad]!=null && SECUELAS[especialidad]![secuela]!=null){
+      return SECUELAS[especialidad]![secuela]!.keys.toList();
+    }else{
+      return [];
+    }
+  }
+
+  static List<int> rangoPuntos(String especialidad, String secuela, String nivel) {
+    if(SECUELAS[especialidad]!=null && SECUELAS[especialidad]![secuela]!=null && SECUELAS[especialidad]![secuela]![nivel]!=null){
+      return SECUELAS[especialidad]![secuela]![nivel]!.toList();
+    }else{
+      return [];
+    }
+  }
+
+  SecuelaTipo({ this.especialidad, this.secuela, this.nivel, this.puntos = 0 });
 
   factory SecuelaTipo.fromJson(Map<String, dynamic> json) {
     try {
@@ -139,5 +178,21 @@ class SecuelaTipo {
     map.removeWhere((key, value) => value == null);
     map.removeWhere((key, value) => value == "null");
     return map;
+  }
+
+   @override
+  clone() => SecuelaTipo(
+    especialidad: especialidad,
+    nivel: nivel,
+    puntos: puntos,
+    secuela: secuela
+  );
+
+  @override
+  vaciar() {
+    especialidad = null;
+    nivel = null;
+    puntos = 0;
+    secuela = null;
   }
 }

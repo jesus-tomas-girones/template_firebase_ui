@@ -19,6 +19,7 @@ Widget FieldText(  /// Campo de texto normal
     String? value_,
     ValueChanged<String>? onChanged,
     {String hint = "",
+      bool enable = true,
       bool mandatory = false,
       bool isNumeric = false,
       int maxLines = 1,
@@ -29,6 +30,7 @@ Widget FieldText(  /// Campo de texto normal
     Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
       child: TextFormField(
         onChanged: onChanged,
+        enabled: enable,
         validator: (mandatory) ? validatorMandatory(validator) : validator,
         maxLines: maxLines,
         initialValue: value_,
@@ -166,15 +168,24 @@ Widget FieldEnum<Enum>(
 Widget FieldListString(
     String? title,
     List<String> values,
-    ValueChanged<String>? onChanged,
+    String? value,
+    ValueChanged<String?>? onChanged,
     { String hint = "",
+      bool enable = true,
       double padding = 16
-    }) =>
-
-    Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
-      child: Text("Poner desplegable aquí"),
-    );
-
+    }) {
+     return Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+        child: DropdownButton<String>(
+          onChanged: enable ? onChanged : null,
+          value: value,
+          items: values.map<DropdownMenuItem<String>>((valueD) => 
+            DropdownMenuItem<String>(child: Text(valueD), value: valueD,)
+          ).toList(),
+          hint: Text(hint),
+        ),
+      );
+      
+    }
 
 
 Widget FieldObjetList<T>(
