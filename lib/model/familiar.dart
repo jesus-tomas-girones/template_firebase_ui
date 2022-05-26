@@ -6,19 +6,13 @@ import '../utils/date_time_helpers.dart';
 import '../widgets/editor_lista_objetos.dart';
 
 enum Parentesco { 
-  
   hijo, padre, conyuge, parejaHecho, divorciado
-
-  //String toString() => "a"
 }
 
 extension ParentescoExtension on Parentesco {
-
-  
   String get name =>
       ["Hijo", "Padre", "Conyuge", "Pareja de hecho","Divorciado"][this.index];
 }
-
 
 @JsonSerializable()
 class Familiar implements ClonableVaciable {
@@ -43,7 +37,6 @@ class Familiar implements ClonableVaciable {
       dni, discapacidad}.toString();
   }
 
-
   clone() => Familiar(
     nombre: nombre,
     apellidos: apellidos,
@@ -53,7 +46,6 @@ class Familiar implements ClonableVaciable {
     discapacidad: discapacidad
   );
 
- 
   vaciar() {
     nombre = null;
     apellidos = null;
