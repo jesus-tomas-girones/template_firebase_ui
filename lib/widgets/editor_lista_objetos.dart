@@ -1,6 +1,3 @@
-import 'dart:js_util';
-
-import 'package:firebase_ui/screens/informe_edit.dart';
 import 'package:flutter/material.dart';
 
 import 'form_miscelanius.dart';
@@ -27,14 +24,12 @@ class EditorListaObjetos<T> extends StatefulWidget{
   final String? titulo;
   final String tituloAnyadir;
   final ItemBuilder<T> elementoLista; //Para construir el Widget de cada elemento de la lista
-  T objetoTemporal; // Objeto que se está editando. Se usa para poder acceder a el desde el form
+  T objetoTemporal; // Objeto que se está editando. //TODO sería interesante eliminar este parámetro y crear el objeto en la clase
   final GlobalKey<FormState>? formKey;
   final void Function()? onChange; // El vaciar no hace efecto en el padre (No se vacia el formulario al guardar), por tanto mediante un callback avisamos que ha cambiado y hacemos un setState
   final double padding;
-
   final Form Function(T item) crearFormulario; 
   //ValueChanged<void Function(void Function())> onSetStateInitialiced;
-
   //void Function(void Function())? setStateDialog;
 
   EditorListaObjetos({Key? key,
@@ -55,14 +50,13 @@ class EditorListaObjetos<T> extends StatefulWidget{
 
 class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
 
-  bool _formCrearAbierto = false;
-  int _indiceformEdicionAbierto = -1; // -1 == ninguo
+  bool _formCrearAbierto = false; // El formulario para Añadir elemento está abierto
+  int _indiceFormAbierto = -1; // Índice de formulario de edición Abierto. -1 si ninguno.
 
   //T objetoTemporal = newObject();
 
   @override
   void initState() {
-    
     super.initState();
   }
 
@@ -74,7 +68,7 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
 
   void mostrarFormEdicion(int indice){
     setState(() {
-       _indiceformEdicionAbierto = indice;
+       _indiceFormAbierto = indice;
     });
   }
 
@@ -91,7 +85,7 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
               if(widget.titulo!=null)Text(widget.titulo!),
               ElevatedButton(
                 // si no hay on pressed se desactiva el boton (sale en gris)
-                onPressed: _indiceformEdicionAbierto == -1 ? (){
+                onPressed: _indiceFormAbierto == -1 ? (){
                   mostrarFormCrear(!_formCrearAbierto);
                 } : null, 
                 child: const Text("Añadir")
@@ -110,27 +104,23 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
                     InkWell(
                       // onTap en null equivale a desavilitarlo
                       onTap: !_formCrearAbierto ?  (){
-                          if(_indiceformEdicionAbierto == index || _indiceformEdicionAbierto != -1){
+                          if (_indiceFormAbierto == index || _indiceFormAbierto != -1){
                             // cerramos el formulario
                             mostrarFormEdicion(-1); 
-                          }else{
+                          } else {
                             mostrarFormEdicion(index); 
                           }
                       } : null,
                       child: _buildItemList(index),
                     ),
-                    if(_indiceformEdicionAbierto == index) Container(
+                    if (_indiceFormAbierto == index) Container(
                         color:const Color.fromARGB(255, 225, 225, 225),
                         child: widget.crearFormulario(widget.listaObjetos[index]),
-                      )
-                    
-                     
+                    )
                   ],
                 );
             }))
           :  const Padding(padding: EdgeInsets.all(16), child: Center(child:Text("No hay elementos")),),
-
-
           _formCrearAbierto ? Column(children: [const SizedBox(height: 16),_buildForm()],) : const Center() 
         ],
       ),
@@ -148,10 +138,9 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
           child: IconButton(
             icon: const Icon(Icons.delete),
             onPressed: (){
-              showDialogSeguro(context: context, title: "¿Borrar el familiar?",
+              showDialogSeguro(context: context, title: "¿Borrar el elemento?",
                 onAccept: () async{
                   setState(() {
-                    //print(widget.listaObjetos[index]);
                     widget.listaObjetos.removeAt(index);
                   });
                 });
@@ -170,19 +159,19 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ----------- titulo formulario
+          // ----------- Titulo formulario
           if(widget.tituloAnyadir!=null) Padding(padding: const EdgeInsets.fromLTRB(16,16,16,0),
               child: Text(widget.tituloAnyadir, style: Theme.of(context).textTheme.titleMedium,),
           ),
           // --------------- Formulario
           widget.crearFormulario(widget.objetoTemporal),
-          //---------------- ACTIONS
+          //---------------- Botones
           Padding(
             padding: const EdgeInsets.only(right: 16, top: 16, bottom: 16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Spacer(),// asi podemos obligar a que vaya a la derecha del todo aun poniendo en la columna superior que empiecen en la izquierda
+                const Spacer(),// asi podemos obligar a que vaya a la derecha del tódo aun poniendo en la columna superior que empiecen en la izquierda
                 ElevatedButton(
                     child: const Text("Guardar"),
                     onPressed: () {

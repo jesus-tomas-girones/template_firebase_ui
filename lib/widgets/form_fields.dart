@@ -112,6 +112,8 @@ Widget FieldDate(  /// Campo de fecha
       ),
     );
 
+/// Nos permite seleccionar uno de los posibles valores de un enum
+
 Widget FieldEnum<Enum>(
   String? title,
   Enum? valueInit,
@@ -157,6 +159,22 @@ Widget FieldEnum<Enum>(
                 }).toList()
         ),
       );
+
+
+/// Nos permite seleccionar un elemento de una lista de Strings
+
+Widget FieldListString(
+    String? title,
+    List<String> values,
+    ValueChanged<String>? onChanged,
+    { String hint = "",
+      double padding = 16
+    }) =>
+
+    Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+      child: Text("Poner desplegable aquí"),
+    );
+
 
 
 Widget FieldObjetList<T>(
