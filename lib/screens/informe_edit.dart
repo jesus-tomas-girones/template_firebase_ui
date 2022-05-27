@@ -522,7 +522,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             listaObjetos: s.secuelas, 
             objetoTemporal: tempTipoSecuela, 
             elementoLista: (item){
-              return Text(item.especialidad ?? "");
+              return Text((item.secuela ?? "") + " - " + (item.nivel ?? "") +
+                  " - puntos: "+ item.puntos.toString());
             }, 
             crearFormulario: _buildFormTipoSecuela
             )
@@ -538,8 +539,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   ///
   // TODO cambiar al bueno, ahora es form de prueba
   Form _buildFormTipoSecuela(SecuelaTipo s){
+    final formKey = GlobalKey<FormState>();
     return Form(
-      //key: _formKeyAddTipoSecuela,
+      key: formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -562,14 +564,32 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             enable: s.especialidad!=null // si la especialidad no esta puesta deshabilitarlo
           ),
           FieldListString("Nivel", SecuelaTipo.listaNiveles(s.especialidad ?? "",s.secuela ?? "" ), s.nivel, 
-            (newValue){setState(() {s.nivel = newValue; s.puntos = 0;});},
+            (newValue){setState(() {
+              s.nivel = newValue; s.puntos = 0;});
+              //rango = SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel);
+            },
             hint: "Elige el nivel",
             enable: s.secuela!=null // si la secuela no esta puesta deshabilitarlo
           ),
+        FieldInt(
+            "Puntos "+SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel).toString(),
+            s.puntos,
+            (newValue){ setState(() {
+                s.puntos = newValue.isNotEmpty ? int.parse(newValue) : 0;
+                //print("puntos");
+              }); },
+            key: formKey,
+            enable: s.nivel!=null, // si el nivel no esta puesta deshabilitarlo
+            min: 3,
+            max: 6,
+        ),
           FieldText(
-            "Puntos", s.puntos.toString(), (newValue){
+            "Puntos "+SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel).toString(),
+            s.puntos.toString(),
+            (newValue){
               setState(() {
                 s.puntos = newValue.isNotEmpty ? int.parse(newValue) : 0;
+                print("puntos");
               });
             },
             isNumeric: true,
@@ -580,9 +600,12 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               value = value ?? "";
               int valueInt = value.isNotEmpty ? int.parse(value) : 0;
               // [0] -> min, [1]-> max
-              List<int> rangoMaxMinPuntos = SecuelaTipo.rangoPuntos(s.especialidad ?? "", s.secuela ?? "", s.nivel ?? "");
-              if(valueInt<rangoMaxMinPuntos[0] || valueInt > rangoMaxMinPuntos[1]){
-                return "El valor debe estar entre " + rangoMaxMinPuntos[0].toString() + " y " + rangoMaxMinPuntos[1].toString();
+              List<int> rangoPuntos = SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel);
+              print(value);
+              print(valueInt);
+              print(rangoPuntos);
+              if(valueInt<rangoPuntos[0] || valueInt > rangoPuntos[1]){
+                return "El valor debe estar entre " + rangoPuntos[0].toString() + " y " + rangoPuntos[1].toString();
               }
               return null;
             }

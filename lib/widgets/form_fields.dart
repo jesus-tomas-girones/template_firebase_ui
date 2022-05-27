@@ -70,6 +70,65 @@ String? Function(String? p1)? validatorMandatory(String? Function(String? p1)? v
   };
 }
 
+Widget FieldInt(  /// Campo de entero
+    String title,
+    int? value,
+    ValueChanged<String>? onChanged, //TODO cambiar a ValueChanged<int>?
+    { min = 0,
+      max = 0x7fffffff, //0x7fffffffffffffff,
+      String hint = "",
+      bool enable = true,
+      String? mensajeError,
+      double padding = 16,
+      key
+    }) =>
+    Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+      child: TextFormField(
+        key: key,
+        onChanged: (val) async {
+          int valInt = int.parse(val);
+          if (valInt < min)  {
+            print("El valor ha de ser mayor que " + min.toString());
+ /*           await showDialog(
+              context: null,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)
+                  )
+                );
+              }
+            );*/
+          };
+          if (key.currentState.validate(val)) onChanged!(val);
+        },
+        enabled: enable,
+        initialValue: value.toString(),
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          filled: value != null,
+          hintText: hint,
+          label: Text(title),
+          errorText: mensajeError,
+        ),
+        validator: (value) {
+          print("**");
+          if (value == null || value == "") return null;
+          int valInt = int.parse(value);
+          if (valInt < min) {
+            print("El valor ha de ser mayor que "+min.toString());
+            return "El valor ha de ser mayor que "+min.toString();
+          };
+          if (valInt > max) return "El valor ha de ser menor que "+max.toString();
+          return null;
+        },
+      ),
+    );
+
+
 Widget FieldDate(  /// Campo de fecha
     String title,
     DateTime? value,
@@ -173,8 +232,8 @@ Widget FieldListString(
     { String hint = "",
       bool enable = true,
       double padding = 16
-    }) {
-     return Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+    }) =>
+     Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
         child: DropdownButton<String>(
           onChanged: enable ? onChanged : null,
           value: value,
@@ -184,9 +243,6 @@ Widget FieldListString(
           hint: Text(hint),
         ),
       );
-      
-    }
-
 
 Widget FieldObjetList<T>(
   String title,
