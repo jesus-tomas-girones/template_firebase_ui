@@ -34,6 +34,7 @@ Widget FieldText(  /// Campo de texto normal
         validator: (mandatory) ? validatorMandatory(validator) : validator,
         maxLines: maxLines,
         initialValue: value_,
+        autovalidateMode: AutovalidateMode.always,
         keyboardType: isNumeric ? TextInputType.number : null,
         inputFormatters: isNumeric ? <TextInputFormatter>[
             FilteringTextInputFormatter.digitsOnly
@@ -101,7 +102,7 @@ Widget FieldInt(  /// Campo de entero
               }
             );*/
           };
-          if (key.currentState.validate(val)) onChanged!(val);
+          //if (key.currentState.validate(val)) onChanged!(val);
         },
         enabled: enable,
         initialValue: value.toString(),

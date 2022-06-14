@@ -177,19 +177,25 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
                     onPressed: () {
                       // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
                       setState(() {
-                        print("guardar");
+                        print("GUARDAR-----------------");
                         if(widget.formKey!=null){
+                           print("form key no nulo");
                           if(widget.formKey!.currentState!.validate()){
-                            
+                            print("correcto");
                              widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
                             (widget.objetoTemporal as ClonableVaciable).vaciar();
+                            mostrarFormCrear(false);
+                          }else{
+                            print("no correcto");
                           }
                         }else{
+                          print("form key nulo");
                           widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
                           (widget.objetoTemporal as ClonableVaciable).vaciar();
+                          mostrarFormCrear(false);
                         }
                          widget.onChange!=null ? widget.onChange!.call() :null; // avisar al padre para que repinte
-                         mostrarFormCrear(false);
+                         
                       });
                     }),
                 const SizedBox(width: 8,),

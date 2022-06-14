@@ -107,7 +107,7 @@ class Secuela implements ClonableVaciable{
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
       'descripcion': descripcion,
-      'secuelas': secuelas,
+      'secuelas': secuelas.map((e) => e.toJson()).toList()
     };
     map.removeWhere((key, value) => value == null);
     map.removeWhere((key, value) => value == "null");
@@ -143,7 +143,7 @@ class SecuelaTipo implements ClonableVaciable{
     }
   }
 
-  static List<int> rangoPuntos(String especialidad, String secuela, String nivel) {
+  static List<int> rangoPuntos(String? especialidad, String? secuela, String? nivel) {
     if(SECUELAS[especialidad]!=null && SECUELAS[especialidad]![secuela]!=null && SECUELAS[especialidad]![secuela]![nivel]!=null){
       return SECUELAS[especialidad]![secuela]![nivel]!.toList();
     }else{

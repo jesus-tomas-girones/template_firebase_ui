@@ -43,10 +43,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   late TabController _tabController;
   late SelectorFicherosFirebaseController _ficherosFirebaseController;
   late int _currentTabIndex = 0;
-  final _formKeyInforme = GlobalKey<FormState>();
-  final _formKeyAddFamiliar = GlobalKey<FormState>();
-  final _formKeyAddSecuela = GlobalKey<FormState>();
-  final _formKeyAddTipoSecuela = GlobalKey<FormState>();
+  final _formKeyInforme =  GlobalKey<FormState>(debugLabel: "key_form_informe");
+  final _formKeyAddFamiliar =  GlobalKey<FormState>(debugLabel:"key_form_familiar");
+  final _formKeyAddSecuela =  GlobalKey<FormState>(debugLabel:"key_form_secuela");
+  final _formKeyAddTipoSecuela =  GlobalKey<FormState>(debugLabel:"key_form_tipo_secuela");
   late Informe informeTemp;
   Familiar tempFamiliar = Familiar();
   Secuela tempSecuela = Secuela();
@@ -518,7 +518,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               mandatory: true),
           EditorListaObjetos<SecuelaTipo>(
             titulo: "Lista de tipos secuelas:",
-            //key: _formKeyAddTipoSecuela,
+            formKey: _formKeyAddTipoSecuela,
             listaObjetos: s.secuelas, 
             objetoTemporal: tempTipoSecuela, 
             elementoLista: (item){
@@ -539,9 +539,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   ///
   // TODO cambiar al bueno, ahora es form de prueba
   Form _buildFormTipoSecuela(SecuelaTipo s){
-    final formKey = GlobalKey<FormState>();
+    const Key formKey = Key("");
     return Form(
-      key: formKey,
+      key: _formKeyAddTipoSecuela,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -571,8 +571,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             hint: "Elige el nivel",
             enable: s.secuela!=null // si la secuela no esta puesta deshabilitarlo
           ),
-        FieldInt(
-            "Puntos "+SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel).toString(),
+          /*FieldInt("Puntos "+SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel).toString(),
             s.puntos,
             (newValue){ setState(() {
                 s.puntos = newValue.isNotEmpty ? int.parse(newValue) : 0;
@@ -582,14 +581,18 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             enable: s.nivel!=null, // si el nivel no esta puesta deshabilitarlo
             min: 3,
             max: 6,
-        ),
+        ),*/
           FieldText(
             "Puntos "+SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel).toString(),
             s.puntos.toString(),
             (newValue){
               setState(() {
-                s.puntos = newValue.isNotEmpty ? int.parse(newValue) : 0;
-                print("puntos");
+                int puntos = newValue.isNotEmpty ? int.parse(newValue) : 0;
+                // [0] -> min, [1]-> max
+                List<int> rangoPuntos = SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel);
+                if(puntos >= rangoPuntos[0] && puntos <= rangoPuntos[1]){
+                   s.puntos = puntos;
+                }
               });
             },
             isNumeric: true,
@@ -601,9 +604,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               int valueInt = value.isNotEmpty ? int.parse(value) : 0;
               // [0] -> min, [1]-> max
               List<int> rangoPuntos = SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel);
-              print(value);
-              print(valueInt);
-              print(rangoPuntos);
               if(valueInt<rangoPuntos[0] || valueInt > rangoPuntos[1]){
                 return "El valor debe estar entre " + rangoPuntos[0].toString() + " y " + rangoPuntos[1].toString();
               }
