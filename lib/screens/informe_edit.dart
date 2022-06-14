@@ -537,15 +537,13 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   ///
   /// Crear un formulario en base a tipo secuela
   ///
-  // TODO cambiar al bueno, ahora es form de prueba
   Form _buildFormTipoSecuela(SecuelaTipo s){
-    const Key formKey = Key("");
     return Form(
       key: _formKeyAddTipoSecuela,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FieldListString("Especialidad", SecuelaTipo.listaEspecialidades(), s.especialidad, 
+          FieldObjetList<String>("Especialidad", s.especialidad, SecuelaTipo.listaEspecialidades(),
             (newValue){setState(() {
               s.especialidad = newValue;
               // si cambiamos la especialidad, los campos que dependen de el ponerlos a null para borrarlos
@@ -554,7 +552,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             });},
             hint: "Elige la especialidad"
           ),
-          FieldListString("Secuela", SecuelaTipo.listaSecuela(s.especialidad ?? ""), s.secuela, 
+          FieldObjetList<String?>("Secuela",s.secuela, SecuelaTipo.listaSecuela(s.especialidad ?? ""), 
             (newValue){setState(() {
               s.secuela = newValue;
               // si cambiamos la secuela, los campos que dependen de el ponerlos a null para borrarlos
@@ -563,7 +561,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             hint: "Elige la secuela",
             enable: s.especialidad!=null // si la especialidad no esta puesta deshabilitarlo
           ),
-          FieldListString("Nivel", SecuelaTipo.listaNiveles(s.especialidad ?? "",s.secuela ?? "" ), s.nivel, 
+          FieldObjetList<String?>("Nivel", s.nivel, SecuelaTipo.listaNiveles(s.especialidad ?? "",s.secuela ?? "" ), 
             (newValue){setState(() {
               s.nivel = newValue; s.puntos = 0;});
               //rango = SecuelaTipo.rangoPuntos(s.especialidad, s.secuela, s.nivel);
@@ -599,7 +597,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             enable: s.nivel!=null, // si el nivel no esta puesta deshabilitarlo
             //mandatory: true,
             validator: (value){
-              // TODO no valida bien, da problemas de key duplicadas
               value = value ?? "";
               int valueInt = value.isNotEmpty ? int.parse(value) : 0;
               // [0] -> min, [1]-> max

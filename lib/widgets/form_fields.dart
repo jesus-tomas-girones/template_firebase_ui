@@ -251,6 +251,7 @@ Widget FieldObjetList<T>(
   List<T> items,
   void Function(T?)? onChanged,
   {String hint = "",
+  bool enable = true,
   double padding = 16}
   ) =>
     Padding(padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
@@ -264,7 +265,7 @@ Widget FieldObjetList<T>(
           hintText: hint,
           filled: selectedItem!=null
         ),
-        onChanged: onChanged,
+        onChanged: enable ? onChanged : null,
         items: items
       ),
     );
