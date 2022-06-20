@@ -32,7 +32,8 @@ class Informe {
 
   // Datos generales
   DateTime? fechaAccidente; // no existe long en dart
-  String descripcion = "";
+  String titulo = "";
+  String? descripcion = "";
   String? lugarAccidente;
   TipoAccidente? tipoAccidente;
   String? companyiaAseguradora;
@@ -60,6 +61,7 @@ class Informe {
   Informe({
     this.fechaAccidente,
     this.descripcion = "",
+    this.titulo = "",
     this.lugarAccidente,
     this.tipoAccidente,
     this.companyiaAseguradora,
@@ -81,6 +83,7 @@ class Informe {
       Informe(
           fechaAccidente: fechaAccidente,
           descripcion: descripcion,
+          titulo: titulo,
           lugarAccidente: lugarAccidente,
           companyiaAseguradora: companyiaAseguradora,
           idPaciente: idPaciente,
@@ -105,7 +108,7 @@ class Informe {
 
   @override
   String toString() =>
-      'Informe{fechaAccidente: $fechaAccidente, descripcion: $descripcion, tipoAccidente: $tipoAccidente}';
+      'Informe{fechaAccidente: $fechaAccidente, titulo: $titulo, tipoAccidente: $tipoAccidente}';
 
   @override
   bool operator ==(Object other) => // NO se compara el id.
@@ -114,6 +117,7 @@ class Informe {
           runtimeType == other.runtimeType &&
           fechaAccidente == other.fechaAccidente &&
           descripcion == other.descripcion &&
+          titulo == other.titulo &&
           lugarAccidente == other.lugarAccidente &&
           idPaciente == other.idPaciente &&
           tipoAccidente == other.tipoAccidente &&
@@ -135,6 +139,7 @@ class Informe {
           fechaAccidente: json['fecha_accidente'] == null
               ? null
               : timestampToDateTime(json['fecha_accidente'] as Timestamp),
+          titulo: json['titulo'],
           descripcion: json['descripcion'],
           companyiaAseguradora: json['aseguradora'],
           lugarAccidente: json['lugar_accidente'],
@@ -163,6 +168,7 @@ class Informe {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
         'fecha_accidente': dateTimeToTimestamp(fechaAccidente),
+        'titulo': titulo,
         'descripcion': descripcion,
         'aseguradora': companyiaAseguradora,
         'lugar_accidente': lugarAccidente,

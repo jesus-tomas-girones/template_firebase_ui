@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as x;
 import 'dart:developer';
+import 'package:path_provider/path_provider.dart';
 
 import '../model/informe.dart';
 
@@ -41,7 +42,7 @@ class PDFHelper{
                 children: [
                   pw.Text("Informe", style: pw.TextStyle(font: ttf, fontSize: 30)),
                   pw.Divider(),
-                  pw.Text(informe.descripcion, style: pw.TextStyle(font: ttf, fontSize: 30)),
+                  pw.Text(informe.titulo, style: pw.TextStyle(font: ttf, fontSize: 30)),
                 ],
               )
             );
@@ -64,6 +65,7 @@ class PDFHelper{
     // EN ANDROID SI SE GUARDA PERO NO NOTIFICA, lo guarda en una carpeta 
     // /android/data/com.example.firebase_ui/files
     // TODO ver como cambiarlo a descargas
+    
     if (!kIsWeb) {
         if (Platform.isIOS ||
             Platform.isAndroid ||
@@ -72,16 +74,32 @@ class PDFHelper{
           bool status = await Permission.storage.isGranted;
           if (!status) await Permission.storage.request();
         }
+
       }
 
-      final data = await documento.save();
+       String path = "";
+      if(kIsWeb){
+        final data = await documento.save();
       
-      MimeType type = MimeType.PDF;
-      String path = await FileSaver.instance.saveFile(
-          nombre_documento,
-          data,
-          "pdf",
-          mimeType: type);
+        MimeType type = MimeType.PDF;
+        path = await FileSaver.instance.saveFile(
+            nombre_documento,
+            data,
+            "pdf",
+            mimeType: type);
+      }else if(Platform.isAndroid){
+         // TODO no se si en IOS funcionaria
+        final directory = await getApplicationDocumentsDirectory();
+        path = directory.path;
+        var file = File('$path/$nombre_documento.pdf');
+        file.writeAsBytes(await documento.save());
+        
+      }else{
+        // TODO como guardar en otras plataformas 
+      }
+      
+
+       
 
       return path;
   }

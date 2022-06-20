@@ -176,10 +176,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             icon: const Icon(Icons.delete),
             onPressed: _borrarInforme,
         ) : Container(),
-        /*IconButton(
+        IconButton(
           onPressed: _generarPdf,
           icon: const Icon(Icons.more)
-        ),*/
+        ),
       ],
       bottom: TabBar(
         controller: _tabController,
@@ -261,6 +261,13 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         key: _formKeyInforme,
         child: ListView(
           children: [
+
+            FieldText("Título", informeTemp.titulo,
+                (value) => setState(() { informeTemp.titulo = value; }),
+                hint: "Introduce el titulo del informe",
+                mandatory: true,
+              ),
+
             //Paciente
             Row( children: [
               Expanded( child:
@@ -302,7 +309,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             FieldText("Descripción", informeTemp.descripcion,
                 (value) => setState(() { informeTemp.descripcion = value; }),
                 hint: "Introduce la descripcion del informe",
-                mandatory: true,
                 maxLines: 3
               ),
             FieldText("Lugar del accidente", informeTemp.lugarAccidente,

@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/widgets/visor_fichero_http.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -118,14 +119,22 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
   /// Callbcak del file picker
   ///
   void _addFicheros() async{
+    var extensions = <String>[];
+
+    if(kIsWeb){
+      extensions = ['*'];
+    }else{
+      extensions = ['jpg', 'jpeg', 'gif', 'png','pdf', 'doc', 'docx',
+          'xls', 'xlsm', 'ppt', 'pptx' 'txt', 'csv', ];
+    }
+
+
     FilePickerResult? result = await FilePicker.platform
         .pickFiles(
         type: FileType.custom,
         allowMultiple: true,
         onFileLoading: (FilePickerStatus status) => {},
-        allowedExtensions: ['*']
-   //     allowedExtensions: ['jpg', 'jpeg', 'gif', 'png','pdf', 'doc', 'docx',
-   //       'xls', 'xlsm', 'ppt', 'pptx' 'txt', 'csv', ]
+        allowedExtensions: extensions
         );
 
     if (result != null) {

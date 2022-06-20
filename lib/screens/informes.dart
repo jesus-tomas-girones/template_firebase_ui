@@ -104,6 +104,17 @@ class InformeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context, listen: false).api;
+
+    // Titulo - Fecha
+    String fecha = informe!.fechaAccidente!=null 
+            ? intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente!)
+            : "Sin fecha";
+    String titulo = informe!.titulo + " - " + fecha; 
+
+    // Descripcion
+    String descripcion = informe!.descripcion ?? "Sin descripción";
+    descripcion = descripcion.trim().isEmpty ? "Sin descripción" : descripcion;
+
     return Consumer<AppState>(builder: (context, pacienteState, child) {
       return ListTile(
         onTap: () {
@@ -118,12 +129,10 @@ class InformeTile extends StatelessWidget {
                     )),
                 );
         },
-        title: Text(
-            informe!.fechaAccidente!=null 
-            ? intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente!)
-            : "Sin fecha"),
+        
+        title: Text(titulo),
         subtitle: Text(
-          informe!.descripcion,
+          descripcion,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
