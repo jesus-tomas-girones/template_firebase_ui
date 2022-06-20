@@ -141,6 +141,10 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
               showDialogSeguro(context: context, title: "¿Borrar el elemento?",
                 onAccept: () async{
                   setState(() {
+                    // actualizar el padre si se pide
+                    if(widget.onChange!=null){
+                      widget.onChange!.call();
+                    }
                     widget.listaObjetos.removeAt(index);
                   });
                 });
@@ -177,19 +181,14 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
                     onPressed: () {
                       // vaciamos el temp para que al volver a añadir salga en blanco y añadimos un clone
                       setState(() {
-                        print("GUARDAR-----------------");
                         if(widget.formKey!=null){
-                           print("form key no nulo");
                           if(widget.formKey!.currentState!.validate()){
-                            print("correcto");
                              widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
                             (widget.objetoTemporal as ClonableVaciable).vaciar();
                             mostrarFormCrear(false);
                           }else{
-                            print("no correcto");
                           }
                         }else{
-                          print("form key nulo");
                           widget.listaObjetos.add((widget.objetoTemporal as ClonableVaciable).clone());
                           (widget.objetoTemporal as ClonableVaciable).vaciar();
                           mostrarFormCrear(false);

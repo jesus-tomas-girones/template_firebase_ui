@@ -1,7 +1,5 @@
 # Muy Importante
 
-TODO Titulo corto en informe
-
 # Importante
 
 TODO Las descripciones no permite que se justifique los margenes del parrrafo y a veces sale descuadrado
@@ -17,6 +15,5 @@ TODO poner el total de las indemnizaciones uno global y uno por tipo (menos muer
 # Poco importante
 
 TODO cambiarle el nombre al dominio
-TODO falta ortográfica en lesiones temporales
 TODO al añadir un tipo de secuela valorar si bloquear el guardar de la secuela mientras estas en un tipo de secuela
 TODO poner  que las constantes 

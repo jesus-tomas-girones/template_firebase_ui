@@ -304,7 +304,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               (newValue){
                 setState(() {informeTemp.tipoAccidente = newValue as TipoAccidente?;});
               },
-              customNames: ["Trafico","Laboral","Deportivo","Via publica"],
+              customNames: ["Trafico","Laboral","Deportivo","Via publica","Incapacidad sobrevenida"],
               hint: "Selecciona el tipo de accidente"),
             FieldText("Descripción", informeTemp.descripcion,
                 (value) => setState(() { informeTemp.descripcion = value; }),
@@ -349,7 +349,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         const Divider(),
 
         //-------------------------------------------------
-        FieldCheckBox("Hay lesiones temproales", informeTemp.hayLesion,
+        FieldCheckBox("Hay lesiones temporales", informeTemp.hayLesion,
                 (newValue){setState(() {informeTemp.hayLesion = newValue ?? false;});},
             padding: 0,
             enable: !informeTemp.hayMuerte
@@ -365,6 +365,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             enable: !informeTemp.hayMuerte
         ),
         (informeTemp.haySecuela && !informeTemp.hayMuerte) ? _mostrarCamposSecuelas() : Container(),
+
+        
 
       ],
     );
@@ -385,7 +387,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             formKey: _formKeyAddFamiliar,
             objetoTemporal: tempFamiliar, // TODO intentar quitar y que solo este en editor_lista_objetos
             crearFormulario: _buildFormFamiliar,
-            onChange:() { setState(() {}); },
+            onChange:() { setState(() {
+              
+            }); },
             elementoLista: (item) => Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
@@ -393,7 +397,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                     children: [
                       Flexible(flex: 2,child: Text(item.nombre.toString() +" "+ item.apellidos.toString(),overflow: TextOverflow.ellipsis, maxLines: 2,),),
                       Flexible(child: Text(item.parentesco!.name)),
-                      Flexible(child: Text(" 5.000 €")), // TODO calcular importe del familiar, crear funcion en familiar
+                      Flexible(child: Text(item.calcularImporte(informeTemp.fechaAccidente,Paciente.findPacienteById(widget.pacientes!, informeTemp.idPaciente)).toString()+" €")),
                     ])
               ),
             //formulario: _buildFormFamiliar(tempFamiliar, tituloForm: "Añadir Familiar"),
@@ -421,6 +425,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         FieldText("Apellidos", f.apellidos,
             (value) => setState(() { f.apellidos=value; }),
             mandatory: true),
+
+        // Parentesco y fecha de nacimiento
         Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
           child: Row(children: [
             Flexible(child:
@@ -428,18 +434,40 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               "Parentesco", f.parentesco, Parentesco.values,
                   (value) => setState(() { f.parentesco = value; },
                   ),
-              customNames:  ["Hijo", "Padre", "Conyuge", "Pareja de hecho","Divorciado"], // TODO obtener automaticamente con bucle
+              customNames:  ["Hijo", "Padre", "Conyuge", "Nieto","Abuelo","Hermnao","Allegado"], // TODO obtener automaticamente con bucle
               padding: 8,
               validator: (value) => value==null ? "Campo obligatorio" : null),
             ),
-            Flexible(child:
-              FieldDate("Fecha nacimiento", f.fechaNacimiento,
-              (value) => setState(() { f.fechaNacimiento = value;}),
-              context, padding: 8,),
-            ),
+
+            // Fecha de naciemiento cuando hijo, nieto o hermano
+            if (f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano)
+              Flexible(child:
+                FieldDate("Fecha nacimiento", f.fechaNacimiento,
+                (value) => setState(() { f.fechaNacimiento = value;}),
+                context, padding: 8,),
+              ),
           ],),
         ),
-        Padding(padding: EdgeInsets.fromLTRB(8, 8, 0, 0),
+        
+        // explicacion cuando se escoge abuelo
+         if (f.parentesco == Parentesco.abuelo)
+          _buildTextoExplicativo("* Solo en caso de premorencia del progenitor de su rama familiar."),
+
+        // explicacion cuando se escoge nieto
+         if (f.parentesco == Parentesco.nieto)
+          _buildTextoExplicativo("* Solo en caso de premorencia del progenitor hijo del abuelo fallecido."),
+        
+        // explicacion cuando se escoge allegado
+         if (f.parentesco == Parentesco.allegado)
+          _buildTextoExplicativo("* Se considera allegado a aquella persona que tenga una convivencia por un mínimo de 5 años inmediatamente anterior al fallecimiento y tenga una relación de cercanía entre la víctima y el “allegado” basada en razones de parentesco o afectividad.\n\nQueda excluido el concepto las personas que simplemente comparten piso sin existir vínculo afectivo alguno entre ellas."),
+        
+        // Fecha del matrimonio si es conyuge
+        if (f.parentesco == Parentesco.conyuge)
+           FieldDate("Fecha del matrimonio", f.fechaMatrimonio,
+              (value) => setState(() { f.fechaMatrimonio = value;}),
+              context),
+
+        Padding(padding: const EdgeInsets.fromLTRB(8, 8, 0, 0),
           child: Row(children: [
             Flexible(child:
               FieldText("DNI", f.dni,
@@ -448,19 +476,59 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             ),
             Flexible(child:
               FieldCheckBox("Discapacidad", f.discapacidad??false,
-                (value) => setState(() { f.discapacidad = value;}),
+                (value) => setState(() { 
+                  f.discapacidad = value;
+                  if(!f.discapacidad!){
+                    f.incrementoDiscapacidad = null;
+                  }
+                
+                }),
                 padding: 0),
               ),
           ] ),
         ),
+
+        // incremento por discapacidad
+        if (f.discapacidad!)
+           FieldText("Incremento sobre prejuicio básico [25 - 75]", 
+                  f.incrementoDiscapacidad == null ? "" : f.incrementoDiscapacidad.toString(),
+                  (newValue)async{setState(() {
+                    f.incrementoDiscapacidad = newValue == "" ?  0 :  double.parse(newValue);
+                    
+                  });},
+              isNumeric: true,
+              validator: (newValue){
+                if(newValue!=null){
+                  double value = newValue == "" ?  0 :  double.parse(newValue);
+                  if(value<25 || value>75){
+                    return "El valor debe estar entre 25 y 75";
+                  }
+                }
+              },
+              hint: "Introduce el porcentaje de incremento debido a la discapacidad"),
+        // explicacion de discapacidad
+        if (f.discapacidad!)
+          _buildTextoExplicativo("* Grado de discapacidad física, intelectual o sensorial del perjudicado como mínimo del 33%. No es necesario disponer de una resolución administrativa que así lo reconozca, pudiendo acreditarse por cualquiera de los medios de prueba admitidos en Derecho.\n\nPuede ser anterior al accidente o a resultas del mismo.\n\nEl accidente debe provocar una “alteración perceptible” en la vida de la persona con discapacidad."),
+
+
+        
+
+        
+
       ], ),
     );
+  }
+
+  Widget _buildTextoExplicativo(String texto){
+    return Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 0), 
+    child: RichText(text: TextSpan(text: texto,style: const TextStyle(fontSize: 14,color: Color.fromARGB(221, 33, 33, 33))),textAlign: TextAlign.justify,));
   }
 
   Widget _mostrarCamposLesionTemporales(){
     return Container(
       color: const Color.fromARGB(200, 240, 240, 240),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // Lista de Texto
           FieldText("Lesiones", informeTemp.lesiones,
@@ -477,19 +545,29 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             children: [
               Flexible(
                   child: FieldText("Días de UCI", informeTemp.diasUci == 0 ? "" : informeTemp.diasUci.toString(),
-                        (newValue)async{setState(() {informeTemp.diasUci = newValue == "" ?  0 :  int.parse(newValue);});},
+                        (newValue)async{setState(() {
+                          informeTemp.diasUci = newValue == "" ?  0 :  int.parse(newValue);
+                        
+                        
+                        });},
                     isNumeric: true,
                     hint: "Introduce los días que el paciente estuvo en la uci",
                   )),
               Flexible(
                   child: FieldText("Días hospitalizado", informeTemp.diasPlanta == 0 ? "" : informeTemp.diasPlanta.toString(),
-                          (newValue)async{setState(() {informeTemp.diasPlanta = newValue == "" ?  0 :  int.parse(newValue);});},
+                          (newValue)async{setState(() {
+                            informeTemp.diasPlanta = newValue == "" ?  0 :  int.parse(newValue);
+                            
+                            });},
                       isNumeric: true,
                       hint: "Introduce los días que el paciente estuvo hospitalizado"
                   )),
               Flexible(
                   child: FieldText("Días de baja laboral", informeTemp.diasBaja == 0 ? "" : informeTemp.diasBaja.toString(),
-                          (newValue)async{setState(() {informeTemp.diasBaja = newValue == "" ?  0 :  int.parse(newValue);});},
+                          (newValue)async{setState(() {
+                            informeTemp.diasBaja = newValue == "" ?  0 :  int.parse(newValue);
+                            
+                            });},
                       isNumeric: true,
                       hint: "Introduce los días que el paciente estuvo de baja laboral"
                   )),
@@ -498,10 +576,23 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
           // Dias de perjuicio basico
           FieldText("Días de perjuicio básico", informeTemp.diasPerjuicio == 0 ? "" : informeTemp.diasPerjuicio.toString(),
-                  (newValue)async{setState(() {informeTemp.diasPerjuicio = newValue == "" ?  0 :  int.parse(newValue);});},
+                  (newValue)async{setState(() {
+                    informeTemp.diasPerjuicio = newValue == "" ?  0 :  int.parse(newValue);
+                     });},
               isNumeric: true,
               hint: "Introduce los días de perjucio básico del paciente"
           ),
+          FieldText("Lucro cesante", informeTemp.lucroCesante == 0 ? "" : informeTemp.diasPerjuicio.toString(),
+                  (newValue)async{setState(() {
+                    informeTemp.lucroCesante = newValue == "" ?  0 :  double.parse(newValue);
+                     });},
+              isNumeric: true,
+              hint: "Introduce el lucro cesante del paciente"
+          ),
+          Padding(padding: const EdgeInsets.all(16), 
+          child: Text("Importe total: "+informeTemp.calcularImporteIndemnizacionesLesiones().toString()+" €",
+                  style: const TextStyle(fontSize: 18),),
+          )
         ],
       )
     );
@@ -511,6 +602,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     return Container(
       color: const Color.fromARGB(200, 240, 240, 240),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           EditorListaObjetos<Secuela>(
             titulo: "Lista de secuelas:", // Encabezado de la lista. NO DE EL DIALOG
@@ -526,6 +618,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             },
             crearFormulario: _buildFormSecuela,
           ),
+          // total indemnizaciones
+        Padding(padding: const EdgeInsets.all(16), child: 
+        Text("Total puntos: "+ informeTemp.calcularPuntosSecuelas().toString()+"",
+        style: const TextStyle(fontSize: 18)),)
         ],
       )
     );
@@ -545,6 +641,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               (value) => setState(() { s.descripcion=value; }),
               mandatory: true),
           EditorListaObjetos<SecuelaTipo>(
+            onChange: (){setState(() {});},
             titulo: "Lista de tipos secuelas:",
             formKey: _formKeyAddTipoSecuela,
             listaObjetos: s.secuelas, 

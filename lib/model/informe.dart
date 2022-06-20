@@ -7,19 +7,19 @@ import 'familiar.dart';
 import 'secuela.dart';
 
 enum TipoAccidente{
-  Trafico, Laboral, Deportivo,  ViaPublica }
+  Trafico, Laboral, Deportivo,  ViaPublica, Incapacidad }
 
 extension TipoAccidenteExtension on TipoAccidente {
   String get value2 {
     try {
-      return ["Trafico", "Laboral", "Deportivo", "Via publica"][this.index];
+      return ["Trafico", "Laboral", "Deportivo", "Via publica","Incapacidad sobrevenida"][this.index];
     } finally {
       return "sin valor";
     }
   }
 
   String get value =>
-      ["Trafico", "Laboral", "Deportivo", "Via publica"][this.index];
+      ["Trafico", "Laboral", "Deportivo", "Via publica","Incapacidad sobrevenida"][this.index];
 }
 
 ///
@@ -51,10 +51,18 @@ class Informe {
   int diasPlanta = 0; //Días de ingreso en hospital en planta  -  grave
   int diasBaja = 0; //Dias de baja laboral      -  moderado
   int diasPerjuicio = 0;
+  double lucroCesante = 0;
 
   //Indemnizaciones por secuelas
   bool haySecuela = false;
   List<Secuela> secuelas = [];
+
+  //Parámetros de cálculo económico
+  double _diasUciEuros = 100;
+  double _diasPlantaEuros = 75; //Días de ingreso en hospital en planta  -  grave
+  double _diasBajaEuros = 52; //Dias de baja laboral      -  moderado
+  double _diasPerjuicioEuros = 30;
+
 
   // Se accede a los gastos en subcolección de Firebase
 
@@ -75,6 +83,7 @@ class Informe {
     this.diasPlanta = 0,
     this.diasBaja = 0,
     this.diasPerjuicio = 0,
+    this.lucroCesante = 0,
     this.haySecuela = false,
     this.secuelas = const [],
   });
@@ -97,11 +106,68 @@ class Informe {
           diasPlanta: diasPlanta,
           diasBaja: diasBaja,
           diasPerjuicio: diasPerjuicio,
+          lucroCesante : lucroCesante,
           haySecuela: haySecuela,
           secuelas: secuelas
-      )..id = id;
+      )..id = id;// esto seria el equivalente de hacer un setId despues de hacer la instancia, no se pone en el constructor para evitar problemas
 
-  // esto seria el equivalente de hacer un setId despues de hacer la instancia, no se pone en el constructor para evitar problemas
+  /// 
+  /// Calcula el importe de la indemnizacion de las secuelas
+  ///
+  double calcularPuntosSecuelas(){
+ 
+      double puntos = 0;
+      for(Secuela s in secuelas){
+        for(SecuelaTipo st in s.secuelas){
+
+          puntos+=st.puntos;
+
+        }
+      }
+
+      return puntos;
+  
+  }
+
+  /// 
+  /// Calcula el importe de la indemnizacion de las lesiones temporales
+  ///
+  double calcularImporteIndemnizacionesLesiones(){
+    return  diasBaja*_diasBajaEuros+
+            diasPerjuicio*_diasPerjuicioEuros+
+            diasPlanta*_diasPlantaEuros+
+            diasUci*_diasUciEuros+
+            lucroCesante;
+  }
+
+  /// 
+  /// Calcula el importe de la indemnizacion de la muerte
+  ///
+  double calcularImporteIndemnizacionesMuerte(){
+    double importe = 0;
+    for(Familiar f in familiares){
+      //importe+= f.calcularImporte(fechaAccidente!, paciente);
+    }
+    return importe;
+  }
+
+  double obtenerImporteTotalIndemnizacion(){
+    if(hayMuerte){
+      return calcularImporteIndemnizacionesMuerte();
+    }
+
+    double importe = 0;
+
+    if(hayLesion){
+      importe+= calcularImporteIndemnizacionesLesiones();
+    }
+
+    if(haySecuela){
+      importe+= calcularPuntosSecuelas();
+    }
+
+    return importe;
+  }
 
   @override
   int get hashCode => id.hashCode;
@@ -118,6 +184,7 @@ class Informe {
           fechaAccidente == other.fechaAccidente &&
           descripcion == other.descripcion &&
           titulo == other.titulo &&
+          lucroCesante  == other.lucroCesante &&
           lugarAccidente == other.lugarAccidente &&
           idPaciente == other.idPaciente &&
           tipoAccidente == other.tipoAccidente &&
@@ -154,6 +221,7 @@ class Informe {
           diasUci: json['diasUci'] ?? 0,
           diasPlanta: json['diasPlanta'] ?? 0,
           diasBaja: json['diasBaja'] ?? 0,
+          lucroCesante: json['lucroCesante ']??0,
           diasPerjuicio: json['diasPerjuicio'] ?? 0,
           haySecuela: json['haySecuela'] ?? false,
           secuelas: json['secuelas']!=null ? (json['secuelas'] as List).map((item) => Secuela.fromJson(item)).toList() : <Secuela>[],
@@ -180,6 +248,7 @@ class Informe {
         'hayLesion': hayLesion,
         'lesiones': lesiones,
         'diasUci': diasUci,
+        'lucroCesante ': lucroCesante,
         'diasPlanta': diasPlanta,
         'diasBaja': diasBaja,
         'diasPerjuicio': diasPerjuicio,

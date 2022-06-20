@@ -372,7 +372,10 @@ class Secuela implements ClonableVaciable{
   String? descripcion;
   List<SecuelaTipo> secuelas;
 
+  
+
   Secuela({ this.descripcion, List<SecuelaTipo>? secuelas }) : secuelas = secuelas ?? [];
+
 
   clone() => Secuela(
     descripcion: descripcion,

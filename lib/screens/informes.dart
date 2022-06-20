@@ -133,7 +133,7 @@ class InformeTile extends StatelessWidget {
         title: Text(titulo),
         subtitle: Text(
           descripcion,
-          maxLines: 3,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
       );
