@@ -2,6 +2,7 @@
 *.cache
 /.firebaserc
 
+
 # Miscellaneous
 *.class
 *.log
