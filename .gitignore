@@ -1,3 +1,7 @@
+/firebase.json
+*.cache
+/.firebaserc
+
 # Miscellaneous
 *.class
 *.log
