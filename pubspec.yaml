@@ -43,7 +43,11 @@ dependencies:
   dropdown_search: ^3.0.1
   firebase_storage: ^10.2.12
   syncfusion_flutter_pdfviewer: ^20.1.52-beta
+  pdf: ^3.8.1
+  file_saver: ^0.1.0
   url_launcher:
+  syncfusion_flutter_xlsio: ^20.1.60-beta
+  permission_handler: ^10.0.0
 
 dev_dependencies:
   flutter_test:
@@ -85,10 +89,11 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
+  fonts:
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/OpenSans-Regular.ttf # AÑADIR UNA FUENTE QUE PERMITA UNICODE PARA EL PDF
+          
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

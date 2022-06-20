@@ -1,10 +1,14 @@
+
+
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/secuela.dart';
-import 'package:firebase_ui/widgets/form_fields_edit.dart';
+import 'package:firebase_ui/utils/pdf_helper.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+
 
 import '../app.dart';
 import '../model/familiar.dart';
@@ -171,13 +175,31 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         isEditing ? IconButton(
             icon: const Icon(Icons.delete),
             onPressed: _borrarInforme,
-        ) : Container()
+        ) : Container(),
+        /*IconButton(
+          onPressed: _generarPdf,
+          icon: const Icon(Icons.more)
+        ),*/
       ],
       bottom: TabBar(
         controller: _tabController,
         tabs: _tabs
       ),
     );
+  }
+
+  void _generarPdf()async{
+      
+      PDFHelper pdfHelper = PDFHelper();
+
+      // SI PONEMOS INFORME TEMP SE GENERA DE LOS CAMBIOS ACTUALES
+      // SI PONEMOS widget.informe se hace del que esta guardado
+      // TODO valorar cual de los dos informes guardar como pdf
+      var pdf = await pdfHelper.generar_pdf_de_informe(widget.informe!);
+      var path = await pdfHelper.guardar_pdf("informe", pdf);
+
+      print("Se guardo en: "+path);
+      
   }
 
   void _borrarInforme()async{
