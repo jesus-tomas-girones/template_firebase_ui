@@ -140,7 +140,7 @@ class Familiar implements ClonableVaciable {
             if(anyosMatrimonio > 15){
               // por cada año y fraccionesde mas de 15 de matrimonio 1000 euros 
               double anyosDeMasMatrimonio =  anyosMatrimonio - 15;
-              importe+= redondear2Decimales(1000*anyosDeMasMatrimonio);
+              importe+= 1000*anyosDeMasMatrimonio;
             }
           }
           break;
@@ -158,51 +158,45 @@ class Familiar implements ClonableVaciable {
             }
           }
 
-          /*if(esParentescoUnico(this, familiares)){
-            // si es padre unico +25%
-            importe += redondear2Decimales(importe*(25/100));
-          }*/
+          
           break;
         case Parentesco.hijo:
-          double anyosHijo = diferenciaAnyos(fechaAccidente,fechaNacimiento!);
+          if(fechaNacimiento!=null){
+            double anyosHijo = diferenciaAnyos(fechaAccidente,fechaNacimiento!);
 
-          if(anyosHijo<=14){
-            importe+=90000;
-          }else if(anyosHijo>14 && anyosHijo<=20){
-            importe+=80000;
-          }else if(anyosHijo>20 && anyosHijo<=30){
-            importe+=50000;
-          }else{
-            // +30
-            importe+=20000;
-            // si vivia con su padre con mas de 30 años +30k
-            if(convivencia!=null && convivencia!){
-              importe+=30000;
+            if(anyosHijo<=14){
+              importe+=90000;
+            }else if(anyosHijo>14 && anyosHijo<=20){
+              importe+=80000;
+            }else if(anyosHijo>20 && anyosHijo<=30){
+              importe+=50000;
+            }else{
+              // +30
+              importe+=20000;
+              // si vivia con su padre con mas de 30 años +30k
+              if(convivencia!=null && convivencia!){
+                importe+=30000;
+              }
             }
+
           }
-
-          /*if(esParentescoUnico(this, familiares)){
-            // si es hijo unico +25%
-            importe += redondear2Decimales(importe*(25/100));
-          }*/
-
+         
           break;
         case Parentesco.hermano:
-          double anyoHermnao = diferenciaAnyos(fechaAccidente,fechaNacimiento!);
-          if(anyoHermnao<=30){
-            importe+=20000;
-          }else{
-            // +30
-            importe+=15000;
-            // si vivia con su hermano con mas de 30 años +5k
-            if(convivencia!=null && convivencia!){
-              importe+=5000;
+          if(fechaNacimiento!=null){
+            double anyoHermnao = diferenciaAnyos(fechaAccidente,fechaNacimiento!);
+            if(anyoHermnao<=30){
+              importe+=20000;
+            }else{
+              // +30
+              importe+=15000;
+              // si vivia con su hermano con mas de 30 años +5k
+              if(convivencia!=null && convivencia!){
+                importe+=5000;
+              }
             }
+            
           }
-          /*if(esParentescoUnico(this, familiares)){
-            // si es hemano unico +25%
-            importe += redondear2Decimales(importe*(25/100));
-          }*/
           break;
         case Parentesco.abuelo:
           importe+=20000;
@@ -210,11 +204,7 @@ class Familiar implements ClonableVaciable {
           if(convivencia!=null && convivencia!){
               importe+=10000;
           }
-
-          /*if(esParentescoUnico(this, familiares)){
-            // si es progenitor unico +25%
-            importe += redondear2Decimales(importe*(25/100));
-          }*/
+          
           break;
         case Parentesco.nieto:
           importe+=15000;
@@ -229,13 +219,23 @@ class Familiar implements ClonableVaciable {
       }
     }
 
+    if((parentesco == Parentesco.hijo || parentesco == Parentesco.hermano || parentesco == Parentesco.padre)
+        && esParentescoUnico(this, familiares)){
+        // si es parentesco unico +25% ver pagina 113 del documento 
+        importe += importe*0.25;
+    }
+
+    if(familiares.length == 1){
+
+    }
+
     // discapacidad
     if(incrementoDiscapacidad!=null && discapacidad!=null && discapacidad!){
         
-        importe += redondear2Decimales(importe*(incrementoDiscapacidad!/100));
+        importe += importe*(incrementoDiscapacidad!/100);
     }
 
-    return importe;
+    return redondear2Decimales(importe);
 
   }
 

@@ -675,7 +675,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     );
   }
 
-
   ///
   ///
   /// Crear un formulario en base a tipo secuela

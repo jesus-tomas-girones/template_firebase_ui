@@ -6,6 +6,7 @@ Timestamp? dateTimeToTimestamp(DateTime? dateTime) {
 }
 
 double diferenciaAnyos(DateTime f1, DateTime f2){
+  // TODO formula para tener en cuenta los bisiestos
   double milisecondsToYears = 31536000000;
   return (f1.difference(f2)).inMilliseconds/milisecondsToYears;
 }
