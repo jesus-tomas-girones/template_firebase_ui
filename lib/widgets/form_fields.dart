@@ -143,6 +143,7 @@ Widget FieldDate(  /// Campo de fecha
       padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
       child: InkWell(
         child: TextFormField(
+          validator: validator,
           readOnly: true,
           onTap: () async {
             var newDate = await showDatePicker(

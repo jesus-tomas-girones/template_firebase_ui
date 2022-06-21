@@ -14,6 +14,7 @@ import '../app.dart';
 import '../model/familiar.dart';
 import '../model/informe.dart';
 import '../model/paciente.dart';
+import '../utils/date_time_helpers.dart';
 import '../widgets/editor_lista_objetos.dart';
 import '../widgets/selector_ficheros_firebase.dart';
 import '../widgets/form_fields.dart';
@@ -397,7 +398,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                     children: [
                       Flexible(flex: 2,child: Text(item.nombre.toString() +" "+ item.apellidos.toString(),overflow: TextOverflow.ellipsis, maxLines: 2,),),
                       Flexible(child: Text(item.parentesco!.name)),
-                      Flexible(child: Text(item.calcularImporte(informeTemp.fechaAccidente,Paciente.findPacienteById(widget.pacientes!, informeTemp.idPaciente)).toString()+" €")),
+                      Flexible(child: Text(item.calcularImporte(informeTemp,Paciente.findPacienteById(widget.pacientes, informeTemp.idPaciente)).toString()+" €")),
                     ])
               ),
             //formulario: _buildFormFamiliar(tempFamiliar, tituloForm: "Añadir Familiar"),
@@ -414,6 +415,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   /// Crear un formulario en base a un familiar
   ///
   Form _buildFormFamiliar( Familiar f, {String? tituloForm}){
+
+    Paciente? victima = Paciente.findPacienteById(widget.pacientes!,informeTemp.idPaciente);
+
     return Form(
       key: _formKeyAddFamiliar,
       child: Column(
@@ -440,32 +444,36 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
             ),
 
             // Fecha de naciemiento cuando hijo, nieto o hermano
-            if (f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano)
+            if (f.parentesco!=null && (f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano))
               Flexible(child:
                 FieldDate("Fecha nacimiento", f.fechaNacimiento,
-                (value) => setState(() { f.fechaNacimiento = value;}),
-                context, padding: 8,),
+                (value) => setState(() { 
+                  f.fechaNacimiento = value;
+                }),
+                context, padding: 8,
+                )
               ),
           ],),
         ),
         
         // explicacion cuando se escoge abuelo
-         if (f.parentesco == Parentesco.abuelo)
+         if (f.parentesco!=null && f.parentesco == Parentesco.abuelo)
           _buildTextoExplicativo("* Solo en caso de premorencia del progenitor de su rama familiar."),
 
         // explicacion cuando se escoge nieto
-         if (f.parentesco == Parentesco.nieto)
+         if (f.parentesco!=null && f.parentesco == Parentesco.nieto)
           _buildTextoExplicativo("* Solo en caso de premorencia del progenitor hijo del abuelo fallecido."),
         
         // explicacion cuando se escoge allegado
-         if (f.parentesco == Parentesco.allegado)
+         if (f.parentesco!=null && f.parentesco == Parentesco.allegado)
           _buildTextoExplicativo("* Se considera allegado a aquella persona que tenga una convivencia por un mínimo de 5 años inmediatamente anterior al fallecimiento y tenga una relación de cercanía entre la víctima y el “allegado” basada en razones de parentesco o afectividad.\n\nQueda excluido el concepto las personas que simplemente comparten piso sin existir vínculo afectivo alguno entre ellas."),
         
         // Fecha del matrimonio si es conyuge
-        if (f.parentesco == Parentesco.conyuge)
+        if (f.parentesco!=null && f.parentesco == Parentesco.conyuge)
            FieldDate("Fecha del matrimonio", f.fechaMatrimonio,
               (value) => setState(() { f.fechaMatrimonio = value;}),
-              context),
+              context,
+              validator: (fecha){if(fecha==null){return "Campo obligatorio";}return null;}),
 
         Padding(padding: const EdgeInsets.fromLTRB(8, 8, 0, 0),
           child: Row(children: [
@@ -489,7 +497,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         ),
 
         // incremento por discapacidad
-        if (f.discapacidad!)
+        if (f.discapacidad!=null && f.discapacidad!)
            FieldText("Incremento sobre prejuicio básico [25 - 75]", 
                   f.incrementoDiscapacidad == null ? "" : f.incrementoDiscapacidad.toString(),
                   (newValue)async{setState(() {
@@ -507,10 +515,20 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               },
               hint: "Introduce el porcentaje de incremento debido a la discapacidad"),
         // explicacion de discapacidad
-        if (f.discapacidad!)
+        if (f.discapacidad!=null &&f.discapacidad!)
           _buildTextoExplicativo("* Grado de discapacidad física, intelectual o sensorial del perjudicado como mínimo del 33%. No es necesario disponer de una resolución administrativa que así lo reconozca, pudiendo acreditarse por cualquiera de los medios de prueba admitidos en Derecho.\n\nPuede ser anterior al accidente o a resultas del mismo.\n\nEl accidente debe provocar una “alteración perceptible” en la vida de la persona con discapacidad."),
 
 
+        // Check box de convivencia
+        if((f.parentesco == Parentesco.padre && victima!=null && informeTemp.fechaAccidente!=null && victima.fechaNacimiento!=null && diferenciaAnyos(informeTemp.fechaAccidente!,victima.fechaNacimiento!)>30) // padres cuyo hijo victima es mayor de 30 años
+            || ((f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano) && informeTemp.fechaAccidente!=null && f.fechaNacimiento!=null && diferenciaAnyos(informeTemp.fechaAccidente!,f.fechaNacimiento!)>30) // hijos de mayor de 30 que vivian con su padre
+            || (f.parentesco == Parentesco.nieto) 
+            || (f.parentesco == Parentesco.abuelo))
+        FieldCheckBox("Convivencia con la victima", f.convivencia??false,
+              (value) => setState(() { 
+                f.convivencia = value;
+              }),
+              padding: 0),
         
 
         

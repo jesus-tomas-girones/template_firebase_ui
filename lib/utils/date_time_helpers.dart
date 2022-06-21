@@ -5,6 +5,11 @@ Timestamp? dateTimeToTimestamp(DateTime? dateTime) {
   return Timestamp.fromMillisecondsSinceEpoch(dateTime.millisecondsSinceEpoch);
 }
 
+double diferenciaAnyos(DateTime f1, DateTime f2){
+  double milisecondsToYears = 31536000000;
+  return (f1.difference(f2)).inMilliseconds/milisecondsToYears;
+}
+
 DateTime timestampToDateTime(Timestamp timestamp) {
   return DateTime.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch);
 }
