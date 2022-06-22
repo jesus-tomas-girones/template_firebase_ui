@@ -35,6 +35,9 @@ class Familiar implements ClonableVaciable {
   double? perjuicioExcepcional; // % de aumento (0%-25%) asignado de forma discrecional
   String? justificacionPerjuicioExcepcional; //explicación del aumento anterior
 
+  double? multiplicadorLucroCesante; // .... Pasar a informe
+  double? anyosLucroCesante; // ....  Pasar a informe
+
 
   Familiar({
       this.nombre,
@@ -172,34 +175,11 @@ class Familiar implements ClonableVaciable {
           }
           break;
         case Parentesco.padre: // Transparencia: Los ascendientes
-          if (anyosVictima <= 30) {
-            importe = 70000;
-            convivencia = false;
-          } else {
-            // +30
-            importe = 40000;
-            // si vivia con su hijo de mas de 30 años mas 30k
-            if (convivencia != null && convivencia!) {
-              importe += 30000;
-            }
-          }
-
-          /*if(esParentescoUnico(this, familiares)){
-            // si es padre unico +25%
-            importe += redondear2Decimales(importe*(25/100));
-          }*/
+          if (anyosVictima <= 30) importe = 70000;
+          else                    importe = 40000;
           break;
       case Parentesco.abuelo: // Transparencia: Los ascendientes
         importe = 20000;
-
-        if (convivencia != null && convivencia!) {
-          importe += 10000;
-        }
-
-/*        if (esParentescoUnico(this, familiares)) {
-          // si es progenitor unico +25%
-          importe += redondear2Decimales(importe * (25 / 100));
-        }*/
         break;
       case Parentesco.hijo: // Transparencia: Los descendientes
           if (anyosFamiliar <= 14) {
@@ -210,32 +190,16 @@ class Familiar implements ClonableVaciable {
             importe = 50000;
           } else {  // +30
             importe = 20000;
-            // si vivia con su padre con mas de 30 años +30k
-            if (convivencia != null && convivencia!) {
-              importe += 30000;
-            }
           }
-/*          if (esParentescoUnico(this, familiares)) {
-            // si es hijo unico +25% - ver pg. 45
-            importe += redondear2Decimales(importe * 0.25);
-          }*/
-
           break;
       case Parentesco.nieto: // Transparencia: Los descendientes
         importe = 15000;
-        if (convivencia != null && convivencia!) {
-          importe += 7500;
-        }
         break;
       case Parentesco.hermano: // Transparencia: Los hermanos
           if (anyosFamiliar <= 30) {
             importe = 20000;
           } else { // +30
             importe = 15000;
-            // si vivia con su hermano con mas de 30 años +5k
-            if (convivencia != null && convivencia!) {
-              importe += 5000;
-            }
           }
           break;
         case Parentesco.allegado: // Transparencia: Los allegados
@@ -253,8 +217,7 @@ class Familiar implements ClonableVaciable {
     if (convivencia != null && convivencia!) {
       switch (parentesco) {
         case Parentesco.padre:
-          if (anyosVictima >
-              30) { // El hijo fallecido ha de tener más de 30 años
+          if (anyosVictima > 30) { // El hijo fallecido ha de tener más de 30 años
             importe += 30000;
           }
           break;
@@ -279,8 +242,7 @@ class Familiar implements ClonableVaciable {
     // Transparencia: El duelo en soledad
     // si es hijo, padre o hemano unico +25%
     if ([Parentesco.hijo,Parentesco.padre,Parentesco.hermano].contains(parentesco)) {
-      if (esParentescoUnico(
-          this, familiares)) {
+      if (esParentescoUnico(this, familiares)) {
         importe += 0.25*importe;
       }
     }
@@ -308,8 +270,8 @@ class Familiar implements ClonableVaciable {
 
     // Transparencia: Fallecimiento víctima embarazada con pérdida de feto.
     if (parentesco == Parentesco.conyuge) {
-      if (informe.embarazada2 == Embarazada.menos12semanas)  importe += 15000;
-      if (informe.embarazada2 == Embarazada.mas12semanas)    importe += 30000;
+      if (informe.embarazo== Embarazo.embarazoMenos12Semanas)  importe += 15000;
+      if (informe.embarazo == Embarazo.embarazoMas12Semanas)    importe += 30000;
     }
 
     // Transparencia: Perjuicio excepcional
@@ -319,16 +281,15 @@ class Familiar implements ClonableVaciable {
     }
 
     // Transparencia: Daño emergente
-       // Cada perjudicado tiene derecho a percibir, sin necesidad de justificación, 400 euros
+       // "Cada perjudicado tiene derecho a percibir, sin necesidad de justificación, 400 euros"
        importe += 400;
-       //"Por encima de los 400 euros los gastos también son compensados si el
+       // "Por encima de los 400 euros los gastos también son compensados si el
        // perjudicado justifica debidamente su necesidad"
        // Estos gastos se añaden en la pestaña de gastos
 
     // Transparencia: Lucro Cesante
        // Habra que mirarlo
        // TODO: Calcular Lucro Cesante
-
 
     return importe; //NO hace falta  redondear2Decimales(importe);
   }
