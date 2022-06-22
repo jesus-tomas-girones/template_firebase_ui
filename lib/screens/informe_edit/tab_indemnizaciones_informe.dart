@@ -55,11 +55,26 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
         
+          if(informeTemp.fechaAccidente==null)
+            _buildTextoExplicativo("* Recuerde asignar una fecha de accidente al informe para el correcto cáclulo del importe por muerte"),
+
+          if(victima==null)
+            _buildTextoExplicativo("* Recuerde asignar un paciente para el correcto cáluclo del importe por muerte"),
+          
+          if(victima!=null && victima.fechaNacimiento==null)
+            _buildTextoExplicativo("* Recuerde asignarle fecha de nacimiento al paciente para el correcto cáluclo del importe por muerte"),
+
           FieldEnum<Embarazo>("Embarazo", informeTemp.embarazo, Embarazo.values,
               (newValue){setState(() {informeTemp.embarazo = newValue!;});},
                 validator: (value) => value==null ? "Campo obligatorio" : null,
-                customNames: ["No embarazada","Sin perdida de feto","Perdida de feto con 12 semanas o más","Perdida de feto con menos de 12 semanas"]
+                customNames: ["No embarazada","Sin perdida de feto","Perdida de feto con más 12 semanas","Perdida de feto con 12 semanas o menos"]
         ),
+          // explicaciones de hijo, progenitor, hermano unico
+          if(informeTemp.embarazo == Embarazo.embarazoMas12Semanas)
+            _buildTextoExplicativo("* Incremento sobre el perjuicio básico de 30.000 €"),
+          if(informeTemp.embarazo == Embarazo.embarazoMenos12Semanas)
+            _buildTextoExplicativo("* Incremento sobre el perjuicio básico de 15.000 €"),
+          
           EditorListaObjetos<Familiar>(
             titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
             listaObjetos: informeTemp.familiares,

@@ -157,6 +157,13 @@ class Informe {
         importe+= f.calcularImporte(this, victima);
       }
     }
+
+    if(embarazo==Embarazo.embarazoMas12Semanas){
+      importe+=30000;
+    }else if(embarazo == Embarazo.embarazoMenos12Semanas){
+      importe+=15000;
+    }
+
     return importe;
   }
 
