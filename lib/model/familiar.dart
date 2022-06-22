@@ -106,7 +106,7 @@ class Familiar implements ClonableVaciable {
           incrementoDiscapacidad: json['incrementoDiscapacidad'],
           discapacidad: json['discapacidad'],
           convivencia: json['convivencia'],
-          elOtroProgenitor: json['el_otro_progenitor'],
+          elOtroProgenitor: enumfromString(ElOtroProgenitor.values, json['el_otro_progenitor']),
           perjuicioExcepcional: json['perjuicio_excepcional'],
           justificacionPerjuicioExcepcional: json['justificacion_perjuicio_excepcional']);
     } catch (e) {
@@ -129,7 +129,9 @@ class Familiar implements ClonableVaciable {
       'incrementoDiscapacidad':incrementoDiscapacidad,
       'discapacidad': discapacidad,
       'convivencia':convivencia,
-      'el_otro_progenitor':elOtroProgenitor,
+      'el_otro_progenitor':elOtroProgenitor.toString(),
+      'perjuicio_excepcional':perjuicioExcepcional,
+      'justificacion_perjuicio_excepcional':justificacionPerjuicioExcepcional
     };
     map.removeWhere((key, value) => value == null);
     map.removeWhere((key, value) => value == "null");
@@ -147,14 +149,20 @@ class Familiar implements ClonableVaciable {
     double importe = 0;
     DateTime? fechaAccidente = informe.fechaAccidente;
     List<Familiar> familiares = informe.familiares;
-    if (parentesco == null || fechaAccidente == null || victima == null ||
-        victima.fechaNacimiento == null) {
+    // parametros necesarios para el calculo del importe
+    if (parentesco == null || fechaAccidente == null || victima == null || victima.fechaNacimiento == null ||
+        ([Parentesco.hijo,Parentesco.hermano].contains(parentesco) && fechaNacimiento == null) || // el hijo o el hermano necesitan fecha de nacimiento
+        (Parentesco.conyuge == parentesco && fechaMatrimonio == null)) // el conyuge necesita fecha de matrimonio
+    {
       return 0;
     }
-    double anyosVictima = diferenciaAnyos(
-          fechaAccidente, victima.fechaNacimiento!);
-    double anyosFamiliar = diferenciaAnyos(fechaAccidente, fechaNacimiento!);
-    
+
+    double anyosVictima = diferenciaAnyos(fechaAccidente, victima.fechaNacimiento!);
+    double anyosFamiliar = 0;
+    if(([Parentesco.hijo,Parentesco.hermano].contains(parentesco) && fechaNacimiento == null)){
+      anyosFamiliar = diferenciaAnyos(fechaAccidente, fechaNacimiento!);
+    }
+
 
     switch (parentesco) {
       case Parentesco.conyuge: // Transparencia: Cónyuge viudo
@@ -207,12 +215,11 @@ class Familiar implements ClonableVaciable {
           break;
         default:
     }
-
     // Transparencia: La discapacidad física, intelectual o sensorial del perjudicado
-    if(incrementoDiscapacidad!=null && discapacidad!=null && discapacidad!){
+    if(incrementoDiscapacidad!=null && discapacidad!=null && discapacidad!
+        && (incrementoDiscapacidad!>=25 && incrementoDiscapacidad!<=75)){
       importe += (incrementoDiscapacidad!/100)*importe;
     }
-
     // Transparencia: Convivencia
     if (convivencia != null && convivencia!) {
       switch (parentesco) {
@@ -238,7 +245,6 @@ class Familiar implements ClonableVaciable {
         default:
       }
     }
-
     // Transparencia: El duelo en soledad
     // si es hijo, padre o hemano unico +25%
     if ([Parentesco.hijo,Parentesco.padre,Parentesco.hermano].contains(parentesco)) {
@@ -250,7 +256,6 @@ class Familiar implements ClonableVaciable {
     if (familiares.length == 1) {
       importe += 0.25*importe;
     }
-
     // Transparencia: Fallecimiento de progenitor
     if (parentesco == Parentesco.hijo) {
       //Progenitor único
@@ -270,16 +275,15 @@ class Familiar implements ClonableVaciable {
 
     // Transparencia: Fallecimiento víctima embarazada con pérdida de feto.
     if (parentesco == Parentesco.conyuge) {
-      if (informe.embarazo== Embarazo.embarazoMenos12Semanas)  importe += 15000;
-      if (informe.embarazo == Embarazo.embarazoMas12Semanas)    importe += 30000;
+      if (informe.embarazo== Embarazo.menosO12Semanas)  importe += 15000;
+      if (informe.embarazo == Embarazo.mas12Semanas)    importe += 30000;
     }
 
     // Transparencia: Perjuicio excepcional
 
-    if (perjuicioExcepcional != null) {
+    if (perjuicioExcepcional != null && perjuicioExcepcional!<=25) {
       importe += (perjuicioExcepcional!/100)*importe;
     }
-
     // Transparencia: Daño emergente
        // "Cada perjudicado tiene derecho a percibir, sin necesidad de justificación, 400 euros"
        importe += 400;

@@ -26,7 +26,7 @@ extension TipoAccidenteExtension on TipoAccidente {
 
 // embarazo con perdida de feto
 enum Embarazo {
-  noEmabarazo,sinPerdidaFeto, embarazoMas12Semanas, embarazoMenos12Semanas
+  no, mas12Semanas, menosO12Semanas
 }
 
 ///
@@ -50,7 +50,7 @@ class Informe {
   //Indemnizaciones por muerte
   bool hayMuerte = false;
   List<Familiar> familiares = [];
-  Embarazo embarazo = Embarazo.noEmabarazo;
+  Embarazo embarazo = Embarazo.no; //Si la fallecida estaba embarazada con perdida de feto, el cónyuge cobra un plus en función de las semanas
   //Indemnizaciones por lesiones temporales
   bool hayLesion = false;
   String? lesiones; // Descripción de las lesiones temporales
@@ -83,7 +83,7 @@ class Informe {
     this.idPaciente,
     this.hayMuerte = false,
     this.familiares = const [],
-    this.embarazo = Embarazo.noEmabarazo,
+    this.embarazo = Embarazo.no,
     this.hayLesion = false,
     this.lesiones,
     this.diasUci = 0,
@@ -154,13 +154,13 @@ class Informe {
     double importe = 0;
     if(victima!=null){
       for(Familiar f in familiares){
-        importe+= f.calcularImporte(this, victima);
+        importe+= f.calcularIndemnizacion(this, victima);
       }
     }
 
-    if(embarazo==Embarazo.embarazoMas12Semanas){
+    if(embarazo==Embarazo.mas12Semanas){
       importe+=30000;
-    }else if(embarazo == Embarazo.embarazoMenos12Semanas){
+    }else if(embarazo == Embarazo.menosO12Semanas){
       importe+=15000;
     }
 
@@ -227,8 +227,7 @@ class Informe {
           companyiaAseguradora: json['aseguradora'],
           lugarAccidente: json['lugar_accidente'],
           idPaciente: json["paciente"],
-          tipoAccidente: enumfromString(
-              TipoAccidente.values, json["tipo_accidente"]),
+          tipoAccidente: enumfromString(TipoAccidente.values, json["tipo_accidente"]),
           hayMuerte: json['hayMuerte'] ?? false,
           familiares: json['familiares']!=null ? (json['familiares'] as List).map((item) => Familiar.fromJson(item)).toList() : <Familiar>[],
           embarazo:  enumfromString(Embarazo.values, json["embarazo"]),

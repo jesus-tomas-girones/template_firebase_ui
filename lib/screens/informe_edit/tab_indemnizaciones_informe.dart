@@ -67,12 +67,12 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
           FieldEnum<Embarazo>("Embarazo", informeTemp.embarazo, Embarazo.values,
               (newValue){setState(() {informeTemp.embarazo = newValue!;});},
                 validator: (value) => value==null ? "Campo obligatorio" : null,
-                customNames: ["No embarazada","Sin perdida de feto","Perdida de feto con más 12 semanas","Perdida de feto con 12 semanas o menos"]
+                customNames: ["No embarazada","Perdida de feto con más 12 semanas","Perdida de feto con 12 semanas o menos"]
         ),
           // explicaciones de hijo, progenitor, hermano unico
-          if(informeTemp.embarazo == Embarazo.embarazoMas12Semanas)
+          if(informeTemp.embarazo == Embarazo.mas12Semanas)
             _buildTextoExplicativo("* Incremento sobre el perjuicio básico de 30.000 €"),
-          if(informeTemp.embarazo == Embarazo.embarazoMenos12Semanas)
+          if(informeTemp.embarazo == Embarazo.menosO12Semanas)
             _buildTextoExplicativo("* Incremento sobre el perjuicio básico de 15.000 €"),
           
           EditorListaObjetos<Familiar>(
@@ -92,7 +92,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
                     children: [
                       Flexible(flex: 2,child: Text(item.nombre.toString() +" "+ item.apellidos.toString(),overflow: TextOverflow.ellipsis, maxLines: 2,),),
                       Flexible(child: Text(item.parentesco!.name)),
-                      Flexible(child: Text(formatoMoneda(item.calcularImporte(informeTemp,victima).round())+" €")),
+                      Flexible(child: Text(formatoMoneda(item.calcularIndemnizacion(informeTemp,victima).round())+" €")),
                     ])
               ),
             //formulario: _buildFormFamiliar(tempFamiliar, tituloForm: "Añadir Familiar"),
@@ -118,128 +118,161 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        FieldText("Nombre", f.nombre,
-            (value) => setState(() { f.nombre=value; }),
-            mandatory: true),
-        FieldText("Apellidos", f.apellidos,
-            (value) => setState(() { f.apellidos=value; }),
-            mandatory: true),
+          FieldText("Nombre", f.nombre,
+              (value) => setState(() { f.nombre=value; }),
+              mandatory: true),
+          FieldText("Apellidos", f.apellidos,
+              (value) => setState(() { f.apellidos=value; }),
+              mandatory: true),
 
-        // Parentesco y fecha de nacimiento
-        Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
-          child: Row(children: [
-            Flexible(child:
-              FieldEnum<Parentesco>(
-              "Parentesco", f.parentesco, Parentesco.values,
-                  (value) => setState(() { f.parentesco = value; },
-                  ),
-              customNames:  ["Hijo", "Padre", "Conyuge", "Nieto","Abuelo","Hermano","Allegado"], // TODO obtener automaticamente con bucle
-              padding: 8,
-              validator: (value) => value==null ? "Campo obligatorio" : null),
-            ),
-
-            // Fecha de naciemiento cuando hijo, nieto o hermano
-            if (f.parentesco!=null && (f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano))
+          // Parentesco y fecha de nacimiento
+          Padding(padding: EdgeInsets.fromLTRB(8, 8, 8, 0),
+            child: Row(children: [
               Flexible(child:
-                FieldDate("Fecha nacimiento", f.fechaNacimiento,
-                (value) => setState(() { 
-                  f.fechaNacimiento = value;
-                }),
-                context, padding: 8,
-                )
+                FieldEnum<Parentesco>(
+                "Parentesco", f.parentesco, Parentesco.values,
+                    (value) => setState(() { f.parentesco = value; },
+                    ),
+                customNames:  ["Hijo", "Padre", "Conyuge", "Nieto","Abuelo","Hermano","Allegado"], // TODO obtener automaticamente con bucle
+                padding: 8,
+                validator: (value) => value==null ? "Campo obligatorio" : null),
               ),
-          ],),
-        ),
-        
-        // explicaciones de hijo, progenitor, hermano unico
-        if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.hijo)
-           _buildTextoExplicativo("* Tiene un aumento del 25% por ser hijo único"),
-        if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.padre)
-           _buildTextoExplicativo("* Tiene un aumento del 25% por ser progenitor único"),
-        if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.hermano)
-           _buildTextoExplicativo("* Tiene un aumento del 25% por ser hermano único"),
 
-        // explicacion de unico familiar vivo
-        if(informeTemp.familiares.length==1)
-           _buildTextoExplicativo("* Tiene un aumento del 25% por ser el único familiar vivo"),
+              // Fecha de naciemiento cuando hijo, nieto o hermano
+              if (f.parentesco!=null && (f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano))
+                Flexible(child:
+                  FieldDate("Fecha nacimiento", f.fechaNacimiento,
+                  (value) => setState(() { 
+                    f.fechaNacimiento = value;
+                  }),
+                  context, padding: 8,
+                  )
+                ),
+            ],),
+          ),
         
-        // explicacion de perdida de hijo unico
-        if(f.parentesco == Parentesco.padre && !f.hayHermanos(informeTemp.familiares))
-           _buildTextoExplicativo("* Tiene un aumento del 25% por la perdida del hijo único"),
+          // explicaciones de hijo, progenitor, hermano unico
+          if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.hijo)
+            _buildTextoExplicativo("* Tiene un aumento del 25% por ser hijo único"),
+          if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.padre)
+            _buildTextoExplicativo("* Tiene un aumento del 25% por ser progenitor único"),
+          if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.hermano)
+            _buildTextoExplicativo("* Tiene un aumento del 25% por ser hermano único"),
 
-        // explicacion cuando se escoge abuelo
-         if (f.parentesco!=null && f.parentesco == Parentesco.abuelo)
-          _buildTextoExplicativo("* Solo en caso de premorencia del progenitor de su rama familiar."),
+          // explicacion de unico familiar vivo
+          if(informeTemp.familiares.length==1)
+            _buildTextoExplicativo("* Tiene un aumento del 25% por ser el único familiar vivo"),
+          
+          // explicacion de perdida de hijo unico
+          if(f.parentesco == Parentesco.padre && !f.esHijoUnico(informeTemp.familiares))
+            _buildTextoExplicativo("* Tiene un aumento del 25% por la perdida del hijo único"),
 
-        // explicacion cuando se escoge nieto
-         if (f.parentesco!=null && f.parentesco == Parentesco.nieto)
-          _buildTextoExplicativo("* Solo en caso de premorencia del progenitor hijo del abuelo fallecido."),
-        
-        // explicacion cuando se escoge allegado
-         if (f.parentesco!=null && f.parentesco == Parentesco.allegado)
-          _buildTextoExplicativo("* Se considera allegado a aquella persona que tenga una convivencia por un mínimo de 5 años inmediatamente anterior al fallecimiento y tenga una relación de cercanía entre la víctima y el “allegado” basada en razones de parentesco o afectividad.\n\nQueda excluido el concepto las personas que simplemente comparten piso sin existir vínculo afectivo alguno entre ellas."),
-        
-        // Fecha del matrimonio si es conyuge
-        if (f.parentesco!=null && f.parentesco == Parentesco.conyuge)
-           FieldDate("Fecha del matrimonio", f.fechaMatrimonio,
-              (value) => setState(() { f.fechaMatrimonio = value;}),
-              context,
-              validator: (fecha){if(fecha==null){return "Campo obligatorio";}return null;}),
+          // explicacion cuando se escoge abuelo
+          if (f.parentesco!=null && f.parentesco == Parentesco.abuelo)
+            _buildTextoExplicativo("* Solo en caso de premorencia del progenitor de su rama familiar."),
 
-        Padding(padding: const EdgeInsets.fromLTRB(8, 8, 0, 0),
-          child: Row(children: [
-            Flexible(child:
-              FieldText("DNI", f.dni,
-                (value) => setState(() { f.dni = value;}),
-                mandatory: true, padding: 8),
-            ),
-            Flexible(child:
-              FieldCheckBox("Discapacidad", f.discapacidad??false,
-                (value) => setState(() { 
-                  f.discapacidad = value;
-                  if(!f.discapacidad!){
-                    f.incrementoDiscapacidad = null;
-                  }
-                
-                }),
-                padding: 0),
+          // explicacion cuando se escoge nieto
+          if (f.parentesco!=null && f.parentesco == Parentesco.nieto)
+            _buildTextoExplicativo("* Solo en caso de premorencia del progenitor hijo del abuelo fallecido."),
+          
+          // explicacion cuando se escoge allegado
+          if (f.parentesco!=null && f.parentesco == Parentesco.allegado)
+            _buildTextoExplicativo("* Se considera allegado a aquella persona que tenga una convivencia por un mínimo de 5 años inmediatamente anterior al fallecimiento y tenga una relación de cercanía entre la víctima y el “allegado” basada en razones de parentesco o afectividad.\n\nQueda excluido el concepto las personas que simplemente comparten piso sin existir vínculo afectivo alguno entre ellas."),
+          
+          if (f.parentesco!=null && f.parentesco == Parentesco.hijo)
+            FieldEnum<ElOtroProgenitor>(
+                "El otro progenitor", f.elOtroProgenitor, ElOtroProgenitor.values,
+                    (value) => setState(() { f.elOtroProgenitor = value; },
+                    ),
+                customNames:  ["Vive", "Muiró en el accidente", "Ya murió"],
+                validator: (value) => value==null ? "Campo obligatorio" : null),
+
+          // Fecha del matrimonio si es conyuge
+          if (f.parentesco!=null && f.parentesco == Parentesco.conyuge)
+            FieldDate("Fecha del matrimonio", f.fechaMatrimonio,
+                (value) => setState(() { f.fechaMatrimonio = value;}),
+                context,
+                validator: (fecha){if(fecha==null){return "Campo obligatorio";}return null;}),
+
+          Padding(padding: const EdgeInsets.fromLTRB(8, 8, 0, 0),
+            child: Row(children: [
+              Flexible(child:
+                FieldText("DNI", f.dni,
+                  (value) => setState(() { f.dni = value;}),
+                  mandatory: true, padding: 8),
               ),
-          ] ),
-        ),
+              Flexible(child:
+                FieldCheckBox("Discapacidad", f.discapacidad??false,
+                  (value) => setState(() { 
+                    f.discapacidad = value;
+                    if(!f.discapacidad!){
+                      f.incrementoDiscapacidad = null;
+                    }
+                  
+                  }),
+                  padding: 0),
+                ),
+            ] ),
+          ),
 
-        // incremento por discapacidad
-        if (f.discapacidad!=null && f.discapacidad!)
-           FieldText("Incremento sobre prejuicio básico [25% - 75%]", 
-                  f.incrementoDiscapacidad == null ? "" : f.incrementoDiscapacidad.toString(),
-                  (newValue)async{setState(() {
-                    f.incrementoDiscapacidad = newValue == "" ?  0 :  double.parse(newValue);
-                    
-                  });},
-              isNumeric: true,
-              validator: (newValue){
-                if(newValue!=null){
-                  double value = newValue == "" ?  0 :  double.parse(newValue);
-                  if(value<25 || value>75){
-                    return "El valor debe estar entre 25 y 75";
+          // incremento por discapacidad
+          if (f.discapacidad!=null && f.discapacidad!)
+            FieldText("Incremento sobre prejuicio básico [25% - 75%]", 
+                    f.incrementoDiscapacidad == null ? "" : f.incrementoDiscapacidad.toString(),
+                    (newValue)async{setState(() {
+                      f.incrementoDiscapacidad = newValue == "" ?  0 :  double.parse(newValue);
+                      
+                    });},
+                isNumeric: true,
+                validator: (newValue){
+                  if(newValue!=null){
+                    double value = newValue == "" ?  0 :  double.parse(newValue);
+                    if(value<25 || value>75){
+                      return "El valor debe estar entre 25 y 75";
+                    }
                   }
-                }
-              },
-              hint: "Introduce el porcentaje de incremento debido a la discapacidad"),
-        // explicacion de discapacidad
-        if (f.discapacidad!=null &&f.discapacidad!)
-          _buildTextoExplicativo("* Grado de discapacidad física, intelectual o sensorial del perjudicado como mínimo del 33%. No es necesario disponer de una resolución administrativa que así lo reconozca, pudiendo acreditarse por cualquiera de los medios de prueba admitidos en Derecho.\n\nPuede ser anterior al accidente o a resultas del mismo.\n\nEl accidente debe provocar una “alteración perceptible” en la vida de la persona con discapacidad."),
+                },
+                hint: "Introduce el porcentaje de incremento debido a la discapacidad"),
+          // explicacion de discapacidad
+          if (f.discapacidad!=null &&f.discapacidad!)
+            _buildTextoExplicativo("* Grado de discapacidad física, intelectual o sensorial del perjudicado como mínimo del 33%. No es necesario disponer de una resolución administrativa que así lo reconozca, pudiendo acreditarse por cualquiera de los medios de prueba admitidos en Derecho.\n\nPuede ser anterior al accidente o a resultas del mismo.\n\nEl accidente debe provocar una “alteración perceptible” en la vida de la persona con discapacidad."),
 
+          // Perjuicio excepcional
+          FieldText("Perjuicio excepcional (hasta 25%)", 
+                    f.perjuicioExcepcional == null ? "" : f.perjuicioExcepcional.toString(),
+                    (newValue)async{setState(() {
+                      
+                      f.perjuicioExcepcional = newValue == "" ?  null :  double.parse(newValue);
+                      
+                    });},
+                isNumeric: true,
+                validator: (newValue){
+                  if(newValue!=null){
+                    double value = newValue == "" ?  0 :  double.parse(newValue);
+                    if(value<0 || value>25){
+                      return "El valor debe estar entre 0 y 25";
+                    }
+                  }
+                },
+                hint: "Introduce el porcentaje de incremento debido a perjuicio excepcional"),
 
-        // Check box de convivencia
-        if((f.parentesco == Parentesco.padre && victima!=null && informeTemp.fechaAccidente!=null && victima.fechaNacimiento!=null && diferenciaAnyos(informeTemp.fechaAccidente!,victima.fechaNacimiento!)>30) // padres cuyo hijo victima es mayor de 30 años
-            || ((f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano) && informeTemp.fechaAccidente!=null && f.fechaNacimiento!=null && diferenciaAnyos(informeTemp.fechaAccidente!,f.fechaNacimiento!)>30) // hijos de mayor de 30 que vivian con su padre
-            || (f.parentesco == Parentesco.nieto) 
-            || (f.parentesco == Parentesco.abuelo))
-            FieldCheckBox("Convivencia con la victima", f.convivencia??false,
+          // justificacionPerjuicioExcepcional
+          FieldText("Justificación del perjucio excepcional ", f.justificacionPerjuicioExcepcional, 
+            (value) => f.justificacionPerjuicioExcepcional = value,
+            maxLines: 3
+          ),
+
+          // Check box de convivencia
+          if((f.parentesco == Parentesco.padre && victima!=null && informeTemp.fechaAccidente!=null && victima.fechaNacimiento!=null && diferenciaAnyos(informeTemp.fechaAccidente!,victima.fechaNacimiento!)>30) // padres cuyo hijo victima es mayor de 30 años
+              || ((f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano) && informeTemp.fechaAccidente!=null && f.fechaNacimiento!=null && diferenciaAnyos(informeTemp.fechaAccidente!,f.fechaNacimiento!)>30) // hijos de mayor de 30 que vivian con su padre
+              || (f.parentesco == Parentesco.nieto) 
+              || (f.parentesco == Parentesco.abuelo))
+              FieldCheckBox("Convivencia con la victima", f.convivencia??false,
                   (value) => setState(() { 
                     f.convivencia = value;
                   }),
                   padding: 0),
+
         
 
       ], ),
