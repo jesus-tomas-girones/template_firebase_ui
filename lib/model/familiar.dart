@@ -3,6 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/date_time_helpers.dart';
+import '../utils/numero_helper.dart';
 import '../widgets/editor_lista_objetos.dart';
 import 'informe.dart';
 import 'paciente.dart';
@@ -235,7 +236,7 @@ class Familiar implements ClonableVaciable {
         importe += importe*(incrementoDiscapacidad!/100);
     }
 
-    return redondear2Decimales(importe);
+    return importe;
 
   }
 
@@ -250,14 +251,6 @@ class Familiar implements ClonableVaciable {
     }
 
     return cont==1;// es unico cuando hay un, que es él
-  }
-  double redondear2Decimales(double a){
-     // redondear a dos decimales
-      String inString = a.toStringAsFixed(2); // 
-      double valor = double.parse(inString); // 
-      
-      return valor;
-
   }
 
 }

@@ -1,9 +1,11 @@
 import 'package:firebase_ui/utils/enum_helpers.dart';
+import 'package:firebase_ui/utils/numero_helper.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/date_time_helpers.dart';
 import 'familiar.dart';
+import 'paciente.dart';
 import 'secuela.dart';
 
 enum TipoAccidente{
@@ -143,15 +145,17 @@ class Informe {
   /// 
   /// Calcula el importe de la indemnizacion de la muerte
   ///
-  double calcularImporteIndemnizacionesMuerte(){
+  double calcularImporteIndemnizacionesMuerte(Paciente? victima){
     double importe = 0;
-    for(Familiar f in familiares){
-      //importe+= f.calcularImporte(fechaAccidente!, paciente);
+    if(victima!=null){
+      for(Familiar f in familiares){
+        importe+= f.calcularImporte(this, victima);
+      }
     }
     return importe;
   }
 
-  double obtenerImporteTotalIndemnizacion(){
+  /*double obtenerImporteTotalIndemnizacion(){
     if(hayMuerte){
       return calcularImporteIndemnizacionesMuerte();
     }
@@ -167,7 +171,7 @@ class Informe {
     }
 
     return importe;
-  }
+  }*/
 
   @override
   int get hashCode => id.hashCode;

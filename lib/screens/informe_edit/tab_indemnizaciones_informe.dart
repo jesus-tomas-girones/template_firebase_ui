@@ -46,9 +46,13 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
   }
 
   Widget _mostrarCamposMuerte(){
+
+     Paciente? victima = Paciente.findPacienteById(widget.pacientes!,informeTemp.idPaciente);
+
     return Container(
       color: const Color.fromARGB(200, 240, 240, 240),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
                 (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
@@ -70,13 +74,16 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
                     children: [
                       Flexible(flex: 2,child: Text(item.nombre.toString() +" "+ item.apellidos.toString(),overflow: TextOverflow.ellipsis, maxLines: 2,),),
                       Flexible(child: Text(item.parentesco!.name)),
-                      Flexible(child: Text(item.calcularImporte(informeTemp,Paciente.findPacienteById(widget.pacientes, informeTemp.idPaciente)).toString()+" €")),
+                      Flexible(child: Text(formatoMoneda(item.calcularImporte(informeTemp,victima).round())+" €")),
                     ])
               ),
             //formulario: _buildFormFamiliar(tempFamiliar, tituloForm: "Añadir Familiar"),
           ),
        
-           
+          Padding(padding: const EdgeInsets.all(16), 
+            child: Text("Importe total: "+formatoMoneda(informeTemp.calcularImporteIndemnizacionesMuerte(victima).round())+" €",
+                    style: const TextStyle(fontSize: 18),),
+          )
         ],
       ),
     );
@@ -87,9 +94,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
   /// Crear un formulario en base a un familiar
   ///
   Form _buildFormFamiliar( Familiar f, {String? tituloForm}){
-
-    Paciente? victima = Paciente.findPacienteById(widget.pacientes!,informeTemp.idPaciente);
-
+    Paciente? victima = Paciente.findPacienteById(widget.pacientes!,informeTemp.idPaciente);  
     return Form(
       key: _formKeyAddFamiliar,
       child: Column(
@@ -110,7 +115,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
               "Parentesco", f.parentesco, Parentesco.values,
                   (value) => setState(() { f.parentesco = value; },
                   ),
-              customNames:  ["Hijo", "Padre", "Conyuge", "Nieto","Abuelo","Hermnao","Allegado"], // TODO obtener automaticamente con bucle
+              customNames:  ["Hijo", "Padre", "Conyuge", "Nieto","Abuelo","Hermano","Allegado"], // TODO obtener automaticamente con bucle
               padding: 8,
               validator: (value) => value==null ? "Campo obligatorio" : null),
             ),
@@ -196,13 +201,11 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
             || ((f.parentesco == Parentesco.hijo || f.parentesco == Parentesco.hermano) && informeTemp.fechaAccidente!=null && f.fechaNacimiento!=null && diferenciaAnyos(informeTemp.fechaAccidente!,f.fechaNacimiento!)>30) // hijos de mayor de 30 que vivian con su padre
             || (f.parentesco == Parentesco.nieto) 
             || (f.parentesco == Parentesco.abuelo))
-        FieldCheckBox("Convivencia con la victima", f.convivencia??false,
-              (value) => setState(() { 
-                f.convivencia = value;
-              }),
-              padding: 0),
-        
-
+            FieldCheckBox("Convivencia con la victima", f.convivencia??false,
+                  (value) => setState(() { 
+                    f.convivencia = value;
+                  }),
+                  padding: 0),
         
 
       ], ),
@@ -280,7 +283,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
               hint: "Introduce el lucro cesante del paciente"
           ),
           Padding(padding: const EdgeInsets.all(16), 
-          child: Text("Importe total: "+informeTemp.calcularImporteIndemnizacionesLesiones().toString()+" €",
+          child: Text("Importe total: "+formatoMoneda(informeTemp.calcularImporteIndemnizacionesLesiones().round())+" €",
                   style: const TextStyle(fontSize: 18),),
           )
         ],

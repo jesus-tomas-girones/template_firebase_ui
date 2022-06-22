@@ -3,6 +3,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/secuela.dart';
+import 'package:firebase_ui/utils/numero_helper.dart';
 import 'package:firebase_ui/utils/pdf_helper.dart';
 
 import 'package:flutter/material.dart';
