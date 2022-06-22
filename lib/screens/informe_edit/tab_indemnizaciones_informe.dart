@@ -54,10 +54,13 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          FieldCheckBox("Fallecida embarazada", informeTemp.embarazada,
-                (newValue){setState(() {informeTemp.embarazada = newValue ?? false;});},
-          ),
-        EditorListaObjetos<Familiar>(
+        
+          FieldEnum<Embarazo>("Embarazo", informeTemp.embarazo, Embarazo.values,
+              (newValue){setState(() {informeTemp.embarazo = newValue!;});},
+                validator: (value) => value==null ? "Campo obligatorio" : null,
+                customNames: ["No embarazada","Sin perdida de feto","Perdida de feto con 12 semanas o más","Perdida de feto con menos de 12 semanas"]
+        ),
+          EditorListaObjetos<Familiar>(
             titulo: "Lista de familiares:", // Encabezado de la lista. NO DE EL DIALOG
             listaObjetos: informeTemp.familiares,
             tituloAnyadir: "Añadir nuevo familiar",
@@ -133,6 +136,22 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
           ],),
         ),
         
+        // explicaciones de hijo, progenitor, hermano unico
+        if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.hijo)
+           _buildTextoExplicativo("* Tiene un aumento del 25% por ser hijo único"),
+        if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.padre)
+           _buildTextoExplicativo("* Tiene un aumento del 25% por ser progenitor único"),
+        if(f.esParentescoUnico(f, informeTemp.familiares) && f.parentesco == Parentesco.hermano)
+           _buildTextoExplicativo("* Tiene un aumento del 25% por ser hermano único"),
+
+        // explicacion de unico familiar vivo
+        if(informeTemp.familiares.length==1)
+           _buildTextoExplicativo("* Tiene un aumento del 25% por ser el único familiar vivo"),
+        
+        // explicacion de perdida de hijo unico
+        if(f.parentesco == Parentesco.padre && !f.hayHermanos(informeTemp.familiares))
+           _buildTextoExplicativo("* Tiene un aumento del 25% por la perdida del hijo único"),
+
         // explicacion cuando se escoge abuelo
          if (f.parentesco!=null && f.parentesco == Parentesco.abuelo)
           _buildTextoExplicativo("* Solo en caso de premorencia del progenitor de su rama familiar."),
@@ -175,7 +194,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
 
         // incremento por discapacidad
         if (f.discapacidad!=null && f.discapacidad!)
-           FieldText("Incremento sobre prejuicio básico [25 - 75]", 
+           FieldText("Incremento sobre prejuicio básico [25% - 75%]", 
                   f.incrementoDiscapacidad == null ? "" : f.incrementoDiscapacidad.toString(),
                   (newValue)async{setState(() {
                     f.incrementoDiscapacidad = newValue == "" ?  0 :  double.parse(newValue);

@@ -24,6 +24,11 @@ extension TipoAccidenteExtension on TipoAccidente {
       ["Trafico", "Laboral", "Deportivo", "Via publica","Incapacidad sobrevenida"][this.index];
 }
 
+// embarazo con perdida de feto
+enum Embarazo {
+  noEmabarazo,sinPerdidaFeto, embarazoMas12Semanas, embarazoMenos12Semanas
+}
+
 ///
 /// Clase que representa un informe
 ///
@@ -45,7 +50,7 @@ class Informe {
   //Indemnizaciones por muerte
   bool hayMuerte = false;
   List<Familiar> familiares = [];
-  bool embarazada = false; //La fallecida estaba embarazada
+  Embarazo embarazo = Embarazo.noEmabarazo;
   //Indemnizaciones por lesiones temporales
   bool hayLesion = false;
   String? lesiones; // Descripción de las lesiones temporales
@@ -78,7 +83,7 @@ class Informe {
     this.idPaciente,
     this.hayMuerte = false,
     this.familiares = const [],
-    this.embarazada = false,
+    this.embarazo = Embarazo.noEmabarazo,
     this.hayLesion = false,
     this.lesiones,
     this.diasUci = 0,
@@ -101,7 +106,7 @@ class Informe {
           tipoAccidente: tipoAccidente,
           hayMuerte: hayMuerte,
           familiares: familiares,
-          embarazada: embarazada,
+          embarazo: embarazo,
           hayLesion: hayLesion,
           lesiones: lesiones,
           diasUci: diasUci,
@@ -194,7 +199,7 @@ class Informe {
           tipoAccidente == other.tipoAccidente &&
           hayMuerte == other.hayMuerte &&
           familiares == other.familiares &&
-          embarazada == other.embarazada &&
+          embarazo == other.embarazo &&
           hayLesion == other.hayLesion &&
           lesiones == other.lesiones &&
           diasUci == other.diasUci &&
@@ -219,7 +224,7 @@ class Informe {
               TipoAccidente.values, json["tipo_accidente"]),
           hayMuerte: json['hayMuerte'] ?? false,
           familiares: json['familiares']!=null ? (json['familiares'] as List).map((item) => Familiar.fromJson(item)).toList() : <Familiar>[],
-          embarazada: json['embarazada'] ?? false,
+          embarazo:  enumfromString(Embarazo.values, json["embarazo"]),
           hayLesion: json['hayLesion'] ?? false,
           lesiones: json['lesiones'],
           diasUci: json['diasUci'] ?? 0,
@@ -248,7 +253,7 @@ class Informe {
         'tipo_accidente': tipoAccidente.toString(),
         'hayMuerte': hayMuerte,
         'familiares': familiares.map((i) => i.toJson()).toList(),
-        'embarazada': embarazada,
+        'embarazo': embarazo.toString(),
         'hayLesion': hayLesion,
         'lesiones': lesiones,
         'diasUci': diasUci,

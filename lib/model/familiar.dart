@@ -17,6 +17,8 @@ extension ParentescoExtension on Parentesco {
       ["Hijo", "Padre", "Conyuge", "Nieto","Abuelo","Hermnao","Allegado"][this.index];
 }
 
+
+
 @JsonSerializable()
 class Familiar implements ClonableVaciable {
   
@@ -220,14 +222,23 @@ class Familiar implements ClonableVaciable {
       }
     }
 
+    // si es parentesco unico +25% ver pagina 128 del documento:
+    // https://drive.google.com/drive/folders/1tHnQmr6k4P5odv0FDJBNg52zVT75prLS
     if((parentesco == Parentesco.hijo || parentesco == Parentesco.hermano || parentesco == Parentesco.padre)
         && esParentescoUnico(this, familiares)){
-        // si es parentesco unico +25% ver pagina 113 del documento 
         importe += importe*0.25;
     }
 
+    // importe por ser el único familiar vivo (acumulable al anterior)
+    // ver pagina 128 de: https://drive.google.com/drive/folders/1tHnQmr6k4P5odv0FDJBNg52zVT75prLS
     if(familiares.length == 1){
+      importe += importe*0.25;  
+    }
 
+    // si la victima es hijo unico aumento del 25%
+    // pagina 131 de: https://drive.google.com/drive/folders/1tHnQmr6k4P5odv0FDJBNg52zVT75prLS
+    if(parentesco == Parentesco.padre && !hayHermanos(familiares)){
+      importe += importe*0.25;  
     }
 
     // discapacidad
@@ -253,4 +264,15 @@ class Familiar implements ClonableVaciable {
     return cont==1;// es unico cuando hay un, que es él
   }
 
+  // funcion que devuelve true si dada una familia hay hermanos
+  bool hayHermanos(List<Familiar> familia){
+    
+    for(Familiar f in familia){
+      if(f.parentesco == Parentesco.hermano){
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
