@@ -82,9 +82,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
             formKey: _formKeyAddFamiliar,
             objetoTemporal: tempFamiliar, // TODO intentar quitar y que solo este en editor_lista_objetos
             crearFormulario: _buildFormFamiliar,
-            onChange:() { setState(() {
-              
-            }); },
+            onChange:() { setState(() {}); },
             elementoLista: (item) => Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
@@ -99,7 +97,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
           ),
        
           Padding(padding: const EdgeInsets.all(16), 
-            child: Text("Importe total: "+formatoMoneda(informeTemp.calcularImporteIndemnizacionesMuerte(victima).round())+" €",
+            child: Text("Importe total: "+formatoMoneda(informeTemp.calcularTotalGastos().round())+" €",
                     style: const TextStyle(fontSize: 18),),
           )
         ],
@@ -427,6 +425,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          
           FieldObjetList<String>("Especialidad", s.especialidad, SecuelaTipo.listaEspecialidades(),
             (newValue){setState(() {
               s.especialidad = newValue;

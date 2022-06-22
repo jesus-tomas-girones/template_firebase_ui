@@ -1,4 +1,7 @@
+import 'package:firebase_ui/utils/enum_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import '../widgets/editor_lista_objetos.dart';
 
 enum TipoGasto {
   Desplazamiento, Cirugia, Protesis, Autonomia, Otros }
@@ -22,26 +25,101 @@ extension TipoGastoExtension on TipoGasto {
   }
 }
 
+const ESPACIALIDADES = {
+  "Traumatología":[1,4],// del grado 1 al 4
+  "Digestivo":[1,8],// del grado 1 al 4
+};
+
 enum TipoEspecialidad {
   Traumatoligia, Digestivo /* ... */ }
+
+
+
 
 ///
 /// Clase que representa un informe
 ///
 @JsonSerializable()
-class Gasto {
+class Gasto implements ClonableVaciable{
 
   @JsonKey(ignore: true)
   String? id;
   String descripcion = "";
   TipoGasto? tipoGasto;
   double importe = 0;
-  TipoEspecialidad? especialidad;   // solo grupo quirurgico
+  String? especialidad;   // solo grupo quirurgico
   int? grado;
 
-  Gasto(this.descripcion, this.tipoGasto, this.importe, this.especialidad,
-      this.grado); // solo grupo quirurgico de 1 a 8
+  Gasto({
+    this.descripcion = "",
+    this.tipoGasto,
+    this.importe = 0,
+    this.especialidad,
+    this.grado,
 
-  //List<String>? ficherosAdjuntos = [];
+  });
 
+  @override
+  clone() {
+    return Gasto(
+      descripcion: descripcion,
+      tipoGasto: tipoGasto,
+      importe: importe,
+      especialidad: especialidad,
+      grado: grado
+    )..id = id;
+  }
+
+  @override
+  vaciar() {
+    descripcion = "";
+    tipoGasto = null;
+    importe = 0;
+    especialidad = null;
+    grado = null;
+  }
+
+    Map<String, dynamic> toJson() {
+    Map<String, dynamic> map = {
+        'descripcion': descripcion,
+        'tipo_gasto': tipoGasto.toString(),
+        'importe':importe,
+        'especialidad': especialidad,
+        'grado':grado
+      };
+    map.removeWhere((key, value) => value == null);
+//    map.removeWhere((key, value) => value == []);
+    map.removeWhere((key, value) => value == "null");
+    print(map);
+    return map;
+  }
+
+  factory Gasto.fromJson(Map<String, dynamic> json) {
+    try {
+      return Gasto(
+        descripcion: json['descripcion'],
+        importe: json['importe'],
+        tipoGasto: enumfromString(TipoGasto.values, json['tipo_gasto']),
+        especialidad: json['especialidad'],
+        grado: json['grado']
+      );
+    } catch (e) {
+      print("Error en Gasto.fromJson");
+      print(e);
+      return Gasto();
+    }
+  }
+
+
+  static List<String> listaEspecialidades() {
+    return ESPACIALIDADES.keys.toList();
+  }
+
+  static List<int> rangoGrados(String? especialidad) {
+    if(ESPACIALIDADES[especialidad]!=null){
+      return ESPACIALIDADES[especialidad]!.toList();
+    }else{
+      return [];
+    }
+  }
 }

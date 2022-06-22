@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/date_time_helpers.dart';
 import 'familiar.dart';
+import 'gasto.dart';
 import 'paciente.dart';
 import 'secuela.dart';
 
@@ -71,7 +72,8 @@ class Informe {
   double _diasPerjuicioEuros = 30;
 
 
-  // Se accede a los gastos en subcolección de Firebase
+  // Gastos
+  List<Gasto> gastos = [];
 
   Informe({
     this.fechaAccidente,
@@ -93,6 +95,7 @@ class Informe {
     this.lucroCesante = 0,
     this.haySecuela = false,
     this.secuelas = const [],
+    this.gastos = const []
   });
 
   clone() =>
@@ -115,7 +118,8 @@ class Informe {
           diasPerjuicio: diasPerjuicio,
           lucroCesante : lucroCesante,
           haySecuela: haySecuela,
-          secuelas: secuelas
+          secuelas: secuelas,
+          gastos: gastos
       )..id = id;// esto seria el equivalente de hacer un setId despues de hacer la instancia, no se pone en el constructor para evitar problemas
 
   /// 
@@ -164,6 +168,15 @@ class Informe {
       importe+=15000;
     }
 
+    return importe;
+  }
+
+  double calcularTotalGastos() {
+    double importe = 0;
+      for(Gasto g in gastos){
+        importe+= g.importe;
+      }
+    
     return importe;
   }
 
@@ -240,6 +253,7 @@ class Informe {
           diasPerjuicio: json['diasPerjuicio'] ?? 0,
           haySecuela: json['haySecuela'] ?? false,
           secuelas: json['secuelas']!=null ? (json['secuelas'] as List).map((item) => Secuela.fromJson(item)).toList() : <Secuela>[],
+          gastos: json['gastos']!=null ? (json['gastos'] as List).map((item) => Gasto.fromJson(item)).toList() : <Gasto>[],
       );
     } catch (e) {
       print("Error en Informe.fromJson");
@@ -268,7 +282,8 @@ class Informe {
         'diasBaja': diasBaja,
         'diasPerjuicio': diasPerjuicio,
         'haySecuela': haySecuela,
-        'secuelas': secuelas.map((i) => i.toJson()).toList()
+        'secuelas': secuelas.map((i) => i.toJson()).toList(),
+        'gastos': gastos.map((i)=>i.toJson()).toList()
       };
     map.removeWhere((key, value) => value == null);
 //    map.removeWhere((key, value) => value == []);
@@ -276,4 +291,6 @@ class Informe {
     print(map);
     return map;
   }
+
+  
 }

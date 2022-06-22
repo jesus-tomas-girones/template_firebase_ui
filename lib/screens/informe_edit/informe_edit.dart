@@ -2,6 +2,7 @@
 
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
+import 'package:firebase_ui/model/gasto.dart';
 import 'package:firebase_ui/model/secuela.dart';
 import 'package:firebase_ui/utils/numero_helper.dart';
 import 'package:firebase_ui/utils/pdf_helper.dart';
@@ -57,9 +58,6 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   // variables tab de datos -------------------------------
   final _formKeyInforme =  GlobalKey<FormState>(debugLabel: "key_form_informe");
   late Informe informeTemp;
-  late List<PlatformFile> ficherosAnyadidos;
-  late List<String>? urlServer;
-  late List<String>? urlFicherosSubidos;
   late String? pacienteSeleccionado;
   late bool isEditing;
   late bool _seHaAnyadidoFichero = false;
@@ -74,6 +72,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   final _formKeyAddTipoSecuela =  GlobalKey<FormState>(debugLabel:"key_form_tipo_secuela");
 
 
+  // variables tab de gastos  -------------------------------
+  Gasto tempGasto = Gasto();
+  final _formKeyAddGasto =  GlobalKey<FormState>(debugLabel:"key_form_gasto");
+  
   bool _isLoading = false;
 
   @override
