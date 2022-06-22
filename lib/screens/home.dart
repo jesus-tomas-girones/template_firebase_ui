@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../app.dart';
 import '../widgets/third_party/adaptive_scaffold.dart';
-import 'informe_edit.dart';
+import 'informe_edit/informe_edit.dart';
 import 'pacientes.dart';
 import 'user_profile.dart';
 import 'user_profile_ui.dart';

@@ -1,4 +1,4 @@
-import 'package:firebase_ui/screens/informe_edit.dart';
+import 'package:firebase_ui/screens/informe_edit/informe_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
