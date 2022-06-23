@@ -97,7 +97,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
           ),
        
           Padding(padding: const EdgeInsets.all(16), 
-            child: Text("Importe total: "+formatoMoneda(informeTemp.calcularTotalGastos().round())+" €",
+            child: Text("Importe total: "+formatoMoneda(informeTemp.calcularImporteIndemnizacionesMuerte(victima).round())+" €",
                     style: const TextStyle(fontSize: 18),),
           )
         ],

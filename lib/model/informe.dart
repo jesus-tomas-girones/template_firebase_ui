@@ -292,5 +292,35 @@ class Informe {
     return map;
   }
 
-  
+  ///
+  /// Funcion que ordena una lista de informes por el nombre de sus pacientes
+  ///
+  static ordenarPorPaciente(List<Informe>? data,List<Paciente>? pacientes) {
+    
+
+    if(data == null){
+      return null;
+    }
+
+    data.sort((i1,i2){
+      Paciente? p1 = Paciente.findPacienteById(pacientes, i1.idPaciente);
+      Paciente? p2 = Paciente.findPacienteById(pacientes, i2.idPaciente);
+      
+
+      if( p1==null && p2==null){
+        return 0;
+      }
+      if(p1==null){
+        return 1;
+      }
+      if(p2 ==null){
+        return -1;
+      }
+      
+      return p1.nombre!.compareTo(p2.nombre!);
+
+    });
+
+  }
+
 }

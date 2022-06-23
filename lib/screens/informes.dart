@@ -1,3 +1,4 @@
+import 'package:firebase_ui/model/paciente.dart';
 import 'package:firebase_ui/screens/informe_edit/informe_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
@@ -54,37 +55,45 @@ class InformeList extends StatefulWidget {
 class _InformeListState extends State<InformeList> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Informe>>(
-      future: widget.api.list(),
-      builder: (context, futureSnapshot) {
-        if (!futureSnapshot.hasData) {
-          return _buildLoadingIndicator();
-        }
-        return StreamBuilder<List<Informe>>(
-          initialData: futureSnapshot.data,
-          stream: widget.api.subscribe(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return _buildLoadingIndicator();
-            } else if (snapshot.data!.isEmpty) {
-              // no hay datos
-              return const Center(
-                child: Text("Aun no hay informes creados"),
-              );
-            }
+    return Consumer<AppState>(builder: (context, pacienteState, child) {
+      return FutureBuilder<List<Informe>>(
+        future: widget.api.list(),
+        builder: (context, futureSnapshot) {
+          if (!futureSnapshot.hasData) {
+            return _buildLoadingIndicator();
+          }
+         
+          
 
-            return ListView.separated(
-              separatorBuilder: ((context, index) => const Divider()),
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                return InformeTile(
-                  informe: snapshot.data![index],
+          return StreamBuilder<List<Informe>>(
+            initialData: futureSnapshot.data,
+            stream: widget.api.subscribe(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return _buildLoadingIndicator();
+              } else if (snapshot.data!.isEmpty) {
+                // no hay datos
+                return const Center(
+                  child: Text("Aun no hay informes creados"),
                 );
-              },
-            );
-          },
+              }
+              // ordenar por paciente
+              Informe.ordenarPorPaciente(snapshot.data,pacienteState.pacientes);
+              return ListView.separated(
+                separatorBuilder: ((context, index) => const Divider()),
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return InformeTile(
+                    pacientes: pacienteState.pacientes,
+                    informe: snapshot.data![index],
+                  );
+                },
+              );
+            },
+          );
+        },
         );
-      },
+      }
     );
   }
 
@@ -95,9 +104,11 @@ class _InformeListState extends State<InformeList> {
 
 class InformeTile extends StatelessWidget {
   final Informe? informe;
+  final List<Paciente>? pacientes;
 
   const InformeTile({
     this.informe,
+    this.pacientes,
     Key? key,
   }) : super(key: key);
 
@@ -105,18 +116,26 @@ class InformeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = Provider.of<AppState>(context, listen: false).api;
 
-    // Titulo - Fecha
-    String fecha = informe!.fechaAccidente!=null 
-            ? intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente!)
-            : "Sin fecha";
-    String titulo = informe!.titulo + " - " + fecha; 
-
     // Descripcion
     String descripcion = informe!.descripcion ?? "Sin descripción";
     descripcion = descripcion.trim().isEmpty ? "Sin descripción" : descripcion;
+    // Titulo - Paciente - Fecha
+      String fecha = informe!.fechaAccidente!=null 
+              ? intl.DateFormat('dd/MM/yyyy h:mm a').format(informe!.fechaAccidente!)
+              : "Sin fecha";
+      Paciente? paciente = Paciente.findPacienteById(pacientes, informe!.idPaciente);
+      String nombrePaciente = paciente == null ? "Sin paciente" : paciente.nombre!;
+      String titulo = informe!.titulo + " - " +nombrePaciente + " - " +fecha; 
 
-    return Consumer<AppState>(builder: (context, pacienteState, child) {
       return ListTile(
+      
+        title: Text(titulo),
+        subtitle: Text(
+          descripcion,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+
         onTap: () {
           Navigator.push(
                   context,
@@ -125,18 +144,11 @@ class InformeTile extends StatelessWidget {
                             informeApi: appState!.informes,
                             pacienteApi: appState.pacientes,
                             informe: informe,
-                            pacientes: pacienteState.pacientes,
+                            pacientes: pacientes,
                     )),
                 );
         },
-        
-        title: Text(titulo),
-        subtitle: Text(
-          descripcion,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
+
       );
-    });
   }
 }

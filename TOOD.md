@@ -1,5 +1,7 @@
 # Muy Importante
 
+TODO poner especialidades y grados como secuelas (hablar con jesus)
+
 # Importante
 
 TODO Las descripciones no permite que se justifique los margenes del parrrafo y a veces sale descuadrado
