@@ -33,7 +33,9 @@ Widget FieldText(  /// Campo de texto normal
         enabled: enable,
         validator: (mandatory) ? validatorMandatory(validator) : validator,
         maxLines: maxLines,
+        minLines: 1,
         initialValue: value_,
+        textAlign: TextAlign.justify,
         autovalidateMode: AutovalidateMode.always,
         keyboardType: isNumeric ? TextInputType.number : null,
         inputFormatters: isNumeric ? <TextInputFormatter>[

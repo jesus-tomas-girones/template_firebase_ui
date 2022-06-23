@@ -257,7 +257,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
           // justificacionPerjuicioExcepcional
           FieldText("Justificación del perjucio excepcional ", f.justificacionPerjuicioExcepcional, 
             (value) => f.justificacionPerjuicioExcepcional = value,
-            maxLines: 3
+            maxLines: 2000
           ),
 
           // Check box de convivencia

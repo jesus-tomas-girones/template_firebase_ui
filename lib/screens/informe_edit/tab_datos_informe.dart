@@ -61,11 +61,7 @@ extension SectionTabDetalles on _InformeEditPageState {
               },
               customNames: ["Trafico","Laboral","Deportivo","Via publica","Incapacidad sobrevenida"],
               hint: "Selecciona el tipo de accidente"),
-            FieldText("Descripción", informeTemp.descripcion,
-                (value) => setState(() { informeTemp.descripcion = value; }),
-                hint: "Introduce la descripcion del informe",
-                maxLines: 3
-              ),
+            
             FieldText("Lugar del accidente", informeTemp.lugarAccidente,
                 (value) => setState(() { informeTemp.lugarAccidente = value; }),
                 hint: "Introduce el lugar del accidente",
@@ -73,6 +69,11 @@ extension SectionTabDetalles on _InformeEditPageState {
             FieldText("Compañía aseguradora", informeTemp.companyiaAseguradora,
                 (value) => setState(() { informeTemp.companyiaAseguradora = value; }),
                 hint: "Introduce la compañía aseguradora",
+              ),
+            FieldText("Descripción", informeTemp.descripcion,
+                (value) => setState(() { informeTemp.descripcion = value; }),
+                hint: "Introduce la descripcion del informe",
+                maxLines: 2000
               ),
             SelectorFicherosFirebase(
               firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros",
