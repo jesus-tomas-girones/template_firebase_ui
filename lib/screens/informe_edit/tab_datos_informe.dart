@@ -82,7 +82,7 @@ extension SectionTabDetalles on _InformeEditPageState {
               textoNoFicheros: "No se han añadido ficheros aun",
               controller: _ficherosFirebaseController,
               callbackFicheroAnyadido: (){
-                //_seHaAnyadidoFichero = true;
+                _seHaAnyadidoFichero = true;
               },
             )
           ],

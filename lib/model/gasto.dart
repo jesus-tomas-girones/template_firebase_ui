@@ -75,7 +75,8 @@ class Gasto implements ClonableVaciable{
   TipoGasto? tipoGasto;
   double importe = 0;
   String? especialidad;   // solo grupo quirurgico
-  int? grado;
+  String? intervencion;   // intervencion de la especialidad
+  String? grado;
 
   Gasto({
     this.id,
@@ -83,6 +84,7 @@ class Gasto implements ClonableVaciable{
     this.tipoGasto,
     this.importe = 0,
     this.especialidad,
+    this.intervencion,
     this.grado,
 
   }){
@@ -96,6 +98,7 @@ class Gasto implements ClonableVaciable{
       tipoGasto: tipoGasto,
       importe: importe,
       especialidad: especialidad,
+      intervencion: intervencion,
       grado: grado
     )..id = id;
   }
@@ -106,6 +109,7 @@ class Gasto implements ClonableVaciable{
     tipoGasto = null;
     importe = 0;
     especialidad = null;
+    intervencion = null;
     grado = null;
   }
 
@@ -116,6 +120,7 @@ class Gasto implements ClonableVaciable{
         'tipo_gasto': tipoGasto.toString(),
         'importe':importe,
         'especialidad': especialidad,
+        'intervencion': intervencion,
         'grado':grado
       };
     map.removeWhere((key, value) => value == null);
@@ -132,6 +137,7 @@ class Gasto implements ClonableVaciable{
         importe: json['importe'],
         tipoGasto: enumfromString(TipoGasto.values, json['tipo_gasto']),
         especialidad: json['especialidad'],
+        intervencion: json['intervencion'],
         grado: json['grado']
       );
     } catch (e) {

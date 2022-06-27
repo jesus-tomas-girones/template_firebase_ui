@@ -97,7 +97,7 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
             ),
           
           // CUERPO
-          snapshot.data!.docs.isEmpty 
+          snapshot.data!= null && snapshot.data!.docs.isEmpty 
             ? Padding(padding: const EdgeInsets.all(64),child: Center(child:Text(widget.textoNoFicheros)),)
             : ListView.builder(
               padding: EdgeInsets.fromLTRB(widget.padding, widget.padding, widget.padding, widget.padding),

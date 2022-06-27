@@ -1,5 +1,7 @@
 
 
+import 'dart:html';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/gasto.dart';
@@ -54,6 +56,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   ];
   late TabController _tabController;
   late SelectorFicherosFirebaseController _ficherosFirebaseController;
+  late SelectorFicherosFirebaseController _ficherosFirebaseControllerGastos;
   late int _currentTabIndex = 0;
 
   // variables tab de datos -------------------------------
@@ -95,6 +98,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     }
 
     _ficherosFirebaseController = SelectorFicherosFirebaseController();
+    _ficherosFirebaseControllerGastos = SelectorFicherosFirebaseController();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
             if (!_tabController.indexIsChanging) {
@@ -168,7 +172,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                   title: "Se perderán todos los cambios que no esten guardados",
                   onAccept: () async {
                     _setLoading(true);
-
+                     // debe estar el selector de ficheros renderizado para que se pueda hacer una accion con él
+                    // en este caso llamar al borrar de su controlador
+                    _tabController.animateTo(0);
                     await _ficherosFirebaseController.borrarAnyadidos();
                     // si no se estaba editando y cancela cambios borramos el documentos
                     if(!isEditing){
@@ -225,7 +231,12 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       ok: 'BORRAR',
       onAccept: () async{
         _setLoading(true);
+        // debe estar el selector de ficheros renderizado para que se pueda hacer una accion con él
+        // en este caso llamar al borrar de su controlador
+        _tabController.animateTo(0);
         await _ficherosFirebaseController.borrarTodos();
+        //_tabController.animateTo(2);
+        //await _ficherosFirebaseControllerGastos.borrarTodos();
         await widget.informeApi!.delete(widget.informe!.id!);
         _setLoading(false);
         Navigator.pop(context);
@@ -250,7 +261,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     }
 
     // si se guarda habiendo un gasto abierto la aplicacion da error
-    if(_listaObjetosControllerGastos.esconderFormEditar!=null){
+    if(_tabController.index == 2 && _listaObjetosControllerGastos.esconderFormEditar!=null){
       _listaObjetosControllerGastos.esconderFormEditar!();
     }
    
