@@ -13,6 +13,15 @@ abstract class ClonableVaciable {
 // clase para poder pasar un item builder asi customizar la lista de items
 typedef ItemBuilder<T> = Widget Function(T item);
 
+// Controlador para poder cerrar desde un nivel superior los formularios y evitar errores
+class EditorListaObjetosController{
+  late VoidCallback? esconderFormEditar;
+
+  void dispose(){
+    esconderFormEditar = null;
+  }
+}
+
 /// Clase que representa una lista de objetos de tipo [T]. 
 /// Dado un un widget de tipo Form (que se mostrara en un dialog al darle a añadir)
 /// y un objeto de tipo [T] podemos mostrar un fomrulario para crear un objeto
@@ -29,6 +38,8 @@ class EditorListaObjetos<T> extends StatefulWidget{
   final void Function()? onChange; // El vaciar no hace efecto en el padre (No se vacia el formulario al guardar), por tanto mediante un callback avisamos que ha cambiado y hacemos un setState
   final double padding;
   final Form Function(T item) crearFormulario; 
+  
+  final EditorListaObjetosController? controlador;
   //ValueChanged<void Function(void Function())> onSetStateInitialiced;
   //void Function(void Function())? setStateDialog;
 
@@ -42,6 +53,7 @@ class EditorListaObjetos<T> extends StatefulWidget{
     this.onChange, 
     this.tituloAnyadir = "Añadir nuevo elemento",
     this.padding = 16,
+    this.controlador,
   }) : super(key: key);
 
   @override
@@ -57,8 +69,25 @@ class _EditorListaObjetosState<T> extends State<EditorListaObjetos<T>>{
 
   @override
   void initState() {
+    if(widget.controlador != null){
+      widget.controlador?.esconderFormEditar = esconderForms;
+    }
     super.initState();
   }
+
+  @override
+  void dispose() {
+    if(widget.controlador!=null){
+      widget.controlador!.dispose();
+    }
+    super.dispose();
+  }
+
+  void esconderForms(){
+    mostrarFormEdicion(-1);
+    mostrarFormCrear(false);
+  }
+
 
   void mostrarFormCrear(bool value){
     setState(() {

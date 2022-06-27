@@ -288,7 +288,6 @@ class Informe {
     map.removeWhere((key, value) => value == null);
 //    map.removeWhere((key, value) => value == []);
     map.removeWhere((key, value) => value == "null");
-    print(map);
     return map;
   }
 

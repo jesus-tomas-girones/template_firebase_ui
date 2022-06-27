@@ -21,12 +21,13 @@ extension SectionTabGastos on _InformeEditPageState{
               listaObjetos: informeTemp.gastos,
               formKey: _formKeyAddGasto,
               objetoTemporal: tempGasto,
+              controlador: _listaObjetosControllerGastos,
               onChange:(){
                 // se guardo o cancelo en el widget, repintamos
                 setState(() { });
               },
               elementoLista: (item) {
-                return Padding(padding: EdgeInsets.fromLTRB(16, 8, 32, 0),
+                return Padding(padding: const EdgeInsets.fromLTRB(16, 8, 32, 0),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -106,13 +107,12 @@ extension SectionTabGastos on _InformeEditPageState{
                 isNumeric: true,
                 hint: "Introduce el importe del gasto"),
         
-          // TODO hacer adjuntos a cada gasto
-          /*SelectorFicherosFirebase(
+          SelectorFicherosFirebase(
             firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos-"+gasto.id.toString(), 
-            storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos/"+gasto.descripcion+"/", 
+            storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos/"+gasto.id.toString()+"/", 
             titulo: "Ficheros adjuntos", 
             textoNoFicheros: "No hay ficheros adjuntos para este gasto"
-          )*/
+          )
 
         ],
       ),

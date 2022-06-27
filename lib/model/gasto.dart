@@ -1,6 +1,7 @@
 import 'package:firebase_ui/utils/enum_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'package:uuid/uuid.dart';
 import '../widgets/editor_lista_objetos.dart';
 
 enum TipoGasto {
@@ -26,8 +27,35 @@ extension TipoGastoExtension on TipoGasto {
 }
 
 const ESPACIALIDADES = {
-  "Traumatología":[1,4],// del grado 1 al 4
+  "Traumatología":[1,4],
   "Digestivo":[1,8],// del grado 1 al 4
+};
+
+const INTERVENCIONES = {
+// los rangos indican [minimo, maximo]
+  "Traumatología":{
+
+    "INTERVENCIÓN 1":{
+      "leve": [10, 100],
+      "moderada": [50, 100],
+      "grave": [93, 95]
+    },
+    "INTERVENCIÓN de retina":{
+      "hata 2 dioctrias":[10, 100],
+      "más de 2":[96, 198]
+    }
+    },
+  "Digestivo":{
+    "INTERVENCIÓN 1":{
+      "leve": [10, 100],
+      "moderada": [50, 100],
+      "grave": [93, 95],
+    },
+    "INTERVENCIÓN de retina":{
+      "hata 2 dioctrias":[10, 100],
+      "más de 2":[96, 198]
+    }
+  }
 };
 
 enum TipoEspecialidad {
@@ -42,7 +70,6 @@ enum TipoEspecialidad {
 @JsonSerializable()
 class Gasto implements ClonableVaciable{
 
-  @JsonKey(ignore: true)
   String? id;
   String descripcion = "";
   TipoGasto? tipoGasto;
@@ -51,13 +78,16 @@ class Gasto implements ClonableVaciable{
   int? grado;
 
   Gasto({
+    this.id,
     this.descripcion = "",
     this.tipoGasto,
     this.importe = 0,
     this.especialidad,
     this.grado,
 
-  });
+  }){
+    id ??= const Uuid().v1();
+  }
 
   @override
   clone() {
@@ -81,6 +111,7 @@ class Gasto implements ClonableVaciable{
 
     Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
+        'id':id,
         'descripcion': descripcion,
         'tipo_gasto': tipoGasto.toString(),
         'importe':importe,
@@ -90,13 +121,13 @@ class Gasto implements ClonableVaciable{
     map.removeWhere((key, value) => value == null);
 //    map.removeWhere((key, value) => value == []);
     map.removeWhere((key, value) => value == "null");
-    print(map);
     return map;
   }
 
   factory Gasto.fromJson(Map<String, dynamic> json) {
     try {
       return Gasto(
+        id: json['id'],
         descripcion: json['descripcion'],
         importe: json['importe'],
         tipoGasto: enumfromString(TipoGasto.values, json['tipo_gasto']),

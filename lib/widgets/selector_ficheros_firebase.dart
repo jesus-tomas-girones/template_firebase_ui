@@ -56,6 +56,7 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
       widget.controller!.borrarAnyadidos = _borrarAnyadidos;
       widget.controller!.borrarTodos = _borrarTodos;
     }
+    super.initState();
   }
 
   @override

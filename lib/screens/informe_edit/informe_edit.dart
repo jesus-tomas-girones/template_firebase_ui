@@ -9,6 +9,7 @@ import 'package:firebase_ui/utils/pdf_helper.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 
 
@@ -75,6 +76,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   // variables tab de gastos  -------------------------------
   Gasto tempGasto = Gasto();
   final _formKeyAddGasto =  GlobalKey<FormState>(debugLabel:"key_form_gasto");
+  final EditorListaObjetosController _listaObjetosControllerGastos = EditorListaObjetosController();
   
   bool _isLoading = false;
 
@@ -233,37 +235,29 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
 
   void _guardarInforme() async{
     _setLoading(true);
-//    try {
 
-      if(informeTemp.hayMuerte){
-        // no guardar secuelas y lesiones si esta marcado hayMuerte
-        // TODO valorar si ponerlo o no 
-        informeTemp.hayLesion = false;
-        informeTemp.haySecuela = false;
-        informeTemp.lesiones = null;
-        informeTemp.diasBaja = 0;
-        informeTemp.diasPerjuicio = 0;
-        informeTemp.diasPlanta = 0;
-        informeTemp.diasUci = 0;
-        informeTemp.secuelas = [];
-      }
+    if(informeTemp.hayMuerte){
+      // no guardar secuelas y lesiones si esta marcado hayMuerte
+      // TODO valorar si ponerlo o no 
+      informeTemp.hayLesion = false;
+      informeTemp.haySecuela = false;
+      informeTemp.lesiones = null;
+      informeTemp.diasBaja = 0;
+      informeTemp.diasPerjuicio = 0;
+      informeTemp.diasPlanta = 0;
+      informeTemp.diasUci = 0;
+      informeTemp.secuelas = [];
+    }
 
-//      print(_formKeyInforme.currentState!.validate());
+    // si se guarda habiendo un gasto abierto la aplicacion da error
+    if(_listaObjetosControllerGastos.esconderFormEditar!=null){
+      _listaObjetosControllerGastos.esconderFormEditar!();
+    }
+   
 
-//      if (_formKeyInforme.currentState!.validate()){
-   //     if (isEditing) {
-   //       Informe res = await widget.informeApi!.update(informeTemp,widget.informe!.id!);
-   //     }else{
-          Informe res = await widget.informeApi!.update(informeTemp,informeTemp.id!);
-   //     }
-        Navigator.of(context).pop();
-//      }
-/*    } catch(e) {
-       print('isEditing: ' + isEditing.toString());
-       print("error al guardar informe");
-       print(e);
-      _setLoading(false);
-    }*/
+    Informe res = await widget.informeApi!.update(informeTemp,informeTemp.id!);
+    Navigator.of(context).pop();
+
     _setLoading(false);
   }
 
