@@ -43,7 +43,19 @@ extension SectionTabGastos on _InformeEditPageState{
           // total indemnizaciones
           Padding(padding: const EdgeInsets.all(16), child: 
             Text("Total de gastos: "+formatoMoneda(informeTemp.calcularTotalGastos().round())+" €",
-            style: const TextStyle(fontSize: 18)),)
+            style: const TextStyle(fontSize: 18)),),
+          
+          // ficheros
+          SelectorFicherosFirebase(
+            firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos", 
+            storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos/", 
+            titulo: "Ficheros adjuntos", 
+            controller: _ficherosFirebaseControllerGastos,
+            textoNoFicheros: "No hay ficheros adjuntos para los gasto",
+            callbackFicheroAnyadido: (){
+                _seHaAnyadidoFichero = true;
+            }
+          )
           ],
         ) 
       ]
@@ -113,15 +125,6 @@ extension SectionTabGastos on _InformeEditPageState{
                     });},
                 hint: "Introduce el grado de la intervención"),
         
-          
-        
-          /*SelectorFicherosFirebase(
-            firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos-"+gasto.id.toString(), 
-            storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos/"+gasto.id.toString()+"/", 
-            titulo: "Ficheros adjuntos", 
-            controller: _ficherosFirebaseControllerGastos,
-            textoNoFicheros: "No hay ficheros adjuntos para este gasto"
-          )*/
 
         ],
       ),

@@ -1,7 +1,5 @@
 
 
-import 'dart:html';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/gasto.dart';
@@ -176,6 +174,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
                     // en este caso llamar al borrar de su controlador
                     _tabController.animateTo(0);
                     await _ficherosFirebaseController.borrarAnyadidos();
+                    _tabController.animateTo(2);
+                    await _ficherosFirebaseControllerGastos.borrarAnyadidos();
                     // si no se estaba editando y cancela cambios borramos el documentos
                     if(!isEditing){
                       await widget.informeApi!.delete(informeTemp.id!);
@@ -235,8 +235,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         // en este caso llamar al borrar de su controlador
         _tabController.animateTo(0);
         await _ficherosFirebaseController.borrarTodos();
-        //_tabController.animateTo(2);
-        //await _ficherosFirebaseControllerGastos.borrarTodos();
+        _tabController.animateTo(2);
+        await _ficherosFirebaseControllerGastos.borrarTodos();
         await widget.informeApi!.delete(widget.informe!.id!);
         _setLoading(false);
         Navigator.pop(context);
