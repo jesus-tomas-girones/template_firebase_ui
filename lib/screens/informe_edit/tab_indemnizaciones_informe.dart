@@ -295,7 +295,7 @@ extension SectionTabIndemnizacion on _InformeEditPageState{
                   informeTemp.lesiones = newValue;
                 });
               },
-              maxLines: 4,
+              maxLines: 2000,
               hint: "Introduzca las lesiones temporales del paciente"
           ),
 
