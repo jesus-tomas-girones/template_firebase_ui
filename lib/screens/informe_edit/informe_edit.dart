@@ -225,6 +225,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       // SI PONEMOS INFORME TEMP SE GENERA DE LOS CAMBIOS ACTUALES
       // SI PONEMOS widget.informe se hace del que esta guardado
       // TODO valorar cual de los dos informes guardar como pdf
+      // comentario
       var pdf = await pdfHelper.generar_pdf_de_informe(informeTemp,Paciente.findPacienteById(widget.pacientes, informeTemp.idPaciente),firebaseCollectionFicherosAdjuntos,firebaseCollectionFicherosGastos);
       var path = await pdfHelper.guardar_pdf("informe", pdf);
 
