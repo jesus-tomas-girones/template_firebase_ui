@@ -1,5 +1,7 @@
 
 
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_ui/api/api.dart';
 import 'package:firebase_ui/model/gasto.dart';
@@ -22,6 +24,7 @@ import '../../widgets/editor_lista_objetos.dart';
 import '../../widgets/selector_ficheros_firebase.dart';
 import '../../widgets/form_fields.dart';
 import '../../widgets/form_miscelanius.dart';
+import '../../widgets/visor_fichero.dart';
 import '../paciente_edit.dart';
 
 
@@ -103,18 +106,18 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     _ficherosFirebaseControllerGastos = SelectorFicherosFirebaseController();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
-            if (!_tabController.indexIsChanging) {
-              // Your code goes here.
-              // To get index of current tab use tabController.index
-              setState(() {
-                _currentTabIndex = _tabController.index;
-              });
-            }
-      });
-    
+      if (!_tabController.indexIsChanging) {
+        // Your code goes here.
+        // To get index of current tab use tabController.index
+        setState(() {
+          _currentTabIndex = _tabController.index;
+        });
+      }
+    });
+
     firebaseCollectionFicherosAdjuntos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros";
     firebaseCollectionFicherosGastos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos";
-    
+
     super.initState();
   }
 
@@ -146,15 +149,15 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
           children: [
             Scaffold(
               //floatingActionButton: _currentTabIndex == 1 ? _buildFab() : null,
-              appBar: _buildAppBar(),
-              body: TabBarView(
-                controller: _tabController,
-                children: [
-                  _TabDetalles(informeTemp),
-                  _TabIndemnizacion(),
-                  _TabGastos()
-                ],
-              )
+                appBar: _buildAppBar(),
+                body: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _TabDetalles(informeTemp),
+                    _TabIndemnizacion(),
+                    _TabGastos()
+                  ],
+                )
             ),
             // carga //TODO ¿Por que dos if?
             if (_isLoading) const Opacity(opacity: 0.1, child: ModalBarrier(dismissible: false, color: Colors.black),),
@@ -173,64 +176,72 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         icon: const Icon(Icons.arrow_back),
         onPressed: (){
           if (informeTemp != widget.informe || _seHaAnyadidoFichero) {
-              showDialogSeguro(
-                  context: context,
-                  title: "Se perderán todos los cambios que no esten guardados",
-                  onAccept: () async {
-                    _setLoading(true);
-                     // debe estar el selector de ficheros renderizado para que se pueda hacer una accion con él
-                    // en este caso llamar al borrar de su controlador
-                    _tabController.animateTo(0);
-                    await _ficherosFirebaseController.borrarAnyadidos();
-                    _tabController.animateTo(2);
-                    await _ficherosFirebaseControllerGastos.borrarAnyadidos();
-                    // si no se estaba editando y cancela cambios borramos el documentos
-                    if(!isEditing){
-                      await widget.informeApi!.delete(informeTemp.id!);
-                    }
-                    _setLoading(false);
-                    Navigator.pop(context);
-                  });
-            } else {
-              Navigator.pop(context);
-            }
+            showDialogSeguro(
+                context: context,
+                title: "Se perderán todos los cambios que no esten guardados",
+                onAccept: () async {
+                  _setLoading(true);
+                  // debe estar el selector de ficheros renderizado para que se pueda hacer una accion con él
+                  // en este caso llamar al borrar de su controlador
+                  _tabController.animateTo(0);
+                  await _ficherosFirebaseController.borrarAnyadidos();
+                  _tabController.animateTo(2);
+                  await _ficherosFirebaseControllerGastos.borrarAnyadidos();
+                  // si no se estaba editando y cancela cambios borramos el documentos
+                  if(!isEditing){
+                    await widget.informeApi!.delete(informeTemp.id!);
+                  }
+                  _setLoading(false);
+                  Navigator.pop(context);
+                });
+          } else {
+            Navigator.pop(context);
+          }
         },
       ),
       actions: [
         // GUARDAR INFORME
         IconButton(
-          onPressed: _guardarInforme,
-          icon: const Icon(Icons.save)
+            onPressed: _guardarInforme,
+            icon: const Icon(Icons.save)
         ),
         isEditing ? IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _borrarInforme,
+          icon: const Icon(Icons.delete),
+          onPressed: _borrarInforme,
         ) : Container(),
         IconButton(
-          onPressed: _generarPdf,
-          icon: const Icon(Icons.more)
+            onPressed: _generarPdf,
+            icon: const Icon(Icons.more)
         ),
       ],
       bottom: TabBar(
-        controller: _tabController,
-        tabs: _tabs
+          controller: _tabController,
+          tabs: _tabs
       ),
     );
   }
 
   void _generarPdf()async{
-      
-      PDFHelper pdfHelper = PDFHelper();
 
-      // SI PONEMOS INFORME TEMP SE GENERA DE LOS CAMBIOS ACTUALES
-      // SI PONEMOS widget.informe se hace del que esta guardado
-      // TODO valorar cual de los dos informes guardar como pdf
-      // comentario
-      var pdf = await pdfHelper.generar_pdf_de_informe(informeTemp,Paciente.findPacienteById(widget.pacientes, informeTemp.idPaciente),firebaseCollectionFicherosAdjuntos,firebaseCollectionFicherosGastos);
-      var path = await pdfHelper.guardar_pdf("informe", pdf);
+    PDFHelper pdfHelper = PDFHelper();
 
-      print("Se guardo en: "+path);
-      
+    // SI PONEMOS INFORME TEMP SE GENERA DE LOS CAMBIOS ACTUALES
+    // SI PONEMOS widget.informe se hace del que esta guardado
+    // TODO valorar cual de los dos informes guardar como pdf
+    // comentario
+    var pdf = await pdfHelper.generar_pdf_de_informe(informeTemp,Paciente.findPacienteById(widget.pacientes, informeTemp.idPaciente),firebaseCollectionFicherosAdjuntos,firebaseCollectionFicherosGastos);
+    var path = await pdfHelper.guardar_pdf("informe", pdf);
+
+    print("Se guardo en: "+path+"/informe.pdf");
+
+    if(Platform.isAndroid || Platform.isIOS) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
+        return VisorFicheroLocal(
+            path: path + "/informe.pdf",
+            titulo: "Informe en PDF - descargado en ...",
+            extension: "pdf");
+      }));
+    }
   }
 
   void _borrarInforme()async{
@@ -273,7 +284,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     if(_tabController.index == 2 && _listaObjetosControllerGastos.esconderFormEditar!=null){
       _listaObjetosControllerGastos.esconderFormEditar!();
     }
-   
+
 
     Informe res = await widget.informeApi!.update(informeTemp,informeTemp.id!);
     Navigator.of(context).pop();
@@ -281,8 +292,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     _setLoading(false);
   }
 
-  
 
-  
+
+
 
 }
