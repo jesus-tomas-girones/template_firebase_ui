@@ -76,7 +76,7 @@ extension SectionTabDetalles on _InformeEditPageState {
                 maxLines: 2000
               ),
             SelectorFicherosFirebase(
-              firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros",
+              firebaseColecion: firebaseCollectionFicherosAdjuntos,
               storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/",
               titulo: "Ficheros adjuntos",
               textoNoFicheros: "No se han añadido ficheros aun",

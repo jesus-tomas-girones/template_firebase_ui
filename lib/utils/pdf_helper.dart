@@ -5,12 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' as x;
-import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../model/informe.dart';
@@ -30,8 +28,8 @@ class PDFHelper{
   ///   Documento pdf
   ///
   ///
-  Future< Document>  generar_pdf_de_informe(Informe informe, Paciente? paciente) async{
-    final pdf =  Document(pageMode: PdfPageMode.outlines,);
+  Future< Document>  generar_pdf_de_informe(Informe informe, Paciente? paciente,String firebaseCollectionFicherosAdjuntos, String firebaseCollectionFicherosGastos) async{
+    final pdf =  Document();
     // cargar una fuente que permita unicode
     final font = await rootBundle.load("assets/fonts/OpenSans-Regular.ttf");
     final ttf =  Font.ttf(font);
@@ -50,15 +48,27 @@ class PDFHelper{
 
     final bool hayIntervenciones = informe.gastos.any((element) => element.tipoGasto == TipoGasto.Cirugia);
     final bool hayOtrosGastos = informe.gastos.any((element) => element.tipoGasto != TipoGasto.Cirugia);
-   
+
+
+    
+    
+    // ficheros adjuntos
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection(firebaseCollectionFicherosAdjuntos).get();
+    List<dynamic> ficherosAdjuntos = querySnapshot.docs.map((doc) => doc.data()).toList(); //[{url:string,nombre:string}]
+    // ficheros gastos
+    QuerySnapshot querySnapshotGastos = await FirebaseFirestore.instance.collection(firebaseCollectionFicherosGastos).get();
+    List<dynamic> ficherosGastos = querySnapshotGastos.docs.map((doc) => doc.data()).toList(); //[{url:string,nombre:string}]
+
+    
+
     pdf.addPage( 
       MultiPage(
           pageFormat: PdfPageFormat.a4,
           build: ( Context context) {
             return  <Widget> [ 
-              Column(
-                crossAxisAlignment:  CrossAxisAlignment.start,
-                children: [
+              //Column(
+                //crossAxisAlignment:  CrossAxisAlignment.start,
+                //children: [
                   // =======================================================================
                   // Cabecera y paciente
                   // =======================================================================
@@ -185,8 +195,10 @@ class PDFHelper{
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Intervenciones", style: cabeceraStyle),
-                        Text("El lesionado que debe someterse a intervenciones quirúrgicas durante el proceso de curación, sufre un plus de perjuicio resarcible. La fijación de la cuantía dependerá de las características de la operación, su complejidad técnica y el tipo de anestesia.",textAlign: TextAlign.justify,style: textoStyle)
+                        Padding(padding: const EdgeInsets.only(bottom: 8),child: Text("Intervenciones", style: cabeceraStyle),),
+                        Padding(padding: const EdgeInsets.only(bottom: 8),child: 
+                          Text("El lesionado que debe someterse a intervenciones quirúrgicas durante el proceso de curación, sufre un plus de perjuicio resarcible. La fijación de la cuantía dependerá de las características de la operación, su complejidad técnica y el tipo de anestesia.",
+                          textAlign: TextAlign.justify,style: textoStyle)),
                       ]
                     ),
                   if(hayIntervenciones)
@@ -222,13 +234,30 @@ class PDFHelper{
                             // el segundo bucle es el de los table row, que contiene que secuela es y que puntos tiene
                             children: _buildTableRowsGastos(informe.gastos.where((element) => element.tipoGasto != TipoGasto.Cirugia).toList(),textoStyle),
                           ),
+
+                  if(ficherosGastos!=null && ficherosGastos.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+                      child: Text("Ficheros adjuntos de gastos",style: cabeceraStyle),
+                    ),
+                  for(int i=0;i<ficherosGastos.length;i++)
+                    Padding(padding: const EdgeInsets.only(bottom: 4),child: Text(ficherosGastos[i]['nombre'].toString(),style: textoStyle)),
+
                   // =======================================================================
                   // Ficheros adjuntos
                   // =======================================================================
+                  if(ficherosAdjuntos!=null && ficherosAdjuntos.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+                      child: Text("Ficheros adjuntos",style: cabeceraStyle),
+                    ),
+                  for(int i=0;i<ficherosAdjuntos.length;i++)
+                    Padding(padding: const EdgeInsets.only(bottom: 4),child: Text(ficherosAdjuntos[i]['nombre'].toString(),style: textoStyle)),
 
-                ],
-              )
-            ];
+                  
+                ];
+              //)
+            //];
           },
           
         ),
@@ -340,15 +369,15 @@ class PDFHelper{
     // separar primero por las frases, despues juntar frases cortas en parrafos 
     List<String> descripcionSeparado = descripcion.split("\n");
     
-   
-    for(int i = 0; i<descripcionSeparado.length;i++){
+   // TODO en los parrafos id buscando puntos hasta hacer X caracteres
+    /*for(int i = 0; i<descripcionSeparado.length;i++){
       if(descripcionSeparado[i].length>2000){
-        List<String> temp = descripcionSeparado[i].split(".");
+        List<String> temp = descripcionSeparado[i].split(". ");
       
         descripcionSeparado[i] = "";
         descripcionSeparado.insertAll(i, temp.map((e) => e+"."));// añadirle el punto que se le ha quitado con el replace
       }
-    }
+    }*/
     return descripcionSeparado;
   }
 

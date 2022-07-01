@@ -26,6 +26,7 @@ class SelectorFicherosFirebase extends StatefulWidget{
   final double padding;
   final SelectorFicherosFirebaseController? controller;
   final void Function()? callbackFicheroAnyadido;
+  
 
   const SelectorFicherosFirebase({Key? key, 
     required this.firebaseColecion, 

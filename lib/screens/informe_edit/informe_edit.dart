@@ -57,6 +57,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   late SelectorFicherosFirebaseController _ficherosFirebaseControllerGastos;
   late int _currentTabIndex = 0;
 
+
   // variables tab de datos -------------------------------
   final _formKeyInforme =  GlobalKey<FormState>(debugLabel: "key_form_informe");
   late Informe informeTemp;
@@ -64,6 +65,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   late bool isEditing;
   late bool _seHaAnyadidoFichero = false;
 
+  late String firebaseCollectionFicherosAdjuntos;
 
   // variables tab de indemnizaciones -------------------------------
   Familiar tempFamiliar = Familiar();
@@ -78,7 +80,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   Gasto tempGasto = Gasto();
   final _formKeyAddGasto =  GlobalKey<FormState>(debugLabel:"key_form_gasto");
   final EditorListaObjetosController _listaObjetosControllerGastos = EditorListaObjetosController();
-  
+  late String firebaseCollectionFicherosGastos;
+
+
   bool _isLoading = false;
 
   @override
@@ -107,6 +111,10 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
               });
             }
       });
+    
+    firebaseCollectionFicherosAdjuntos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros";
+    firebaseCollectionFicherosGastos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos";
+    
     super.initState();
   }
 
@@ -217,7 +225,7 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
       // SI PONEMOS INFORME TEMP SE GENERA DE LOS CAMBIOS ACTUALES
       // SI PONEMOS widget.informe se hace del que esta guardado
       // TODO valorar cual de los dos informes guardar como pdf
-      var pdf = await pdfHelper.generar_pdf_de_informe(widget.informe!,Paciente.findPacienteById(widget.pacientes, widget.informe!.idPaciente));
+      var pdf = await pdfHelper.generar_pdf_de_informe(informeTemp,Paciente.findPacienteById(widget.pacientes, informeTemp.idPaciente),firebaseCollectionFicherosAdjuntos,firebaseCollectionFicherosGastos);
       var path = await pdfHelper.guardar_pdf("informe", pdf);
 
       print("Se guardo en: "+path);

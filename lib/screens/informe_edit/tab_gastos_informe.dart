@@ -47,7 +47,7 @@ extension SectionTabGastos on _InformeEditPageState{
           
           // ficheros
           SelectorFicherosFirebase(
-            firebaseColecion: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos", 
+            firebaseColecion: firebaseCollectionFicherosGastos, 
             storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos/", 
             titulo: "Ficheros adjuntos", 
             controller: _ficherosFirebaseControllerGastos,
