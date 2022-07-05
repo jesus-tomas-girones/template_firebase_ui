@@ -347,6 +347,7 @@ class PDFHelper{
             mimeType: type);
       }else if(Platform.isAndroid){
          // TODO no se si en IOS funcionaria
+         await getApplicationDocumentsDirectory();
         final directory = await getExternalStorageDirectory();
         path = directory!.path;
         var file = File('$path/$nombre_documento.pdf');

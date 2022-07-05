@@ -75,16 +75,18 @@ extension SectionTabDetalles on _InformeEditPageState {
                 hint: "Introduce la descripcion del informe",
                 maxLines: 2000
               ),
-            SelectorFicherosFirebase(
-              firebaseColecion: firebaseCollectionFicherosAdjuntos,
-              storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/",
-              titulo: "Ficheros adjuntos",
-              textoNoFicheros: "No se han añadido ficheros aun",
-              controller: _ficherosFirebaseController,
-              callbackFicheroAnyadido: (){
-                _seHaAnyadidoFichero = true;
-              },
-            )
+            // cuando esta cargando las referencias a las colecciones y al storage no estan
+            if(!_isLoading)
+              SelectorFicherosFirebase(
+                firebaseColecion: firebaseCollectionFicherosAdjuntos,
+                storageRef: "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/",
+                titulo: "Ficheros adjuntos",
+                textoNoFicheros: "No se han añadido ficheros aun",
+                controller: _ficherosFirebaseController,
+                callbackFicheroAnyadido: (){
+                  _seHaAnyadidoFichero = true;
+                },
+              )
           ],
         ),
     );
