@@ -20,6 +20,7 @@ import '../../model/familiar.dart';
 import '../../model/informe.dart';
 import '../../model/paciente.dart';
 import '../../utils/date_time_helpers.dart';
+import '../../utils/firestore_utils.dart';
 import '../../widgets/editor_lista_objetos.dart';
 import '../../widgets/selector_ficheros_firebase.dart';
 import '../../widgets/form_fields.dart';
@@ -66,9 +67,9 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   late Informe informeTemp;
   late String? pacienteSeleccionado;
   late bool isEditing;
-  late bool _seHaAnyadidoFichero = false;
+  bool _seHaAnyadidoFichero = false;
 
-  late String firebaseCollectionFicherosAdjuntos;
+  late String firebaseCollectionFicherosAdjuntos = "";
 
   // variables tab de indemnizaciones -------------------------------
   Familiar tempFamiliar = Familiar();
@@ -83,22 +84,26 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
   Gasto tempGasto = Gasto();
   final _formKeyAddGasto =  GlobalKey<FormState>(debugLabel:"key_form_gasto");
   final EditorListaObjetosController _listaObjetosControllerGastos = EditorListaObjetosController();
-  late String firebaseCollectionFicherosGastos;
+  late String firebaseCollectionFicherosGastos = "";
 
 
   bool _isLoading = false;
 
   @override
-  void initState() {
+  void initState(){
     isEditing = widget.informe != null;
     if (widget.informe != null) {
       // Debemos hacer esto porque sino se estara modificando la referencia y puede dar a problemas
       informeTemp = widget.informe!.clone();
       isEditing = true;
+      firebaseCollectionFicherosAdjuntos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros";
+      firebaseCollectionFicherosGastos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos";
+
     } else {
       _isLoading = true;
       informeTemp = Informe();
       _crearInformeVacio(); // de esta forme tenemos una referencia a la bd y podemos añadirle imagenes
+      
       isEditing = false;
     }
 
@@ -106,25 +111,30 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
     _ficherosFirebaseControllerGastos = SelectorFicherosFirebaseController();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        // Your code goes here.
-        // To get index of current tab use tabController.index
-        setState(() {
-          _currentTabIndex = _tabController.index;
-        });
-      }
-    });
-
-    firebaseCollectionFicherosAdjuntos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros";
-    firebaseCollectionFicherosGastos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos";
-
+            if (!_tabController.indexIsChanging) {
+              // Your code goes here.
+              // To get index of current tab use tabController.index
+              setState(() {
+                _currentTabIndex = _tabController.index;
+              });
+            }
+      });
+    
+       
     super.initState();
   }
 
   // crear un informe vacio para tener la referencia del id y asi poder subir imagenes
-  void _crearInformeVacio() async{
-
-    informeTemp =  await widget.informeApi!.insert(informeTemp);
+  _crearInformeVacio() async{
+    informeTemp =  await widget.informeApi!.insert(informeTemp.clone());
+    // hay que esperar a que se cree el informe vacio para obtener su id y asi poder referenciar bien el storage y la coleccion
+    setState(() {
+      firebaseCollectionFicherosAdjuntos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros";
+      firebaseCollectionFicherosGastos = "users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos";
+    });
+    print("informe id: "+informeTemp.id.toString());
+    print("firebaseCollectionFicherosAdjuntos: users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/ficheros");
+    print("firebaseCollectionFicherosGastos: users/"+Provider.of<AppState>(context,listen: false).user!.uid.toString()+"/informes/"+informeTemp.id.toString()+"/gastos");
     _setLoading(false);
 
   }
@@ -253,10 +263,8 @@ class _InformeEditPageState extends State<InformeEditPage> with SingleTickerProv
         _setLoading(true);
         // debe estar el selector de ficheros renderizado para que se pueda hacer una accion con él
         // en este caso llamar al borrar de su controlador
-        _tabController.animateTo(0);
-        await _ficherosFirebaseController.borrarTodos();
-        _tabController.animateTo(2);
-        await _ficherosFirebaseControllerGastos.borrarTodos();
+        borrarColeccionDeFirebaseFirestore(firebaseCollectionFicherosAdjuntos);
+        borrarColeccionDeFirebaseFirestore(firebaseCollectionFicherosGastos);
         await widget.informeApi!.delete(widget.informe!.id!);
         _setLoading(false);
         Navigator.pop(context);

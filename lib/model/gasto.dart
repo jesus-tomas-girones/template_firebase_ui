@@ -134,7 +134,7 @@ class Gasto implements ClonableVaciable{
       return Gasto(
         id: json['id'],
         descripcion: json['descripcion'],
-        importe: json['importe'],
+        importe: json['importe'].toDouble(),
         tipoGasto: enumfromString(TipoGasto.values, json['tipo_gasto']),
         especialidad: json['especialidad'],
         intervencion: json['intervencion'],

@@ -8,8 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/firestore_utils.dart';
 
 class SelectorFicherosFirebaseController {
-  late Function() borrarAnyadidos;
-  late Function() borrarTodos;
+  Function() borrarAnyadidos = (){};
+  Function() borrarTodos = (){};
 }
 
 
@@ -147,6 +147,8 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
           "url":url,
           "nombre":file.name
         };
+        print("añadir en firebase: "+widget.firebaseColecion + " el fichero: ");
+        print(fichero);
         DocumentReference doc = await FirebaseFirestore.instance.collection(widget.firebaseColecion).add(fichero);
         fichero["id"] = doc.id;
         referenciasNuevas.add(fichero);
@@ -180,9 +182,10 @@ class _SelectorFicherosFirebaseState extends State<SelectorFicherosFirebase>{
     
       _setLoading(true);
 
-      for(DocumentSnapshot<Object?> fichero in todasReferencias){
+      borrarColeccionDeFirebaseFirestore(widget.firebaseColecion);
+      /*for(DocumentSnapshot<Object?> fichero in todasReferencias){
         _borrarFichero(fichero["url"], fichero.id);
-      }
+      }*/
       
     
       _setLoading(false);
