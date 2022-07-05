@@ -1,5 +1,5 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_ui/widgets/visor_fichero_http.dart';
+import 'package:firebase_ui/widgets/visor_fichero.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
